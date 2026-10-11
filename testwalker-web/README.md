@@ -52,13 +52,17 @@ Use `--browser-config browser.json`. Demo folders supply one:
     "ignoreHTTPSErrors": false
   },
   "action_timeout_ms": 15000,
-  "navigation_timeout_ms": 30000
+  "navigation_timeout_ms": 30000,
+  "settle_ms": 150,
+  "settle_timeout_ms": 5000
 }
 ```
 
 `launch` and `context` accept Playwright Chromium launch/context options. Relative `launch.executablePath` is resolved against the configuration file. `--headed` overrides headless startup. PlayJev and DOM capture require Chromium; Firefox/WebKit are not supported. This adapter uses fresh nonpersistent browser contexts; persistent-profile extensions require a separate integration.
 
 Execution can attach to externally managed Chromium using `--cdp-url http://127.0.0.1:9222`. It creates its own context and does not close other tabs. Discovery launches its own browser and does not support CDP attachment.
+
+Before execution observations, the adapter waits for document/XHR/fetch requests to finish and for the rendered text and form values to remain stable for `settle_ms` (default 150 ms), within `settle_timeout_ms` (default 5 seconds). This prevents assertions against an unfinished asynchronous save. A timeout is inconclusive. Set `settle_ms` to 0 to disable the settling wait, for example on a site with continuous background requests. DOM evidence is captured together and checked against the accessibility snapshot; changing evidence is inconclusive rather than a mixture of two pages.
 
 ## Who calls whom
 
@@ -80,6 +84,14 @@ flowchart TD
 PlayJev finds controls from observed browser evidence. The model contains business intents and constraints, without selectors. A loopback bridge routes PlayJev's decision requests through Rust so its provider budget, cache and audit cover **all** Jev calls. The bridge uses a temporary local token; the real API key remains in Rust.
 
 Independent state identification and business-rule checks establish the outcome. PlayJev's action verification is retained as diagnostic evidence. Intentionally invalid inputs are entered literally, checked for exact entry, and submitted once; they are never repaired to make an action check succeed.
+
+After Jev binds the fields, standard HTML forms with exactly one visible, enabled submit control are submitted through that control's normal Playwright click. This uses the observed HTML form association, including external controls with a `form` attribute. Ambiguous submit controls or custom forms still use PlayJev. Submission is never retried, and the independent state and rule checks verify the outcome. No selectors need to be added to the model.
+
+If PlayJev cannot choose between navigation links before taking an action, the adapter can ask Jev to choose among observed destinations, grouping links that share a URL. It then uses a named navigation link for that destination. Both choices retain the configured confidence threshold; the independent state check still decides whether the journey succeeded. This fallback never retries form entry, submission, or an operation that may already have executed.
+
+Resolved navigation hints are reused within the run while their accessible name, navigation region and URL still identify one observed link. Changed or ambiguous controls discard the hint. Reuse only makes the next PlayJev instruction more specific; it does not bypass Jev confidence or destination assertions. Reports record both disambiguation and hint reuse.
+
+Global audits distinguish newly submitted inputs from values retained during navigation. An uncertain batch of observations can be checked once as individual scenarios. The report retains the original answer and each focused answer; any contradiction or remaining uncertainty still prevents a pass. Absent evidence never counts as support.
 
 See [testing and triage](docs/testing.md), [JS/TS hooks](docs/hooks.md), [discovery](docs/discovery.md), and [self-contained demos](../demos/README.md).
 

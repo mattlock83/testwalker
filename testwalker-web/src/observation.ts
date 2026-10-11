@@ -1,5 +1,6 @@
 import type { Page } from "playwright";
 import type { Json } from "./types.js";
+import { Inconclusive } from "./types.js";
 
 // Read-only generic rendered evidence, including offscreen controls and linked errors.
 export const SEMANTICS = `(() => {
@@ -31,7 +32,10 @@ export const SEMANTICS = `(() => {
     available_links: [...document.querySelectorAll('a[href],[role="link"]')]
       .filter(e => rendered(e) && e.getAttribute('aria-disabled') !== 'true')
       .slice(0, 100).map(e => ({
-        label: e.getAttribute('aria-label') || e.innerText, ...fieldPosition(e)
+        label: e.getAttribute('aria-label') || e.innerText,
+        href: e.href || null,
+        in_navigation: Boolean(e.closest('nav,[role="navigation"]')),
+        ...fieldPosition(e)
       })),
     available_buttons: [...document.querySelectorAll('button,[role="button"]')]
       .filter(e => rendered(e) && !e.disabled && e.getAttribute('aria-disabled') !== 'true')
@@ -54,14 +58,17 @@ export const SEMANTICS = `(() => {
 
 export async function observe(page: Page): Promise<Json> {
   await page.waitForLoadState("domcontentloaded");
-  const data = await page.evaluate(() => ({
-    url: location.href,
-    title: document.title,
-    text: document.body.innerText.slice(0, 80000),
-  }));
-  return {
-    ...data,
-    semantics: await page.evaluate(SEMANTICS),
-    accessibility_tree: await page.locator("body").ariaSnapshot(),
-  };
+  const snapshot = `(() => ({url: location.href, title: document.title,
+    text: document.body.innerText.slice(0, 80000), semantics: ${SEMANTICS}}))()`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    // Rendered text, URL and semantics must describe one DOM state.
+    const data = await page.evaluate<Json>(snapshot);
+    const accessibility_tree = await page.locator("body").ariaSnapshot();
+    const current = await page.evaluate<Json>(snapshot);
+    if (JSON.stringify(data) === JSON.stringify(current))
+      return { ...data, accessibility_tree };
+  }
+  throw new Inconclusive(
+    "The page changed while its evidence was being captured",
+  );
 }

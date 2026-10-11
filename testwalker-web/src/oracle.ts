@@ -18,6 +18,16 @@ const VALIDATION =
 export function choice(criteria: Json, instructions: unknown): Json {
   return { type: "choice", criteria, instructions };
 }
+function auditStatus(checks: Json[]): string {
+  const statuses = new Set(checks.map((check) => check.status));
+  return statuses.has("broken")
+    ? "broken"
+    : statuses.has("uncertain")
+      ? "uncertain"
+      : statuses.has("met")
+        ? "met"
+        : "not_applicable";
+}
 export function stateQuestion(descriptions: string[]): Json {
   return choice(
     {
@@ -283,9 +293,17 @@ export class Oracle {
                   ...messages,
                   NONE: "No relevant corrective validation guidance is shown.",
                 },
-                `Which observed message provides corrective guidance for ${item.violation.field}: ${item.violation.description}? ` +
-                  "Match business fields by meaning, not exact wording. " +
-                  UNTRUSTED,
+                {
+                  question: `Which current validation-feedback message explains the problem with ${item.violation.field}: ${item.violation.description}?`,
+                  input_violations: item.violation.violations,
+                  interpretation:
+                    "Candidates come from current alerts or field-linked validation feedback. " +
+                    "Match business fields by meaning, not exact wording. A length or format constraint in rejection feedback " +
+                    "can explain a too-short, too-long or malformed input without repeating its value. " +
+                    VALIDATION +
+                    " " +
+                    UNTRUSTED,
+                },
               )
             : ruleQuestion(
                 item.rule,
@@ -441,13 +459,34 @@ export class Oracle {
     if (!rules.length) return [];
     const seen = new Set<string>();
     const scenarios: Json[] = [];
+    const journeys = edges(this.model);
+    let preceding: Json | undefined;
     for (const record of records) {
+      if (record.kind === "edge") {
+        preceding = journeys[record.id];
+        continue;
+      }
+      const journey = record.journey ? journeys[record.journey] : preceding;
+      preceding = undefined;
       if (record.status !== "PASS" || !record.observed) continue;
+      const dataSet = journey?.properties.business["data set"];
+      const navigation = journey && !dataSet;
       const scenario = {
         observed_state: record.observed,
         expected_state: record.expected,
-        submitted_values: record.input,
-        input_violations: record.violations ?? [],
+        transition: journey
+          ? {
+              id: journey.id,
+              type: dataSet ? "data_submission" : "navigation",
+              data_set: dataSet ?? null,
+            }
+          : undefined,
+        submitted_values: navigation ? undefined : record.input,
+        retained_business_values: navigation ? record.input : undefined,
+        input_violations: navigation ? [] : (record.violations ?? []),
+        retained_input_violations: navigation
+          ? (record.violations ?? [])
+          : undefined,
         visible_text: (record.evidence?.text ?? "").slice(0, 1800),
         validation_alerts: record.evidence?.semantics?.alerts ?? [],
         verified_requirements: (record.checks ?? [])
@@ -479,6 +518,7 @@ export class Oracle {
         criteria,
         `Requirement: ${rule}. Judge executed scenarios, not all possible future inputs. ` +
           "Inspect observations and exact verified requirements; a generic PASS label is not evidence. " +
+          "A navigation transition does not submit retained business values again. " +
           "Absence is not support; choose not_applicable for absent scenarios. " +
           UNTRUSTED,
       );
@@ -502,18 +542,59 @@ export class Oracle {
           { executed_scenarios },
           { global: question },
         );
-        checks.push({
+        const check: Json = {
           batch: n,
           ...(await this.decisions.verdict(response, "global", criteria)),
-        });
+        };
+        if (
+          check.status === "uncertain" &&
+          executed_scenarios.length > 1 &&
+          !check.reason?.startsWith("Invalid or refused")
+        ) {
+          // Refine an ambiguous collection into individual evidence checks, once.
+          // Every scenario remains represented; no contradiction or uncertainty is discarded.
+          const focused = await this.decisions.ask(
+            { executed_scenarios },
+            Object.fromEntries(
+              executed_scenarios.map((_, index) => [
+                `scenario_${index}`,
+                choice(
+                  criteria,
+                  `Requirement: ${rule}. Judge ONLY executed_scenarios[${index}]. ` +
+                    "Use its visible evidence and exact verified requirements. A transition or generic PASS label is not proof. " +
+                    "Retained values after navigation are not a new submission. Choose not_applicable for an unrelated form or absent scenario. " +
+                    UNTRUSTED,
+                ),
+              ]),
+            ),
+          );
+          const individual: Json[] = [];
+          for (const index of executed_scenarios.keys()) {
+            individual.push({
+              scenario: index,
+              ...(await this.decisions.verdict(
+                focused,
+                `scenario_${index}`,
+                criteria,
+              )),
+            });
+          }
+          const status = auditStatus(individual);
+          const resolved = individual.find((item) => item.status === status);
+          Object.assign(check, {
+            initial_answer: check.answer,
+            initial_reason: check.reason,
+            status,
+            answer: resolved?.answer,
+            reason: resolved?.reason,
+            scenario_checks: individual,
+          });
+        }
+        checks.push(check);
         if (checks.at(-1)!.status === "broken") break;
       }
-      const statuses = checks.map((check) => check.status);
-      const status = statuses.includes("broken")
-        ? "broken"
-        : statuses.includes("uncertain") || !statuses.includes("met")
-          ? "uncertain"
-          : "met";
+      const aggregate = auditStatus(checks);
+      const status = aggregate === "not_applicable" ? "uncertain" : aggregate;
       results.push({
         scope: "global",
         rule,

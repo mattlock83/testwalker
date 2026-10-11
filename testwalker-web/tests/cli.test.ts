@@ -6,6 +6,34 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { once } from "node:events";
+import { loadBrowserSettings } from "../src/config.js";
+
+test("Browser settling configuration rejects impossible waits and supports disabling the wait", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "testwalker-browser-config-"));
+  const path = join(temp, "browser.json");
+  try {
+    for (const invalid of [
+      { settle_ms: -1 },
+      { settle_ms: 1.5 },
+      { settle_timeout_ms: 0 },
+      { settle_ms: 300, settle_timeout_ms: 200 },
+      { settle_timeout_ms: 100 },
+    ]) {
+      await writeFile(path, JSON.stringify(invalid));
+      await assert.rejects(loadBrowserSettings(path), /settle_/);
+    }
+    await writeFile(
+      path,
+      JSON.stringify({ settle_ms: 0, settle_timeout_ms: 1 }),
+    );
+    assert.deepEqual(await loadBrowserSettings(path), {
+      settle_ms: 0,
+      settle_timeout_ms: 1,
+    });
+  } finally {
+    await rm(temp, { recursive: true, force: true });
+  }
+});
 
 test("The installed symlink CLI prints help and rejects unsupported retention before starting a target", () => {
   const bin = fileURLToPath(

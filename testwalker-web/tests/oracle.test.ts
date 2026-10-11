@@ -142,3 +142,119 @@ test("Global audits preserve later batch contradictions and never pass absent ev
   );
   assert.equal(globalCalls, 2);
 });
+
+test("Uncertain mixed audit batches are checked per scenario without discarding uncertainty or contradictions", async () => {
+  for (const outcomes of [
+    ["not_applicable", "met"],
+    ["met", "uncertain"],
+    ["met", "broken"],
+    ["not_applicable", "not_applicable"],
+    ["met", "LOW_CONFIDENCE"],
+  ]) {
+    let focused = 0;
+    const core = {
+      async request(method: string, params: Json = {}) {
+        if (method === "decision.answer") {
+          assert.equal(params.threshold, 0.8);
+          const answer = params.result.answers[params.name].choice;
+          if (answer === "LOW_CONFIDENCE")
+            throw new Error("Confidence below 0.80");
+          return answer;
+        }
+        const names = Object.keys(params.questions);
+        if (names[0].startsWith("scenario_")) focused++;
+        return {
+          answers: Object.fromEntries(
+            names.map((name) => [
+              name,
+              {
+                choice:
+                  name === "global"
+                    ? "uncertain"
+                    : outcomes[Number(name.split("_")[1])],
+              },
+            ]),
+          ),
+        };
+      },
+    };
+    const oracle = new Oracle(new Decisions(core), model);
+    const result = (
+      await oracle.audit(
+        outcomes.map((_, i) => ({
+          status: "PASS",
+          observed: "done",
+          input: { index: i },
+          evidence: { text: `Observed scenario ${i}` },
+        })),
+        ["Invalid details are rejected"],
+      )
+    )[0];
+    const expected = outcomes.includes("broken")
+      ? "broken"
+      : outcomes.includes("uncertain") ||
+          outcomes.includes("LOW_CONFIDENCE") ||
+          !outcomes.includes("met")
+        ? "uncertain"
+        : "met";
+    assert.equal(result.status, expected);
+    assert.equal(focused, 1, "One decomposition, never repeated until a pass");
+    assert.equal(result.batch_answers[0].scenario_checks.length, 2);
+    assert.equal(result.batch_answers[0].initial_answer.choice, "uncertain");
+  }
+});
+
+test("Audit provenance distinguishes a new submission from values retained during navigation", async () => {
+  const local = structuredClone(model);
+  local.models[0].edges = [
+    { id: "submit", properties: { business: { "data set": "Names" } } },
+    {
+      id: "return",
+      properties: { business: { intent: "Return to the form" } },
+    },
+  ];
+  const calls: Json[] = [];
+  const core = {
+    async request(method: string, params: Json = {}) {
+      if (method === "decision.answer")
+        return params.result.answers[params.name].choice;
+      calls.push(params);
+      return { answers: { global: { choice: "met" } } };
+    },
+  };
+  await new Oracle(new Decisions(core), local).audit(
+    [
+      { kind: "edge", id: "submit" },
+      {
+        kind: "state",
+        status: "PASS",
+        observed: "done",
+        input: { Name: "" },
+        violations: [{ field: "Name" }],
+      },
+      { kind: "edge", id: "return" },
+      {
+        kind: "state",
+        status: "PASS",
+        observed: "form",
+        input: { Name: "" },
+        violations: [{ field: "Name" }],
+      },
+      {
+        journey: "submit",
+        status: "PASS",
+        observed: "done",
+        input: { Name: "x" },
+      },
+    ],
+    ["Name validation"],
+  );
+  const scenarios = calls[0].evidence.executed_scenarios;
+  assert.equal(scenarios[0].transition.type, "data_submission");
+  assert.deepEqual(scenarios[0].submitted_values, { Name: "" });
+  assert.equal(scenarios[1].transition.type, "navigation");
+  assert.equal(scenarios[1].submitted_values, undefined);
+  assert.deepEqual(scenarios[1].retained_business_values, { Name: "" });
+  assert.deepEqual(scenarios[1].input_violations, []);
+  assert.equal(scenarios[2].transition.data_set, "Names");
+});

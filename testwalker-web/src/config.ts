@@ -10,6 +10,8 @@ export interface BrowserSettings {
   cdp_url?: string;
   action_timeout_ms?: number;
   navigation_timeout_ms?: number;
+  settle_ms?: number;
+  settle_timeout_ms?: number;
 }
 export function httpUrl(value: unknown): string {
   if (typeof value !== "string" || /\s/.test(value))
@@ -39,6 +41,8 @@ export async function loadBrowserSettings(
         "cdp_url",
         "action_timeout_ms",
         "navigation_timeout_ms",
+        "settle_ms",
+        "settle_timeout_ms",
       ].includes(key)
     ) {
       throw new Error(`Unknown browser setting: ${key}`);
@@ -54,7 +58,11 @@ export async function loadBrowserSettings(
       throw new Error(`${key} must be an object`);
     }
   }
-  for (const key of ["action_timeout_ms", "navigation_timeout_ms"]) {
+  for (const key of [
+    "action_timeout_ms",
+    "navigation_timeout_ms",
+    "settle_timeout_ms",
+  ]) {
     if (
       config[key] !== undefined &&
       (!Number.isInteger(config[key]) || config[key] <= 0)
@@ -62,6 +70,13 @@ export async function loadBrowserSettings(
       throw new Error(`${key} must be a positive integer`);
     }
   }
+  if (
+    config.settle_ms !== undefined &&
+    (!Number.isInteger(config.settle_ms) || config.settle_ms < 0)
+  )
+    throw new Error("settle_ms must be a nonnegative integer");
+  if ((config.settle_timeout_ms ?? 5000) < (config.settle_ms ?? 150))
+    throw new Error("settle_timeout_ms must be at least settle_ms");
   if (config.cdp_url) config.cdp_url = httpUrl(config.cdp_url);
   if (config.launch?.executablePath) {
     config.launch.executablePath = resolve(

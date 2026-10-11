@@ -59,3 +59,18 @@ npx --no-install testwalker-web serve --directory demos/trailhead/site \
 ```
 
 Preview and discovery need no Jev key. Run regression checks with `npm test`, or `npm test --workspace @testwalker/demo-trailhead`. Set `TESTWALKER_BROWSER_TESTS=1` to include local Chrome checks. Tests stay under the owning example's `tests/`; shared launcher checks live in `demos/tests/`.
+
+## Repeated live verification
+
+On 11 October 2026, all four demos passed three live Jev/Chrome runs each, with seeds 42, 43 and 44 and confidence 0.80. Every run used `new_york_street_sweeper`, 100% edge/state coverage, `--max-steps 2000 --cases 1 --no-shrink`. These checks cover the full graphs with a small selected property scope, not every Hegel phase.
+
+| Demo | Passed runs | Verified edges / states per run | Property attempts per run | Jev calls per run |
+| --- | --- | --- | --- | --- |
+| Hello World | 3 / 3 | 8 / 4 | 6 focused | 59 |
+| Booking | 3 / 3 | 35 / 8 | 6 focused | 172–178 |
+| Feedback | 3 / 3 | 4 / 3 | 6 focused | 46 |
+| Trailhead | 3 / 3 | 148 / 20 | 2 generated | 875–892 |
+
+Trailhead also verified all five global rules and its custom-widget and ledger hooks in each run. Two global rules were verified during traversal; the remaining three passed the final audit. All twelve JUnit files reported zero failures, errors and skips. Reports, screenshots and replay recipes are saved locally under the ignored `demos/artifacts/live-repeat-confirmed-20261011/`, with `summary.json` listing each report directory. The test browsers and temporary servers closed at completion.
+
+The repeated runs exposed premature observation of asynchronous saves, ambiguous equivalent navigation links, unnecessary submit-button decisions, and unclear validation/global-audit evidence. The shared adapter now handles these cases while retaining exact input entry, one submission per case, independent outcome checks and the 0.80 confidence threshold. Trailhead seed 42 used 888 calls after these changes, compared with 997 in the earlier successful run with the same graph/property scope; this is a call-count comparison, not a runtime benchmark.
