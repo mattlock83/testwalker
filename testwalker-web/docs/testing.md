@@ -11,7 +11,7 @@ A run has two parts: **walk the graph**, then **test inputs**. GraphWalker plans
 | Business model | Defines states, journeys, business rules, input constraints, and accepted/rejected outcomes. |
 | GraphWalker | Plans an ordered graph walk using the generator, seed and coverage targets. |
 | Jev | Chooses observed controls to fulfil a journey's intent, identifies the current business state, and checks requirements. |
-| PlayJev / Playwright | Executes browser operations chosen by the navigator. |
+| Playwright | Executes bounded browser operations selected by the web adapter from observed controls. |
 | Hegel | Runs input tests, generates values within selected strategies, and tries to simplify inputs that expose a failure. |
 | Rust core | Selects scope, calls GraphWalker/Hegel/Jev, coordinates lifecycle and setup, calculates validity and verdicts, tracks coverage and replay, and writes HTML/JSON/JUnit reports. |
 | TypeScript web adapter | Performs browser operations, prepares web evidence, invokes JS/TS hooks, and captures screenshots and traces for framework reports. |
@@ -161,7 +161,7 @@ npx --no-install testwalker-web demo \
   --no-shrink --max-calls 4000
 ```
 
-The current model offers 32 generated phases across seven campaigns. This selects two phases and leaves the other 30 outside scope. Historical runs of the previous adapter are not performance guarantees for PlayJev.
+The current model offers 32 generated phases across seven campaigns. This selects two phases and leaves the other 30 outside scope. Historical runs of earlier browser adapters are not performance guarantees for the current executor.
 
 To select all 32 generated phases with one example each, change `--max-input-attempts 2` to `--max-input-attempts 32`. For graph-only exploration, use `--input-mode none`.
 
@@ -257,7 +257,7 @@ flowchart LR
     CORE --> HG[Native Hegel: inputs and shrinking]
     CORE --> JEV[Jev: decisions and confidence]
     CORE <-->|JSON-RPC: execute, observe, hooks, events| WEB[TypeScript web adapter]
-    WEB --> BU[PlayJev / Playwright]
+    WEB --> BU[Playwright]
     BU --> SITE[Website]
     WEB --> EVIDENCE[Screenshots and browser traces]
     CORE --> REPORT[HTML, JSON, JUnit and replay]

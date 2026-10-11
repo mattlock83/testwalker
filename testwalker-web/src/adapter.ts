@@ -96,14 +96,18 @@ export class WebAdapter {
       case "target.observe":
         return this.requireBrowser().observe();
       case "target.evaluate":
-        return this.oracle!.check(
-          params.observation,
-          params.expected,
-          params.input,
-          params.violations,
+        return this.requireBrowser().measure("evaluation", () =>
+          this.oracle!.check(
+            params.observation,
+            params.expected,
+            params.input,
+            params.violations,
+          ),
         );
       case "target.audit":
-        return this.oracle!.audit(params.records, params.rules);
+        return this.requireBrowser().measure("audit", () =>
+          this.oracle!.audit(params.records, params.rules),
+        );
       case "target.hook": {
         if (!this.model && params.event === "after_run") return {};
         if (params.event === "after_run" && params.context.result)
@@ -165,9 +169,11 @@ export class WebAdapter {
         recursive: true,
       });
       if (!this.browser?.page) throw new Error("No test tab to capture");
-      await this.browser.page.screenshot({
-        path: join(this.report.directory, relative),
-      });
+      await this.browser.measure("screenshot", () =>
+        this.browser!.page!.screenshot({
+          path: join(this.report.directory, relative),
+        }),
+      );
       return { screenshot: relative, screenshot_at: new Date().toISOString() };
     } catch (error) {
       return { screenshot_error: message(error) };
@@ -248,6 +254,13 @@ export class WebAdapter {
     }
     this.artifacts ??= [
       ...(this.browser?.trace ?? []).map((data) => ({ kind: "trace", data })),
+      {
+        kind: "trace",
+        data: {
+          operation: "performance",
+          timings: this.browser?.timings ?? {},
+        },
+      },
       ...this.hooks.events.map((data) => ({ kind: "hook", data })),
     ];
     if (offset > this.artifacts.length)

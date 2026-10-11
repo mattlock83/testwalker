@@ -62,15 +62,27 @@ Preview and discovery need no Jev key. Run regression checks with `npm test`, or
 
 ## Repeated live verification
 
-On 11 October 2026, all four demos passed three live Jev/Chrome runs each, with seeds 42, 43 and 44 and confidence 0.80. Every run used `new_york_street_sweeper`, 100% edge/state coverage, `--max-steps 2000 --cases 1 --no-shrink`. These checks cover the full graphs with a small selected property scope, not every Hegel phase.
+On 11 October 2026, the direct Playwright/Jev executor passed three live Chrome runs of each demo, with seeds 42, 43 and 44 and confidence 0.80. Every run used `new_york_street_sweeper`, 100% edge/state coverage, `--max-steps 2000 --cases 1 --no-shrink`. These checks cover the full graphs with a small selected property scope, not every Hegel phase.
 
 | Demo | Passed runs | Verified edges / states per run | Property attempts per run | Jev calls per run |
 | --- | --- | --- | --- | --- |
-| Hello World | 3 / 3 | 8 / 4 | 6 focused | 59 |
-| Booking | 3 / 3 | 35 / 8 | 6 focused | 172–178 |
-| Feedback | 3 / 3 | 4 / 3 | 6 focused | 46 |
-| Trailhead | 3 / 3 | 148 / 20 | 2 generated | 875–892 |
+| Hello World | 3 / 3 | 8 / 4 | 6 focused | 31 |
+| Booking | 3 / 3 | 35 / 8 | 6 focused | 72–75 |
+| Feedback | 3 / 3 | 4 / 3 | 6 focused | 23 |
+| Trailhead | 3 / 3 | 148 / 20 | 2 generated | 420–432 |
 
-Trailhead also verified all five global rules and its custom-widget and ledger hooks in each run. Two global rules were verified during traversal; the remaining three passed the final audit. All twelve JUnit files reported zero failures, errors and skips. Reports, screenshots and replay recipes are saved locally under the ignored `demos/artifacts/live-repeat-confirmed-20261011/`, with `summary.json` listing each report directory. The test browsers and temporary servers closed at completion.
+Reports, screenshots and replay recipes remain in the ignored `demos/artifacts/` directory. The combined index at `direct-playwright-confirmed-20261011/summary.json` lists the twelve passing report directories and executor digests. Booking was repeated after correcting equivalent Home links that reload the current URL; the other demos passed before that correction. The test browsers and temporary servers closed at completion.
 
-The repeated runs exposed premature observation of asynchronous saves, ambiguous equivalent navigation links, unnecessary submit-button decisions, and unclear validation/global-audit evidence. The shared adapter now handles these cases while retaining exact input entry, one submission per case, independent outcome checks and the 0.80 confidence threshold. Trailhead seed 42 used 888 calls after these changes, compared with 997 in the earlier successful run with the same graph/property scope; this is a call-count comparison, not a runtime benchmark.
+The twelve reports contain 1,389 passed tests, 60 Hegel attempts and 1,389 valid screenshots. Their 1,401 JUnit cases include twelve run outcomes, with zero failures, errors or skips.
+
+### Trailhead performance comparison
+
+A fresh PlayJev baseline and the direct executor both passed the same seed-42 route: 148 edges, 20 states, two generated property attempts and 355 reported tests.
+
+| Measurement | PlayJev baseline | Direct Playwright/Jev |
+| --- | --- | --- |
+| End-to-end elapsed time | 444.4 s | 211.0 s |
+| Jev calls | 881 | 425 |
+| JSON report size | 35.9 MB | 25.4 MB |
+
+This was about **2.1 times faster with 52% fewer calls** in one local comparison; API latency and website behaviour affect other runs. The independent report comparison confirmed identical planned paths, test inputs and hook results, all five global rules verified, 355 screenshots per run and no JUnit failures, errors or skips. Rust and the 0.80 confidence threshold were unchanged. The baseline and replacement reports are indexed under `direct-playwright-baseline-20261011/` and `direct-playwright-ranked-20261011/` respectively.

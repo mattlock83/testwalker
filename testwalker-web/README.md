@@ -1,6 +1,6 @@
 # Testwalker web adapter
 
-A TypeScript/JavaScript client for the Rust Testwalker framework. It uses [PlayJev](https://github.com/filedcom/playjev) and Playwright for browser interactions, and JavaScript Crawlee for discovery. No Python, Browser Use or MCP server is required. PlayJev 0.1.0 is experimental and pinned.
+A TypeScript/JavaScript client for the Rust Testwalker framework. It uses Playwright for browser interactions, Jev to interpret observed controls and business evidence, and JavaScript Crawlee for discovery. The browser executor is part of this package; PlayJev, Python, Browser Use and an MCP server are not required.
 
 Rust still owns GraphWalker exploration, Hegel generation and shrinking, lifecycle scheduling, Jev credentials/call budgets, verdict policy, replay, and HTML/JSON/JUnit reports. The adapter implements the executable [JSON-RPC contract](../core/docs/protocol.md). It has no Rust source/build dependency and ships no demo applications.
 
@@ -58,11 +58,11 @@ Use `--browser-config browser.json`. Demo folders supply one:
 }
 ```
 
-`launch` and `context` accept Playwright Chromium launch/context options. Relative `launch.executablePath` is resolved against the configuration file. `--headed` overrides headless startup. PlayJev and DOM capture require Chromium; Firefox/WebKit are not supported. This adapter uses fresh nonpersistent browser contexts; persistent-profile extensions require a separate integration.
+`launch` and `context` accept Playwright Chromium launch/context options. Relative `launch.executablePath` is resolved against the configuration file. `--headed` overrides headless startup. The executor currently supports Chromium; Firefox/WebKit are not supported. This adapter uses fresh nonpersistent browser contexts; persistent-profile extensions require a separate integration.
 
 Execution can attach to externally managed Chromium using `--cdp-url http://127.0.0.1:9222`. It creates its own context and does not close other tabs. Discovery launches its own browser and does not support CDP attachment.
 
-Before execution observations, the adapter waits for document/XHR/fetch requests to finish and for the rendered text and form values to remain stable for `settle_ms` (default 150 ms), within `settle_timeout_ms` (default 5 seconds). This prevents assertions against an unfinished asynchronous save. A timeout is inconclusive. Set `settle_ms` to 0 to disable the settling wait, for example on a site with continuous background requests. DOM evidence is captured together and checked against the accessibility snapshot; changing evidence is inconclusive rather than a mixture of two pages.
+Before execution observations, the adapter waits for document/XHR/fetch requests to finish and for relevant DOM activity to remain quiet for `settle_ms` (default 150 ms), within `settle_timeout_ms` (default 5 seconds). A continuous mutation observer tracks the last change, so repeated reads of an already settled page do not restart the quiet interval. This prevents assertions against an unfinished asynchronous save. A timeout is inconclusive. Set `settle_ms` to 0 to disable the settling wait, for example on a site with continuous background requests. Rendered text, controls and validation evidence are captured together. A Playwright accessibility snapshot for each visible frame preserves static relationships such as definition-list labels and values. Freshness checks reject page changes during capture. These observations provide evidence for assertions; they do not perform an accessibility audit.
 
 ## Who calls whom
 
@@ -72,24 +72,23 @@ flowchart TD
   R --> G[GraphWalker: next planned journey]
   R --> H[Hegel: literal inputs and shrinking]
   R <-->|JSON-RPC callbacks and nested decisions| A[TypeScript web adapter]
-  A --> P[PlayJev + Playwright]
+  A --> P[Playwright]
   P --> W[Website]
-  P --> B[Local decision bridge]
-  B -->|decision.ask over JSON-RPC| R
+  A -->|decision.ask over JSON-RPC| R
   R --> J[Jev API]
   A --> K[Explicit JS/TS lifecycle hooks]
   R --> O[HTML / JSON / JUnit / replay]
 ```
 
-PlayJev finds controls from observed browser evidence. The model contains business intents and constraints, without selectors. A loopback bridge routes PlayJev's decision requests through Rust so its provider budget, cache and audit cover **all** Jev calls. The bridge uses a temporary local token; the real API key remains in Rust.
+The adapter captures browser controls and asks Jev to rank the available click actions independently in one request: unrelated, contextual, indirect, or direct. Only a confidently direct target qualifies. Action decisions use compact control evidence and the graph's intended destination; outcome assertions use the full independent page observation. This avoids confusing existing business results with the next operation. Each differently labelled control is assessed separately, even if its URL matches another link. When independently approved links have the same destination and browser target, navigation links take precedence. Other competing actions use one focused choice. If only uncertain candidates remain, one focused clarification is allowed before any interaction; unresolved evidence stays inconclusive. Every accepted answer uses the configured confidence threshold. Native score responses retain their original confidence and probabilities; the adapter adds their most probable level for validation by the existing Rust decision service. Malformed replies and provider failures stop execution without clarification. Native field bindings are also batched; operations use the selected control type: fill text, check a checkbox or radio, or select an option. The model contains business intents and constraints, without selectors. Decision requests go directly through the existing Rust JSON-RPC service, so the core's provider budget, cache, confidence policy and audit cover **all** Jev calls. No local HTTP bridge or provider credentials are needed in the web executor.
 
-Independent state identification and business-rule checks establish the outcome. PlayJev's action verification is retained as diagnostic evidence. Intentionally invalid inputs are entered literally, checked for exact entry, and submitted once; they are never repaired to make an action check succeed.
+The executor performs normal Playwright actions on observed controls. It does not execute JavaScript supplied by Jev. It checks that selected controls are still present and actionable before changing the page, and stops when evidence is ambiguous or below the configured confidence threshold. Bespoke dropdowns and other custom widgets require the existing explicit lifecycle hooks; automatic multi-step widget interactions are not supported.
 
-After Jev binds the fields, standard HTML forms with exactly one visible, enabled submit control are submitted through that control's normal Playwright click. This uses the observed HTML form association, including external controls with a `form` attribute. Ambiguous submit controls or custom forms still use PlayJev. Submission is never retried, and the independent state and rule checks verify the outcome. No selectors need to be added to the model.
+Jev binds input fields from their observed labels and descriptions. Inputs are entered literally, including intentionally invalid values, and checked for exact entry. Standard HTML forms with exactly one visible, enabled submit control use that control's normal Playwright click, including controls linked with a `form` attribute. Ambiguous or custom form submissions require a decision from the observed controls. Submission is performed once; rejected values are never repaired or submitted again within the attempt.
 
-If PlayJev cannot choose between navigation links before taking an action, the adapter can ask Jev to choose among observed destinations, grouping links that share a URL. It then uses a named navigation link for that destination. Both choices retain the configured confidence threshold; the independent state check still decides whether the journey succeeded. This fallback never retries form entry, submission, or an operation that may already have executed.
+Independent state identification and business-rule checks establish the outcome after execution. The executor does not add a second action-verification call. Cached control bindings are only reusable while a fresh observation still identifies the same unique control; changed or ambiguous evidence requires a new decision. Destination and business-rule checks still run after the action.
 
-Resolved navigation hints are reused within the run while their accessible name, navigation region and URL still identify one observed link. Changed or ambiguous controls discard the hint. Reuse only makes the next PlayJev instruction more specific; it does not bypass Jev confidence or destination assertions. Reports record both disambiguation and hint reuse.
+Reports include a `performance` trace entry with counts and elapsed milliseconds for observations, DOM capture, action decisions, browser interactions, assertions, audit and screenshots. Observation timing includes DOM capture, so these totals overlap and must not be added together as wall time. No parallel decision service or protocol changes are required in Rust.
 
 Global audits distinguish newly submitted inputs from values retained during navigation. An uncertain batch of observations can be checked once as individual scenarios. The report retains the original answer and each focused answer; any contradiction or remaining uncertainty still prevents a pass. Absent evidence never counts as support.
 

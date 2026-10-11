@@ -2,14 +2,14 @@
 
 A Rust test framework driven by declarative GraphWalker models. Rust owns graph exploration, Hegel input generation/shrinking, lifecycle scheduling, decision providers, verdicts, coverage, replay and HTML/JSON/JUnit reports. Executable adapters interact with it through bidirectional JSON-RPC.
 
-The web adapter is **TypeScript/JavaScript**, using PlayJev and Playwright. Discovery uses JavaScript Crawlee. Python is not required.
+The web adapter is **TypeScript/JavaScript**, using Playwright with Jev decisions through the core's JSON-RPC API. Discovery uses JavaScript Crawlee. Python is not required.
 
 ```text
 core/                       Standalone Rust framework, CLI, tests and reports
   models/rpc-selftest.json  Model that tests the framework itself
   docs/, openrpc*.json      Framework documentation and API specifications
 testwalker-web/             Standalone Node package: @testwalker/web
-  src/, tests/, docs/       PlayJev/Playwright adapter, Crawlee discovery, hooks
+  src/, tests/, docs/       Playwright/Jev adapter, Crawlee discovery, hooks
 demos/                      Applications, models and colocated TypeScript tests
   hello-world/             Two navigation options and one form input
   booking/                 Workshop booking with four menu destinations

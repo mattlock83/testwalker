@@ -99,7 +99,7 @@ async function childRun(
     process.off("SIGTERM", terminate);
   }
 }
-const HELP = `Testwalker web adapter (Node.js + Playwright + PlayJev; no Python or MCP)
+const HELP = `Testwalker web adapter (Node.js + Playwright + Jev; no Python or MCP)
 
 testwalker-web demo --directory DEMO [--config RUN_JSON] [--app APP.ts] [--hooks HOOKS.ts] [--headed]
 testwalker-web run --model MODEL --url URL --config RUN_JSON [--hooks HOOKS.ts]

@@ -2,7 +2,7 @@
   "name": "@testwalker/web",
   "version": "4.0.0",
   "private": true,
-  "description": "Playwright and PlayJev adapter for Testwalker's Rust JSON-RPC framework",
+  "description": "Playwright and Jev adapter for Testwalker's Rust JSON-RPC framework",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -30,7 +30,6 @@
     "pretest": "npm run build"
   },
   "dependencies": {
-    "@filed/playjev": "0.1.0",
     "crawlee": "3.18.2",
     "fast-xml-parser": "5.11.2",
     "playwright": "1.64.0",

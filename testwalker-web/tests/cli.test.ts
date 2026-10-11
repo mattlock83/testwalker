@@ -43,7 +43,7 @@ test("The installed symlink CLI prints help and rejects unsupported retention be
     encoding: "utf8",
   });
   assert.equal(help.status, 0);
-  assert.match(help.stdout, /Playwright \+ PlayJev/);
+  assert.match(help.stdout, /Playwright \+ Jev/);
   const run = spawnSync(
     process.execPath,
     [bin, "run", "--model", "model.json", "--keep-target-open"],
