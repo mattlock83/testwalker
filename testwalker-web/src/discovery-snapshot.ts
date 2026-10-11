@@ -1,4 +1,10 @@
 // Generic read-only inventory; selectors are observations and never enter the model.
+export const BUTTONS = `() => {
+  const roots = [document];
+  for (let i = 0; i < roots.length; i++)
+    for (const e of roots[i].querySelectorAll('*')) if (e.shadowRoot) roots.push(e.shadowRoot);
+  return roots.flatMap(root => [...root.querySelectorAll('button,input[type=button],input[type=submit],[role=button],[role=combobox],[role=option]')]);
+}`;
 export const SNAPSHOT = `() => {
   const visible = e => !!e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
   const label = e => (e.getAttribute('aria-label') ||
@@ -12,7 +18,7 @@ export const SNAPSHOT = `() => {
     checked: e.checked || false, multiple: e.multiple || false,
     min: e.getAttribute('min'), max: e.getAttribute('max'), step: e.getAttribute('step'),
     minLength: e.getAttribute('minlength'), maxLength: e.getAttribute('maxlength'),
-    pattern: e.getAttribute('pattern'),
+    pattern: e.getAttribute('pattern'), hint: (e.getAttribute('aria-describedby') || '').split(/\\s+/).map(id => document.getElementById(id)?.innerText || '').join(' ').trim(),
     options: e.options ? [...e.options].map(o => ({value: o.value, label: o.label, disabled: o.disabled})) : [],
     action: e.hasAttribute('formaction') ? e.formAction : null,
     method: e.hasAttribute('formmethod') ? e.formMethod : null
@@ -28,8 +34,8 @@ export const SNAPSHOT = `() => {
       index, label: f.getAttribute('aria-label') || f.getAttribute('name') || \`Form \${index + 1}\`,
       action: f.action, method: f.method, fields: fields(f)
     })),
-    buttons: [...document.querySelectorAll('button,input[type=button],input[type=submit],[role=button],[role=combobox]')]
-      .filter(visible).map(e => ({label: label(e), type: e.type || e.getAttribute('role'), disabled: e.disabled || false})),
+    alerts: [...document.querySelectorAll('[role=alert],[role=status]')].filter(visible).map(label),
+    buttons: (${BUTTONS})().map((e, index) => ({index, label: label(e), type: e.type || e.getAttribute('role'), role: e.getAttribute('role'), visible: visible(e), disabled: e.disabled || e.getAttribute('aria-disabled') === 'true', submit: !!e.form && ['submit', 'image'].includes(e.type)})).filter(e => e.visible),
     frames: [...document.querySelectorAll('iframe')].map(e => e.src)
   };
 }`;

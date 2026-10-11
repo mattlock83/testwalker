@@ -18,17 +18,20 @@ import {
 import { tmpdir } from "node:os";
 import { createHash, randomUUID } from "node:crypto";
 import { join, dirname, basename, resolve } from "node:path";
-import type { Page } from "playwright";
+import { chromium, type Page } from "playwright";
 import { httpUrl, type BrowserSettings } from "./config.js";
 import { loadExtension } from "./extensions.js";
 import { VisitEvidence } from "./discovery-evidence.js";
-import { SNAPSHOT } from "./discovery-snapshot.js";
+import { SNAPSHOT, BUTTONS } from "./discovery-snapshot.js";
 import { Inconclusive, message, type Json, type Model } from "./types.js";
 
 export interface DiscoveryOptions {
   output: string;
   depth?: number;
   submitForms?: boolean;
+  clickButtons?: boolean;
+  probeEmptyForms?: boolean;
+  excludeButtons?: string[];
   maxPages?: number;
   maxActions?: number;
   timeoutMs?: number;
@@ -68,7 +71,8 @@ const identity = (page: Json) =>
     url: page.url,
     title: page.title,
     headings: page.headings,
-    text: page.text,
+    alerts: page.alerts,
+    buttons: page.buttons.map((button: Json) => [button.label, button.role]),
     forms: page.forms.map((form: Json) => ({
       label: form.label,
       fields: form.fields.map((field: Json) => [field.label, field.type]),
@@ -211,15 +215,91 @@ export function buildModel(
     ],
   };
 }
+const editableField = (field: Json): boolean =>
+  field.visible &&
+  !field.disabled &&
+  !field.readonly &&
+  ["input", "select", "textarea"].includes(field.tag) &&
+  !["hidden", "submit", "image", "button", "reset", "file"].includes(
+    field.type,
+  );
+
+const formIdentity = (form: Json): string =>
+  hash(
+    form.fields
+      .filter(editableField)
+      .map((field: Json) => [field.name, field.label, field.type]),
+  );
+
+export function suggestedDataSets(pages: Record<string, Json>): Json {
+  const proposals: Json = {};
+  for (const [state, page] of Object.entries<Json>(pages))
+    for (const form of page.forms) {
+      const fields = form.fields.filter(editableField);
+      if (!fields.length) continue;
+      const key = "form_" + formIdentity(form);
+      const proposal = (proposals[key] ??= {
+        states: [],
+        fields: {},
+        review:
+          "HTML constraints only. Review hints, requiredness, choices and accepted/rejected states before adding this data set to the model.",
+      });
+      proposal.states.push(state);
+      for (const field of fields) {
+        const description: Json = {
+          description: prose(
+            field.label + (field.hint ? ": " + field.hint : ""),
+          ),
+          type:
+            field.tag === "select"
+              ? "choice"
+              : field.type === "email"
+                ? "email"
+                : ["number", "range"].includes(field.type)
+                  ? field.step === "any" ||
+                    (field.step !== null &&
+                      field.step !== undefined &&
+                      !Number.isInteger(Number(field.step)))
+                    ? "number"
+                    : "whole number"
+                  : "text",
+          required: field.required,
+        };
+        for (const [html, business] of [
+          ["minLength", "minimum length"],
+          ["maxLength", "maximum length"],
+          ["min", "minimum"],
+          ["max", "maximum"],
+        ])
+          if (
+            field[html] !== null &&
+            field[html] !== undefined &&
+            Number.isFinite(Number(field[html]))
+          )
+            description[business] = Number(field[html]);
+        if (field.tag === "select")
+          description.options = field.options
+            .filter((option: Json) => !option.disabled)
+            .map((option: Json) => option.label);
+        if (
+          !["password", "checkbox", "radio"].includes(field.type) &&
+          field.value
+        )
+          description.example = field.value;
+        proposal.fields[field.name || field.label] ??= description;
+      }
+    }
+  return proposals;
+}
 function fieldValue(field: Json): unknown {
+  if (field.type === "checkbox")
+    return Boolean(field.checked || field.required);
   if (field.value) return field.value;
   if (field.tag === "select")
     return (
       field.options.find((option: Json) => !option.disabled && option.value)
         ?.value ?? ""
     );
-  if (field.type === "checkbox")
-    return Boolean(field.checked || field.required);
   if (field.type === "radio") return field.value;
   if (field.type === "email") return "alex@example.test";
   if (field.type === "number" || field.type === "range")
@@ -271,15 +351,8 @@ async function submit(
     await hooks.after_submit?.(context);
     return context.values;
   }
-  const locator = page.locator("form").nth(step.form);
   for (const field of form.fields) {
-    if (
-      !field.visible ||
-      field.disabled ||
-      field.readonly ||
-      ["hidden", "submit", "button", "reset", "file"].includes(field.type)
-    )
-      continue;
+    if (!editableField(field)) continue;
     const value =
       context.values[field.name || field.label] ?? fieldValue(field);
     // form.elements also includes fieldsets and controls associated through form=.
@@ -287,35 +360,104 @@ async function submit(
       ({ form, index }) => document.forms[form].elements[index],
       { form: step.form, index: field.index },
     );
-    const input = handle.asElement();
-    if (!input) throw new Inconclusive("Form control disappeared");
-    if (field.tag === "select")
-      await input.selectOption(
-        Array.isArray(value) ? value.map(String) : String(value),
-      );
-    else if (field.type === "checkbox") {
-      if (typeof value !== "boolean")
-        throw new Inconclusive("Checkbox values must be booleans");
-      await input.setChecked(value);
-    } else if (field.type === "radio") {
-      if (String(value) === field.value) await input.check();
-    } else await input.fill(String(value));
-    await handle.dispose();
+    try {
+      const input = handle.asElement();
+      if (!input) throw new Inconclusive("Form control disappeared");
+      if (field.tag === "select")
+        await input.selectOption(
+          Array.isArray(value) ? value.map(String) : String(value),
+        );
+      else if (field.type === "checkbox") {
+        if (typeof value !== "boolean")
+          throw new Inconclusive("Checkbox values must be booleans");
+        await input.setChecked(value);
+      } else if (field.type === "radio") {
+        if (String(value) === field.value) await input.check();
+      } else await input.fill(String(value));
+    } finally {
+      await handle.dispose();
+    }
   }
-  const submitter = locator
-    .locator("button[type=submit],button:not([type]),input[type=submit]")
-    .first();
-  if (!(await submitter.count()))
+  const submitField = form.fields.find(
+    (field: Json) =>
+      field.visible &&
+      !field.disabled &&
+      ["submit", "image"].includes(field.type),
+  );
+  if (!submitField)
     throw new Inconclusive(
       "Form has no observable submit control; provide a discovery hook",
     );
-  const override = await submitter.getAttribute("formaction");
-  if (override && !allows(new URL(override, page.url()).href))
+  if (submitField.action && !allows(submitField.action))
     throw new Inconclusive("Submit control is outside scope");
-  await submitter.click();
+  const submitHandle = await page.evaluateHandle(
+    ({ form, index }) => document.forms[form].elements[index],
+    { form: step.form, index: submitField.index },
+  );
+  try {
+    const submitter = submitHandle.asElement();
+    if (!submitter) throw new Inconclusive("Submit control disappeared");
+    await submitter.click();
+  } finally {
+    await submitHandle.dispose();
+  }
   await page.waitForLoadState("domcontentloaded");
   await hooks.after_submit?.(context);
   return context.values;
+}
+async function replayStep(
+  page: Page,
+  step: Json,
+  allows: (url: string) => boolean,
+  hooks: Json,
+  scratch: Json,
+): Promise<void> {
+  if (step.kind === "form") {
+    step.values = await submit(page, step, allows, hooks, scratch);
+    return;
+  }
+  const snapshot: Json = await page.evaluate(`(${SNAPSHOT})()`);
+  if (identity(snapshot) !== step.source)
+    throw new Inconclusive(
+      "Discovery replay source changed; action was not performed",
+    );
+  if (step.kind === "link") {
+    const link = snapshot.links[step.index];
+    if (
+      !link ||
+      link.label !== step.label ||
+      link.url !== step.url ||
+      !allows(link.url)
+    )
+      throw new Inconclusive("Discovery link changed or left scope");
+    await page
+      .locator("a[href]")
+      .filter({ visible: true })
+      .nth(step.index)
+      .click();
+  } else {
+    const button = snapshot.buttons.find(
+      (item: Json) => item.index === step.index,
+    );
+    if (
+      !button ||
+      button.label !== step.label ||
+      button.disabled ||
+      button.submit
+    )
+      throw new Inconclusive("Discovery control changed or is unavailable");
+    const handle = await page.evaluateHandle<HTMLElement>(
+      `(${BUTTONS})()[${step.index}]`,
+    );
+    try {
+      const element = handle.asElement();
+      if (!element) throw new Inconclusive("Discovery control disappeared");
+      await element.click();
+    } finally {
+      await handle.dispose();
+    }
+  }
+  await page.waitForLoadState("domcontentloaded");
 }
 export async function discoverSitemap(
   sitemap: string,
@@ -379,6 +521,14 @@ export async function discoverUrls(
       }
     }
   }
+  if (
+    options.excludeButtons &&
+    (!Array.isArray(options.excludeButtons) ||
+      options.excludeButtons.some(
+        (label) => typeof label !== "string" || !label.trim(),
+      ))
+  )
+    throw new Error("excludeButtons must be a list of nonempty control labels");
   const depth = options.depth ?? 1,
     maxPages = options.maxPages ?? 50,
     maxActions = options.maxActions ?? 200;
@@ -438,7 +588,8 @@ export async function discoverUrls(
     operations: 0,
     review: [
       "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
-      "Buttons/custom widgets are inventoried, not blindly clicked. Use discovery hooks for custom interactions.",
+      "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
+      "States are grouped by URL, headings, alerts and control structure; changing data values are evidence, not separate states.",
     ],
   };
   const hooks = options.hooks
@@ -462,6 +613,18 @@ export async function discoverUrls(
   const captures = new Map<string, VisitEvidence>();
   const contexts = new WeakSet<object>();
   const expanded = new Set<string>();
+  const formExamples = new Map<string, Json>();
+  // Crawlee installs an implicit local proxy even without a configured proxy.
+  // Its tunnel sockets can outlive a closed browser and keep the CLI alive.
+  // Use the supported launcher extension to retain Playwright's direct routing
+  // unless the caller explicitly needs a launch or per-context proxy.
+  const launcher = Object.create(chromium) as typeof chromium;
+  launcher.launch = (launchOptions) =>
+    chromium.launch(
+      options.browser?.launch?.proxy || options.browser?.context?.proxy
+        ? launchOptions
+        : { ...launchOptions, proxy: undefined },
+    );
   const crawler = new PlaywrightCrawler(
     {
       requestQueue: queue,
@@ -471,6 +634,9 @@ export async function discoverUrls(
       requestHandlerTimeoutSecs: 120,
       log: new Log({ level: LogLevel.WARNING }),
       launchContext: {
+        // Each replay owns its browser context; the complete action route restores client state.
+        useIncognitoPages: true,
+        launcher,
         launchOptions: {
           channel: "chrome",
           ...options.browser?.launch,
@@ -607,11 +773,12 @@ export async function discoverUrls(
             skip: false,
             handled: false,
           });
+          await page.waitForTimeout(options.settleMs ?? 300);
           for (const step of data.steps ?? []) {
             inventory.operations++;
-            step.values = await submit(page, step, allows, hooks, scratch);
+            await replayStep(page, step, allows, hooks, scratch);
+            await page.waitForTimeout(options.settleMs ?? 300);
           }
-          await page.waitForTimeout(options.settleMs ?? 300);
           if (!allows(page.url()))
             throw new Inconclusive("Page left discovery scope");
           const snapshot: Json = await page.evaluate(`(${SNAPSHOT})()`);
@@ -626,22 +793,66 @@ export async function discoverUrls(
               intent: data.intent,
               evidence: data.kind,
               values: data.steps?.at(-1)?.values ?? {},
+              form:
+                data.steps?.at(-1)?.kind === "form"
+                  ? inventory.pages[data.source].forms[data.steps.at(-1).form]
+                  : undefined,
+              visit: capture.record.id,
             });
           if (!expanded.has(id) && data.depth < depth) {
             expanded.add(id);
-            for (const link of snapshot.links)
+            const enqueue = async (
+              step: Json,
+              intent: string,
+              kind: string,
+            ) => {
+              const steps = [...(data.steps ?? []), step];
+              await queue.addRequest({
+                url: request.url,
+                uniqueKey: "action:" + hash([id, step]),
+                userData: {
+                  depth: data.depth + 1,
+                  source: id,
+                  steps,
+                  intent,
+                  kind,
+                },
+              });
+            };
+            for (const [index, link] of snapshot.links.entries())
               if (!link.download && allows(link.url))
-                await queue.addRequest({
-                  url: link.url,
-                  uniqueKey: "url:" + canonical(link.url),
-                  userData: {
-                    depth: data.depth + 1,
+                await enqueue(
+                  {
+                    kind: "link",
                     source: id,
-                    steps: [],
-                    intent: `Follow ${prose(link.label)}.`,
-                    kind: "observed hyperlink",
+                    index,
+                    label: link.label,
+                    url: link.url,
                   },
-                });
+                  `Follow ${prose(link.label)}.`,
+                  "executed hyperlink",
+                );
+            if (
+              options.clickButtons &&
+              !sitemap &&
+              options.submitForms !== false
+            )
+              for (const button of snapshot.buttons)
+                if (
+                  !button.disabled &&
+                  !button.submit &&
+                  !options.excludeButtons?.includes(button.label)
+                )
+                  await enqueue(
+                    {
+                      kind: "button",
+                      source: id,
+                      index: button.index,
+                      label: button.label,
+                    },
+                    `Choose ${prose(button.label)}.`,
+                    "executed control",
+                  );
             if (options.submitForms !== false)
               for (const form of snapshot.forms) {
                 if (!allows(form.action)) {
@@ -655,21 +866,71 @@ export async function discoverUrls(
                   ...options.values?.defaults,
                   ...options.values?.pages?.[snapshot.url],
                 };
-                for (const field of form.fields)
-                  values[field.name || field.label] ??= fieldValue(field);
-                const step = { source: id, form: form.index, values };
-                const steps = [...(data.steps ?? []), step];
-                await queue.addRequest({
-                  url: request.url,
-                  uniqueKey: "form:" + hash([request.url, steps]),
-                  userData: {
-                    depth: data.depth + 1,
-                    steps,
-                    source: id,
-                    kind: "form submission",
-                    intent: `Submit ${prose(form.label)}.`,
-                  },
-                });
+                const formKey = formIdentity(form);
+                const remembered = formExamples.get(formKey) ?? {};
+                for (const field of form.fields.filter(editableField)) {
+                  const key = field.name || field.label;
+                  const selected =
+                    field.type === "radio"
+                      ? form.fields.find(
+                          (candidate: Json) =>
+                            editableField(candidate) &&
+                            candidate.type === "radio" &&
+                            candidate.name === field.name &&
+                            candidate.checked,
+                        )
+                      : undefined;
+                  values[key] ??=
+                    selected || field.value || field.type === "checkbox"
+                      ? fieldValue(selected ?? field)
+                      : (remembered[key] ?? fieldValue(field));
+                }
+                if (!formExamples.has(formKey))
+                  formExamples.set(formKey, structuredClone(values));
+                const step = {
+                  kind: "form",
+                  source: id,
+                  form: form.index,
+                  values,
+                };
+                const submitter = form.fields.find((field: Json) =>
+                  ["submit", "image"].includes(field.type),
+                );
+                const label = prose(submitter?.label ?? form.label);
+                const details = form.fields
+                  .filter(
+                    (field: Json) =>
+                      editableField(field) && field.type !== "password",
+                  )
+                  .map(
+                    (field: Json) =>
+                      `${prose(field.label)}: ${prose(JSON.stringify(values[field.name || field.label]))}`,
+                  )
+                  .join("; ");
+                await enqueue(
+                  step,
+                  `Submit ${label} with these form details: ${details}.`,
+                  "form submission",
+                );
+                if (options.probeEmptyForms) {
+                  const empty: Json = { ...values };
+                  for (const field of form.fields) {
+                    if (!editableField(field) || field.type === "radio")
+                      continue;
+                    if (
+                      field.tag === "select" &&
+                      !field.options.some((option: Json) => option.value === "")
+                    )
+                      continue;
+                    empty[field.name || field.label] =
+                      field.type === "checkbox" ? false : "";
+                  }
+                  await enqueue(
+                    { ...step, values: empty },
+                    `Submit ${label} with all editable text fields empty.`,
+                    "empty form probe; outcome requires review",
+                  );
+                }
               }
           }
         } finally {
@@ -703,20 +964,7 @@ export async function discoverUrls(
         failed: inventory.failed,
         blocked: inventory.blocked,
       });
-    const byUrl = new Map<string, string>(
-      Object.entries<Json>(inventory.pages).map(([id, page]) => [page.url, id]),
-    );
-    for (const [id, page] of Object.entries<Json>(inventory.pages))
-      for (const link of page.links) {
-        const target = byUrl.get(link.url);
-        if (target && !link.download && allows(link.url))
-          inventory.transitions.push({
-            source: id,
-            target,
-            intent: `Follow ${prose(link.label)}.`,
-            evidence: "observed hyperlink; review outcome",
-          });
-      }
+    inventory.suggested_data_sets = suggestedDataSets(inventory.pages);
     const model = buildModel(
       inventory.pages,
       inventory.transitions,
@@ -733,6 +981,12 @@ export async function discoverUrls(
     });
     return { model, inventory, output, inventory_path: inventoryPath };
   } finally {
-    await rm(staging, { recursive: true, force: true });
+    try {
+      await crawler.teardown();
+      await settings.getEventManager().close();
+      await queue.drop();
+    } finally {
+      await rm(staging, { recursive: true, force: true });
+    }
   }
 }

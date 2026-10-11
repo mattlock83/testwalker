@@ -23,6 +23,8 @@ export function argumentsFor(argv: string[]): {
     "debug",
     "plan",
     "no-submit-forms",
+    "click-buttons",
+    "probe-empty-forms",
     "no-screenshots",
     "no-dom",
     "no-network",
@@ -51,6 +53,7 @@ export function argumentsFor(argv: string[]): {
     "values",
     "max-json-bytes",
     "max-network-requests",
+    "exclude-buttons",
   ]);
   while (argv.length) {
     const arg = argv.shift()!,
@@ -111,7 +114,7 @@ testwalker-web discover-sitemap --sitemap SITEMAP.xml --output MODEL.json
 Native execution: --framework EXECUTABLE, --browser-config BROWSER.json, --max-calls N,
 --threshold N (default 0.80), --strategy-provider INPUTS.ts, --output DIRECTORY.
 Graph/Hegel/replay flags pass to Rust, e.g. --max-input-attempts 2 --generator new_york_street_sweeper.
-Discovery: --max-pages N --max-actions N --no-submit-forms --no-screenshots --no-dom --no-network.
+Discovery: --click-buttons --probe-empty-forms --max-pages N --max-actions N --no-submit-forms --no-screenshots --no-dom --no-network.
 Discovery never calls Jev. All tests, verdicts, HTML/JSON/JUnit and replay are owned by Rust.
 `;
 export async function main(argv = process.argv.slice(2)): Promise<number> {
@@ -150,6 +153,11 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       maxJsonBytes: Number(v["max-json-bytes"] ?? 1048576),
       maxNetworkRequests: Number(v["max-network-requests"] ?? 1000),
       submitForms: !v["no-submit-forms"],
+      clickButtons: Boolean(v["click-buttons"]),
+      excludeButtons: v["exclude-buttons"]
+        ?.split(",")
+        .map((label: string) => label.trim()),
+      probeEmptyForms: Boolean(v["probe-empty-forms"]),
       screenshots: !v["no-screenshots"],
       dom: !v["no-dom"],
       network: !v["no-network"],
