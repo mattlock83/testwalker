@@ -26,7 +26,6 @@ export function argumentsFor(argv: string[]): {
     "click-buttons",
     "probe-empty-forms",
     "no-screenshots",
-    "no-dom",
     "no-network",
   ]);
   const fields = new Set([
@@ -48,6 +47,7 @@ export function argumentsFor(argv: string[]): {
     "depth",
     "max-pages",
     "max-actions",
+    "max-state-variants",
     "timeout-ms",
     "settle-ms",
     "values",
@@ -114,7 +114,8 @@ testwalker-web discover-sitemap --sitemap SITEMAP.xml --output MODEL.json
 Native execution: --framework EXECUTABLE, --browser-config BROWSER.json, --max-calls N,
 --threshold N (default 0.80), --strategy-provider INPUTS.ts, --output DIRECTORY.
 Graph/Hegel/replay flags pass to Rust, e.g. --max-input-attempts 2 --generator new_york_street_sweeper.
-Discovery: --click-buttons --probe-empty-forms --max-pages N --max-actions N --no-submit-forms --no-screenshots --no-dom --no-network.
+Discovery: --click-buttons --probe-empty-forms --max-pages N --max-actions N --max-state-variants N (default 4)
+--settle-ms N --timeout-ms N --no-submit-forms --no-screenshots --no-network.
 Discovery never calls Jev. All tests, verdicts, HTML/JSON/JUnit and replay are owned by Rust.
 `;
 export async function main(argv = process.argv.slice(2)): Promise<number> {
@@ -148,6 +149,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       depth: Number(v.depth ?? 1),
       maxPages: Number(v["max-pages"] ?? 50),
       maxActions: Number(v["max-actions"] ?? 200),
+      maxStateVariants: Number(v["max-state-variants"] ?? 4),
       timeoutMs: Number(v["timeout-ms"] ?? 10000),
       settleMs: Number(v["settle-ms"] ?? 300),
       maxJsonBytes: Number(v["max-json-bytes"] ?? 1048576),
@@ -159,7 +161,6 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         .map((label: string) => label.trim()),
       probeEmptyForms: Boolean(v["probe-empty-forms"]),
       screenshots: !v["no-screenshots"],
-      dom: !v["no-dom"],
       network: !v["no-network"],
       browser: await loadBrowserSettings(v["browser-config"]),
       hooks: v.hooks,

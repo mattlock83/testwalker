@@ -3,14 +3,17 @@ import { join } from "node:path";
 import type { Page, Request, Response } from "playwright";
 import { message, type Json } from "./types.js";
 
+function isJson(contentType: string): boolean {
+  const media = contentType.split(";")[0].trim().toLowerCase();
+  return media === "application/json" || media.endsWith("+json");
+}
+
 export function jsonBody(
   body: Buffer | null,
   contentType: string,
   limit: number,
 ): Json {
-  const media = contentType.split(";")[0].trim().toLowerCase();
-  if (media !== "application/json" && !media.endsWith("+json"))
-    return { status: "not_json" };
+  if (!isJson(contentType)) return { status: "not_json" };
   if (!body) return { status: "unavailable" };
   if (body.length > limit) return { status: "too_large", bytes: body.length };
   try {
@@ -21,6 +24,7 @@ export function jsonBody(
 }
 export class VisitEvidence {
   private requests = new Map<Request, Json>();
+  private omitted = new WeakSet<Request>();
   private tasks: Promise<void>[] = [];
   private network: Json = { requests: [], omitted_requests: 0 };
   private finished = false;
@@ -37,8 +41,12 @@ export class VisitEvidence {
       page.on("requestfinished", this.onFinished);
     }
   }
-  private onRequest = (request: Request): void => {
+  private entryFor(request: Request): Json | undefined {
+    const existing = this.requests.get(request);
+    if (existing) return existing;
+    if (this.omitted.has(request)) return;
     if (this.requests.size >= (this.options.maxNetworkRequests ?? 1000)) {
+      this.omitted.add(request);
       this.network.omitted_requests++;
       return;
     }
@@ -56,11 +64,20 @@ export class VisitEvidence {
     };
     this.requests.set(request, entry);
     this.network.requests.push(entry);
+    return entry;
+  }
+  private onRequest = (request: Request): void => {
+    if (isJson(request.headers()["content-type"] ?? ""))
+      this.entryFor(request);
   };
   private onResponse = (response: Response): void => {
-    const entry = this.requests.get(response.request());
-    if (!entry) return;
     const contentType = response.headers()["content-type"] ?? "";
+    // GET APIs usually have no request Content-Type; retain them when the
+    // response is JSON, without collecting document or asset requests.
+    const entry = isJson(contentType)
+      ? this.entryFor(response.request())
+      : this.requests.get(response.request());
+    if (!entry) return;
     entry.response = {
       status: response.status(),
       content_type: contentType,
@@ -73,7 +90,7 @@ export class VisitEvidence {
           const limit = this.options.maxJsonBytes ?? 1048576;
           const length = Number(response.headers()["content-length"]);
           body =
-            jsonBody(null, contentType, limit).status === "not_json"
+            !isJson(contentType)
               ? { status: "not_json" }
               : length > limit
                 ? { status: "too_large", bytes: length }
@@ -117,26 +134,6 @@ export class VisitEvidence {
           timeout: 5000,
         }),
       );
-    if (this.options.dom !== false) {
-      await capture("page.html", async () =>
-        writeFile(join(this.directory, "page.html"), await this.page.content()),
-      );
-      await capture("dom.json", async () => {
-        const cdp = await this.page.context().newCDPSession(this.page);
-        try {
-          const snapshot = await cdp.send("DOMSnapshot.captureSnapshot", {
-            computedStyles: [],
-            includeDOMRects: true,
-          });
-          await writeFile(
-            join(this.directory, "dom.json"),
-            JSON.stringify(snapshot),
-          );
-        } finally {
-          await cdp.detach();
-        }
-      });
-    }
     if (this.options.network !== false) {
       this.page.off("request", this.onRequest);
       this.page.off("response", this.onResponse);

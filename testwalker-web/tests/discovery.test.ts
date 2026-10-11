@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { serve } from "../src/server.js";
@@ -11,7 +11,61 @@ import {
   buildModel,
   suggestedDataSets,
 } from "../src/discovery.js";
+import { stateFamily, stateIdentity } from "../src/discovery-state.js";
 import { jsonBody } from "../src/discovery-evidence.js";
+
+test("Discovery rejects a quiet window that cannot fit within its timeout", async () => {
+  await assert.rejects(
+    discoverUrl("https://example.test", {
+      output: "unused.json",
+      settleMs: 300,
+      timeoutMs: 200,
+    }),
+    /settleMs must be less/,
+  );
+});
+
+test("Sorting retains distinct selections while reordered links share an expansion family", () => {
+  const page = {
+    url: "https://example.test/products",
+    title: "Shop",
+    page_label: "Products",
+    headings: [],
+    alerts: [],
+    buttons: [],
+    forms: [],
+    links: [
+      { label: "Alpha", url: "https://example.test/a", actionable: true },
+      { label: "Beta", url: "https://example.test/b", actionable: true },
+    ],
+    selects: [
+      {
+        label: "Order",
+        values: ["az"],
+        options: [{ value: "az" }, { value: "za" }],
+        disabled: false,
+        actionable: true,
+      },
+    ],
+  };
+  const sorted = {
+    ...page,
+    links: [...page.links].reverse(),
+    selects: [{ ...page.selects[0], values: ["za"] }],
+  };
+  assert.notEqual(stateIdentity(page), stateIdentity(sorted));
+  assert.equal(stateFamily(page), stateFamily(sorted));
+  const scrolled = {
+    ...page,
+    links: page.links.map((link) => ({ ...link, actionable: false })),
+    selects: page.selects.map((select) => ({ ...select, actionable: false })),
+  };
+  assert.equal(
+    stateIdentity(page),
+    stateIdentity(scrolled),
+    "Viewport exposure must not change logical state",
+  );
+});
 
 test("Namespaced sitemap URLs are deduplicated; indexes, entities and malformed entries are rejected", () => {
   assert.deepEqual(
@@ -114,7 +168,7 @@ test("Form proposals preserve hints without inventing business constraints or pa
   assert.equal(forms[0].fields.Gift.maximum, 50);
 });
 test(
-  "Crawlee discovers one layer, captures DOM/screenshots/JSON, and respects sitemap scope",
+  "Crawlee discovers one layer, captures only screenshots/JSON traffic, and respects sitemap scope",
   { skip: !process.env.TESTWALKER_BROWSER_TESTS },
   async () => {
     const temp = await mkdtemp(join(tmpdir(), "testwalker-discovery-test-"));
@@ -123,7 +177,7 @@ test(
     await mkdir(site);
     await writeFile(
       join(site, "index.html"),
-      '<html><h1>Entry</h1><a href="/next.html">Next</a><a href="https://example.invalid/">Outside</a><form id="person"><label>Name<input name="Name" minlength="2"></label></form><button form="person">Submit</button><script>fetch("/data.json").then(r=>r.json()); document.querySelector("form").onsubmit = e => {e.preventDefault(); document.body.insertAdjacentHTML("beforeend", "<p role=status>Accepted</p>");};</script></html>',
+      '<html><h1>Entry</h1><div aria-hidden="true"><a href="/hidden.html">Hidden link</a><button>Hidden control</button></div><div inert><a href="/hidden.html">Inert link</a></div><a href="/next.html">Next</a><a href="https://example.invalid/">Outside</a><form id="person"><label>Name<input name="Name" minlength="2"></label></form><button form="person">Submit</button><script>fetch("/data.json").then(r=>r.json()); document.querySelector("form").onsubmit = e => {e.preventDefault(); document.body.insertAdjacentHTML("beforeend", "<p role=status>Accepted</p>");};</script></html>',
     );
     await writeFile(
       join(site, "next.html"),
@@ -144,16 +198,19 @@ test(
       assert.ok(pages.some((page) => page.headings.includes("Next")));
       assert.ok(pages.some((page) => page.text.includes("Accepted")));
       assert.ok(!pages.some((page) => page.headings.includes("Beyond depth")));
-      const visit = result.inventory.visits[0],
-        base = join(temp, "url.discovery");
-      assert.match(
-        await readFile(join(base, visit.artifacts["page.html"]), "utf8"),
-        /Entry/,
+      assert.ok(
+        !pages[0].links.some((link: any) => /Hidden|Inert/.test(link.label)),
       );
       assert.ok(
-        JSON.parse(
-          await readFile(join(base, visit.artifacts["dom.json"]), "utf8"),
-        ).documents.length,
+        !pages[0].buttons.some(
+          (button: any) => button.label === "Hidden control",
+        ),
+      );
+      const visit = result.inventory.visits[0],
+        base = join(temp, "url.discovery");
+      assert.deepEqual(
+        (await readdir(join(base, visit.id))).sort(),
+        ["network.json", "screenshot.png"],
       );
       assert.equal(
         (await readFile(join(base, visit.artifacts["screenshot.png"])))
@@ -170,6 +227,8 @@ test(
         ),
         JSON.stringify(network),
       );
+      assert.equal(network.requests.length, 1, "HTML navigation is omitted");
+      assert.equal(network.requests[0].url, server.url + "/data.json");
       await assert.rejects(
         discoverUrl(server.url, { output: join(temp, "url.json") }),
         /exists/,
@@ -294,6 +353,94 @@ test(
 );
 
 test(
+  "Discovery explores every submit control and replays the selected control through subsequent forms",
+  { skip: !process.env.TESTWALKER_BROWSER_TESTS },
+  async () => {
+    const temp = await mkdtemp(
+      join(tmpdir(), "testwalker-discovery-submitters-"),
+    );
+    await writeFile(
+      join(temp, "index.html"),
+      `<h1>Details</h1><form id="details" aria-label="Details">
+      <label>Name<input name="Name" value="Alex"></label>
+      <button name="cancel">Cancel</button></form>
+      <input form="details" type="submit" name="proceed" value="Continue">
+      <script>document.forms[0].onsubmit=e=>{
+        e.preventDefault();
+        if(e.submitter.name==='cancel'){document.body.innerHTML='<h1>Cancelled</h1>';return;}
+        if(!document.forms[0].elements.Name.value){
+          if(!document.querySelector('[role=alert]'))document.body.insertAdjacentHTML('beforeend','<p role=alert>Name is required</p>');
+          return;
+        }
+        document.body.innerHTML='<h1>Review</h1><form><button name="back">Back</button><button name="finish">Finish</button></form>';
+        document.forms[0].onsubmit=e=>{e.preventDefault();document.body.innerHTML=e.submitter.name==='finish'?'<h1>Complete</h1>':'<h1>Returned</h1>';};
+      };</script>`,
+    );
+    const server = await serve(temp);
+    try {
+      const result = await discoverUrl(server.url, {
+        output: join(temp, "draft.json"),
+        depth: 3,
+        probeEmptyForms: true,
+        settleMs: 50,
+      });
+      assert.deepEqual(result.inventory.failed, []);
+      const pages = Object.values<any>(result.inventory.pages);
+      for (const heading of ["Cancelled", "Review", "Complete", "Returned"])
+        assert.ok(
+          pages.some((page) => page.headings.includes(heading)),
+          heading,
+        );
+      assert.ok(pages.some((page) => page.alerts.includes("Name is required")));
+      assert.ok(
+        result.inventory.transitions.some((t: any) =>
+          t.intent.startsWith("Submit Continue with these form details"),
+        ),
+      );
+      assert.ok(
+        result.inventory.transitions.some((t: any) =>
+          t.intent.startsWith(
+            "Submit Continue with all editable text fields empty",
+          ),
+        ),
+      );
+      assert.ok(
+        !JSON.stringify(result.model).includes("Submit proceed"),
+        "Use the visible input button caption",
+      );
+      const excluded = await discoverUrl(server.url, {
+        output: join(temp, "excluded.json"),
+        depth: 1,
+        settleMs: 30,
+        excludeButtons: ["Cancel"],
+        screenshots: false,
+        network: false,
+      });
+      assert.ok(
+        !excluded.inventory.transitions.some((t: any) =>
+          t.intent.startsWith("Submit Cancel"),
+        ),
+      );
+      assert.ok(
+        excluded.inventory.transitions.some((t: any) =>
+          t.intent.startsWith("Submit Continue"),
+        ),
+      );
+      assert.ok(
+        excluded.inventory.pending.some(
+          (a: any) =>
+            a.intent.startsWith("Submit Cancel") &&
+            a.reason === "excluded control",
+        ),
+      );
+    } finally {
+      await server.close();
+      await rm(temp, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
   "Generic native forms handle fieldsets, boolean checkboxes and existing radio selections",
   { skip: !process.env.TESTWALKER_BROWSER_TESTS },
   async () => {
@@ -410,6 +557,240 @@ test(
             transition.values.Bundle === "blue" &&
             transition.values.Quantity === "2",
         ),
+      );
+    } finally {
+      await server.close();
+      await rm(temp, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "Discovery waits for async UI, avoids covered controls, and replays standalone selections",
+  { skip: !process.env.TESTWALKER_BROWSER_TESTS },
+  async () => {
+    const temp = await mkdtemp(join(tmpdir(), "testwalker-discovery-ui-"));
+    await writeFile(
+      join(temp, "index.html"),
+      `<title>Generic shop</title>
+      <span style="font-size:24px;font-weight:400">Products</span>
+      <h1 id="state">Loading</h1>
+      <a href="/next.html" role="button">Next</a><a href="/next.html">Next</a>
+      <label>Order<select name="order"><option value="a">Ascending</option>
+        <option value="d">Descending</option><optgroup disabled><option value="x">Unavailable</option></optgroup></select></label>
+      <button onclick="openMenu()">Menu</button>
+      <button style="position:absolute;top:1200px" onclick="document.querySelector('#state').textContent='Far action'">Offscreen action</button>
+      <button style="position:absolute;left:700px;top:100px;width:200px;height:40px">Partially covered</button>
+      <div style="position:absolute;left:780px;top:100px;width:40px;height:40px;z-index:2;background:red"></div>
+      <button id="covered" onclick="document.querySelector('#state').textContent='Wrong action'">Underlying</button>
+      <script>
+      document.body.setAttribute('aria-busy','true');
+      fetch("/ready.json").then(r=>r.json()).then(()=>{setTimeout(()=>{document.querySelector("#state").textContent="Ready";document.body.removeAttribute("aria-busy")},80)});
+      document.querySelector('select').onchange=e=>document.querySelector('#state').textContent='Order '+e.target.value;
+      function openMenu(){
+        const overlay=document.createElement('div');overlay.id='overlay';
+        overlay.style='position:fixed;inset:0;background:white;z-index:100';
+        overlay.innerHTML='<button>Close menu</button>';
+        overlay.querySelector('button').onclick=()=>overlay.remove();
+        document.body.append(overlay);
+      }
+      </script>`,
+    );
+    await writeFile(join(temp, "next.html"), "<h1>Next page</h1>");
+    await writeFile(join(temp, "ready.json"), "{}");
+    const server = await serve(temp);
+    const handlers = server.server.listeners("request");
+    server.server.removeAllListeners("request");
+    server.server.on("request", (request, response) => {
+      const deliver = () =>
+        handlers.forEach((handler) =>
+          handler.call(server.server, request, response),
+        );
+      if (request.url === "/ready.json") setTimeout(deliver, 200);
+      else deliver();
+    });
+    try {
+      const result = await discoverUrl(server.url, {
+        output: join(temp, "draft.json"),
+        depth: 2,
+        clickButtons: true,
+        settleMs: 30,
+        timeoutMs: 2000,
+        maxActions: 100,
+        screenshots: false,
+      });
+      assert.deepEqual(result.inventory.failed, []);
+      const pages = Object.values<any>(result.inventory.pages);
+      assert.ok(!pages.some((p) => p.headings.includes("Loading")));
+      assert.ok(
+        pages.some((p) => p.selects.some((s: any) => s.values.includes("d"))),
+      );
+      assert.ok(
+        result.inventory.transitions.some(
+          (t: any) => t.evidence === "native selection",
+        ),
+      );
+      assert.ok(
+        result.model.models[0].vertices.some((v: any) =>
+          v.properties.business.rules.includes(
+            "The Order selection is Descending.",
+          ),
+        ),
+      );
+      const menuVertex = result.model.models[0].vertices.find(
+        (v: any) =>
+          v.id ===
+          Object.entries(result.inventory.pages).find(([, p]: any) =>
+            p.buttons.some((b: any) => b.label === "Close menu"),
+          )?.[0],
+      );
+      assert.ok(
+        !menuVertex.properties.business.rules.some((rule: string) =>
+          rule.includes("Underlying"),
+        ),
+      );
+      assert.ok(
+        !result.inventory.transitions.some((t: any) =>
+          t.intent.includes("Unavailable"),
+        ),
+      );
+      assert.ok(
+        result.inventory.blocked.some(
+          (b: any) => b.label === "Underlying" && b.reason.includes("covered"),
+        ),
+      );
+      const menu = pages.find((p) =>
+        p.buttons.some((b: any) => b.label === "Close menu"),
+      );
+      const menuId = Object.entries(result.inventory.pages).find(
+        ([, p]) => p === menu,
+      )![0];
+      assert.ok(
+        !result.inventory.transitions.some(
+          (t: any) =>
+            t.source === menuId &&
+            ["Choose Underlying.", "Choose Offscreen action."].includes(
+              t.intent,
+            ),
+        ),
+      );
+      assert.ok(
+        result.inventory.transitions.some(
+          (t: any) => t.source === menuId && t.intent === "Choose Close menu.",
+        ),
+      );
+      const entry = result.model.models[0].startElementId;
+      assert.ok(
+        result.inventory.actions.some(
+          (a: any) =>
+            a.source === entry &&
+            a.intent === "Choose Partially covered." &&
+            a.reason === "covered control",
+        ),
+      );
+      assert.equal(
+        result.inventory.actions.filter(
+          (a: any) => a.source === entry && a.intent.includes("Next"),
+        ).length,
+        1,
+      );
+      assert.ok(
+        result.inventory.pending.every(
+          (p: any) => p.source && p.intent && p.reason,
+        ),
+      );
+    } finally {
+      await server.close();
+      await rm(temp, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "Repetitive states retain observations and explicitly defer their known frontier",
+  { skip: !process.env.TESTWALKER_BROWSER_TESTS },
+  async () => {
+    const temp = await mkdtemp(
+      join(tmpdir(), "testwalker-discovery-frontier-"),
+    );
+    await writeFile(
+      join(temp, "index.html"),
+      `<title>Generic shop</title>
+      <span style="font-size:24px;font-weight:400">Products</span>
+      <button onclick="this.textContent='Count '+(++window.count)">Count 0</button><script>window.count=0</script>`,
+    );
+    const server = await serve(temp);
+    try {
+      const options = {
+        depth: 5,
+        clickButtons: true,
+        settleMs: 20,
+        screenshots: false,
+        network: false,
+      };
+      const variants = await discoverUrl(server.url, {
+        ...options,
+        output: join(temp, "variants.json"),
+        maxStateVariants: 2,
+      });
+      assert.equal(Object.keys(variants.inventory.pages).length, 3);
+      assert.equal(variants.inventory.transitions.length, 2);
+      assert.equal(variants.inventory.pending.length, 1);
+      assert.equal(variants.inventory.pending[0].reason, "state variant limit");
+      assert.equal(variants.inventory.pending[0].intent, "Choose Count 2.");
+      assert.match(variants.model.models[0].vertices[0].name, /Products/);
+      const budget = await discoverUrl(server.url, {
+        ...options,
+        output: join(temp, "budget.json"),
+        maxStateVariants: 100,
+        maxActions: 3,
+      });
+      assert.equal(budget.inventory.operations, 3);
+      assert.equal(budget.inventory.pending.length, 1);
+      assert.equal(budget.inventory.pending[0].reason, "action budget");
+      assert.equal(budget.inventory.pending[0].status, "queued");
+      assert.deepEqual(budget.inventory.failed, []);
+    } finally {
+      await server.close();
+      await rm(temp, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "Unsettled actions keep diagnostics and evidence without inventing graph transitions",
+  { skip: !process.env.TESTWALKER_BROWSER_TESTS },
+  async () => {
+    const temp = await mkdtemp(
+      join(tmpdir(), "testwalker-discovery-unsettled-"),
+    );
+    await writeFile(
+      join(temp, "index.html"),
+      "<h1>Ready</h1><button onclick=\"document.body.setAttribute('aria-busy','true')\">Wait forever</button>",
+    );
+    const server = await serve(temp);
+    try {
+      const result = await discoverUrl(server.url, {
+        output: join(temp, "draft.json"),
+        depth: 1,
+        clickButtons: true,
+        settleMs: 20,
+        timeoutMs: 1500,
+        network: false,
+      });
+      assert.equal(result.inventory.transitions.length, 0);
+      assert.equal(result.inventory.failed.length, 1);
+      assert.equal(result.inventory.failed[0].intent, "Choose Wait forever.");
+      const failed = result.inventory.visits.find(
+        (v: any) => v.id === result.inventory.failed[0].visit,
+      );
+      assert.match(failed.error, /did not settle/);
+      assert.equal(failed.diagnostic.busy, true);
+      assert.ok(failed.artifacts["screenshot.png"]);
+      assert.equal(
+        result.inventory.actions.find((a: any) => a.kind === "executed control")
+          .status,
+        "failed",
       );
     } finally {
       await server.close();

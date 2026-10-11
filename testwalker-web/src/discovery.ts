@@ -16,13 +16,19 @@ import {
   access,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { join, dirname, basename, resolve } from "node:path";
-import { chromium, type Page } from "playwright";
+import { chromium, type Page, type ElementHandle } from "playwright";
 import { httpUrl, type BrowserSettings } from "./config.js";
 import { loadExtension } from "./extensions.js";
 import { VisitEvidence } from "./discovery-evidence.js";
-import { SNAPSHOT, BUTTONS } from "./discovery-snapshot.js";
+import { SNAPSHOT, BUTTONS, SELECTS } from "./discovery-snapshot.js";
+import {
+  DiscoveryState,
+  stateIdentity as identity,
+  stateFamily,
+  discoveryHash as hash,
+} from "./discovery-state.js";
 import { Inconclusive, message, type Json, type Model } from "./types.js";
 
 export interface DiscoveryOptions {
@@ -36,9 +42,9 @@ export interface DiscoveryOptions {
   maxActions?: number;
   timeoutMs?: number;
   settleMs?: number;
+  maxStateVariants?: number;
   headed?: boolean;
   screenshots?: boolean;
-  dom?: boolean;
   network?: boolean;
   maxJsonBytes?: number;
   maxNetworkRequests?: number;
@@ -56,8 +62,6 @@ export interface DiscoveryContext {
   skip: boolean;
   handled: boolean;
 }
-const hash = (value: unknown) =>
-  createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 16);
 const prose = (value: unknown) =>
   String(value)
     .replace(/\s+/g, " ")
@@ -65,19 +69,6 @@ const prose = (value: unknown) =>
     .slice(0, 1500)
     .trim() || "Unnamed page";
 const canonical = (value: string) => httpUrl(value);
-const identity = (page: Json) =>
-  "page_" +
-  hash({
-    url: page.url,
-    title: page.title,
-    headings: page.headings,
-    alerts: page.alerts,
-    buttons: page.buttons.map((button: Json) => [button.label, button.role]),
-    forms: page.forms.map((form: Json) => ({
-      label: form.label,
-      fields: form.fields.map((field: Json) => [field.label, field.type]),
-    })),
-  });
 export function sitemapUrls(xml: string): string[] {
   if (Buffer.byteLength(xml) > 10_000_000)
     throw new Error("Sitemap exceeds 10 MB");
@@ -111,13 +102,17 @@ export function buildModel(
 ): Model {
   const vertices = Object.entries(pages).map(([id, page], index) => {
     const label = prose(
-      page.headings[0] ?? page.title ?? new URL(page.url).pathname,
+      page.page_label ||
+        page.headings[0] ||
+        page.title ||
+        new URL(page.url).pathname,
     );
     const rules = [`The visitor sees ${label}.`];
     for (const form of page.forms) {
       const fields = form.fields.filter(
         (field: Json) =>
           field.visible &&
+          field.actionable !== false &&
           !["hidden", "submit", "button", "reset"].includes(field.type),
       );
       if (fields.length)
@@ -128,16 +123,41 @@ export function buildModel(
           ),
         );
     }
-    if (page.buttons.length)
+    const exposedButtons = page.buttons.filter(
+      (button: Json) => button.actionable !== false,
+    );
+    if (exposedButtons.length)
       rules.push(
         prose(
           "The page offers these controls: " +
-            page.buttons.map((button: Json) => button.label).join(", "),
+            exposedButtons.map((button: Json) => button.label).join(", "),
         ),
       );
+    const selections = (page.selects ?? [])
+      .filter((select: Json) => select.actionable !== false)
+      .map((select: Json) => ({
+        label: prose(select.label),
+        choices: select.options
+          .filter((option: Json) => select.values.includes(option.value))
+          .map((option: Json) => prose(option.label))
+          .join(", "),
+      }));
+    for (const selection of selections)
+      rules.push(
+        `The ${selection.label} selection is ${selection.choices || "empty"}.`,
+      );
+    const selectionLabel = selections.length
+      ? " — " +
+        selections
+          .map(
+            (selection: Json) =>
+              `${selection.label}: ${selection.choices || "empty"}`,
+          )
+          .join("; ")
+      : "";
     return {
       id,
-      name: `Page ${index + 1}: ${label}`,
+      name: `Page ${index + 1}: ${label}${selectionLabel}`.slice(0, 300),
       properties: {
         business: {
           description: `The visitor is viewing ${label}.`,
@@ -320,14 +340,38 @@ function fieldValue(field: Json): unknown {
     .padEnd(Number(field.minLength ?? 0), "a")
     .slice(0, Number(field.maxLength ?? 100));
 }
+class CoveredControl extends Inconclusive {}
+
+async function clickControl(element: ElementHandle): Promise<void> {
+  // A native trial performs scrolling/actionability checks without dispatching a
+  // click. It catches coverage that only becomes apparent after scrolling.
+  try {
+    await element.click({ trial: true, timeout: 400 });
+  } catch (error) {
+    if (message(error).includes("intercepts pointer events"))
+      throw new CoveredControl(
+        "Control is covered after scrolling; click was not performed",
+        {
+          reason: "covered control after scrolling",
+          error: message(error),
+        },
+      );
+    // A moving control can outlast the short trial. Preserve Playwright's normal
+    // wait for this case; no actual click has been attempted yet.
+    if (!(error instanceof Error) || error.name !== "TimeoutError") throw error;
+  }
+  await element.click();
+}
+
 async function submit(
   page: Page,
   step: Json,
   allows: (url: string) => boolean,
   hooks: Json,
   scratch: Json,
+  state: DiscoveryState,
 ): Promise<Json> {
-  const snapshot: Json = await page.evaluate(`(${SNAPSHOT})()`);
+  const snapshot = await state.snapshot(step.source);
   if (identity(snapshot) !== step.source)
     throw new Inconclusive(
       "Discovery replay source changed; form was not submitted",
@@ -380,6 +424,7 @@ async function submit(
   }
   const submitField = form.fields.find(
     (field: Json) =>
+      (step.submitter === undefined || field.index === step.submitter) &&
       field.visible &&
       !field.disabled &&
       ["submit", "image"].includes(field.type),
@@ -397,7 +442,7 @@ async function submit(
   try {
     const submitter = submitHandle.asElement();
     if (!submitter) throw new Inconclusive("Submit control disappeared");
-    await submitter.click();
+    await clickControl(submitter);
   } finally {
     await submitHandle.dispose();
   }
@@ -411,12 +456,13 @@ async function replayStep(
   allows: (url: string) => boolean,
   hooks: Json,
   scratch: Json,
+  state: DiscoveryState,
 ): Promise<void> {
   if (step.kind === "form") {
-    step.values = await submit(page, step, allows, hooks, scratch);
+    step.values = await submit(page, step, allows, hooks, scratch, state);
     return;
   }
-  const snapshot: Json = await page.evaluate(`(${SNAPSHOT})()`);
+  const snapshot = await state.snapshot(step.source);
   if (identity(snapshot) !== step.source)
     throw new Inconclusive(
       "Discovery replay source changed; action was not performed",
@@ -430,11 +476,45 @@ async function replayStep(
       !allows(link.url)
     )
       throw new Inconclusive("Discovery link changed or left scope");
-    await page
-      .locator("a[href]")
-      .filter({ visible: true })
-      .nth(step.index)
-      .click();
+    if (!link.actionable)
+      throw new CoveredControl("Link is covered; action was not performed", {
+        reason: "covered control",
+      });
+    const handle = await page.evaluateHandle(
+      (index) => document.querySelectorAll("a[href]")[index],
+      link.dom_index,
+    );
+    try {
+      const element = handle.asElement();
+      if (!element) throw new Inconclusive("Discovery link disappeared");
+      await clickControl(element);
+    } finally {
+      await handle.dispose();
+    }
+  } else if (step.kind === "select") {
+    const select = snapshot.selects.find(
+      (item: Json) => item.index === step.index,
+    );
+    if (
+      !select ||
+      select.label !== step.label ||
+      select.disabled ||
+      !select.actionable ||
+      !select.options.some(
+        (option: Json) => option.value === step.value && !option.disabled,
+      )
+    )
+      throw new Inconclusive("Discovery selection changed or is unavailable");
+    const handle = await page.evaluateHandle<HTMLSelectElement>(
+      `(${SELECTS})()[${step.index}]`,
+    );
+    try {
+      const element = handle.asElement();
+      if (!element) throw new Inconclusive("Discovery select disappeared");
+      await element.selectOption(step.value);
+    } finally {
+      await handle.dispose();
+    }
   } else {
     const button = snapshot.buttons.find(
       (item: Json) => item.index === step.index,
@@ -446,13 +526,17 @@ async function replayStep(
       button.submit
     )
       throw new Inconclusive("Discovery control changed or is unavailable");
+    if (!button.actionable)
+      throw new CoveredControl("Control is covered; action was not performed", {
+        reason: "covered control",
+      });
     const handle = await page.evaluateHandle<HTMLElement>(
       `(${BUTTONS})()[${step.index}]`,
     );
     try {
       const element = handle.asElement();
       if (!element) throw new Inconclusive("Discovery control disappeared");
-      await element.click();
+      await clickControl(element);
     } finally {
       await handle.dispose();
     }
@@ -536,6 +620,7 @@ export async function discoverUrls(
     ["depth", depth, 0, 10],
     ["maxPages", maxPages, 1, 100],
     ["maxActions", maxActions, 1, 10000],
+    ["maxStateVariants", options.maxStateVariants ?? 4, 1, 100],
     ["timeoutMs", options.timeoutMs ?? 10000, 100, 120000],
     ["settleMs", options.settleMs ?? 300, 0, 10000],
     ["maxJsonBytes", options.maxJsonBytes ?? 1048576, 1, 10485760],
@@ -544,6 +629,8 @@ export async function discoverUrls(
     if (!Number.isInteger(value) || value < min || value > max)
       throw new Error(`${label} must be ${min}–${max}`);
   }
+  if ((options.settleMs ?? 300) >= (options.timeoutMs ?? 10000))
+    throw new Error("settleMs must be less than timeoutMs");
   seeds = [...new Set(seeds.map(canonical))];
   if (!seeds.length || seeds.length > maxPages)
     throw new Error("Supply 1–maxPages seed URLs");
@@ -574,7 +661,7 @@ export async function discoverUrls(
   const artifactStage = join(staging, "artifacts");
   await mkdir(artifactStage);
   const inventory: Json = {
-    version: 2,
+    version: 3,
     engine: "crawlee",
     seeds,
     scope: sitemap ? seeds : "same origin",
@@ -585,11 +672,17 @@ export async function discoverUrls(
     failed: [],
     blocked: [],
     pending: [],
+    actions: [],
+    limits: {
+      max_pages: maxPages,
+      max_actions: maxActions,
+      max_state_variants: options.maxStateVariants ?? 4,
+    },
     operations: 0,
     review: [
       "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
       "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
-      "States are grouped by URL, headings, alerts and control structure; changing data values are evidence, not separate states.",
+      "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
     ],
   };
   const hooks = options.hooks
@@ -613,6 +706,9 @@ export async function discoverUrls(
   const captures = new Map<string, VisitEvidence>();
   const contexts = new WeakSet<object>();
   const expanded = new Set<string>();
+  const families = new Map<string, number>();
+  const readiness = new Map<string, DiscoveryState>();
+  const actions = new Map<string, Json>();
   const formExamples = new Map<string, Json>();
   // Crawlee installs an implicit local proxy even without a configured proxy.
   // Its tunnel sockets can outlive a closed browser and keep the CLI alive.
@@ -663,11 +759,24 @@ export async function discoverUrls(
             Object.keys(inventory.pages).length >= maxPages
           ) {
             data.budget_pending = true;
-            inventory.pending.push({ url: request.url, depth: data.depth });
+            inventory.stop_reason =
+              Object.keys(inventory.pages).length >= maxPages
+                ? "state budget"
+                : "action budget";
             crawler.stop();
             throw new Error("Discovery budget reached");
           }
           inventory.operations++;
+          const action = actions.get(request.uniqueKey);
+          if (action) action.status = "running";
+          readiness.set(
+            request.uniqueKey,
+            new DiscoveryState(
+              page,
+              options.settleMs ?? 300,
+              options.timeoutMs ?? 10000,
+            ),
+          );
           if (!contexts.has(page.context())) {
             contexts.add(page.context());
             await page.context().route("**/*", async (route) => {
@@ -736,6 +845,9 @@ export async function discoverUrls(
             url: request.url,
             depth: data.depth,
             source: data.source ?? null,
+            intent: data.intent ?? "Inspect seed URL",
+            steps: data.steps ?? [],
+            action_id: request.uniqueKey,
             artifacts: {},
             capture_errors: [],
           };
@@ -773,19 +885,25 @@ export async function discoverUrls(
             skip: false,
             handled: false,
           });
-          await page.waitForTimeout(options.settleMs ?? 300);
+          const state = readiness.get(request.uniqueKey)!;
           for (const step of data.steps ?? []) {
             inventory.operations++;
-            await replayStep(page, step, allows, hooks, scratch);
-            await page.waitForTimeout(options.settleMs ?? 300);
+            await replayStep(page, step, allows, hooks, scratch, state);
           }
           if (!allows(page.url()))
             throw new Inconclusive("Page left discovery scope");
-          const snapshot: Json = await page.evaluate(`(${SNAPSHOT})()`);
+          const snapshot = await state.snapshot();
           const id = identity(snapshot);
           snapshot.url = canonical(snapshot.url);
           inventory.pages[id] ??= snapshot;
           capture.record.state = id;
+          const action = actions.get(request.uniqueKey);
+          if (action)
+            Object.assign(action, {
+              status: "executed",
+              target: id,
+              visit: capture.record.id,
+            });
           if (data.source)
             inventory.transitions.push({
               source: data.source,
@@ -799,17 +917,44 @@ export async function discoverUrls(
                   : undefined,
               visit: capture.record.id,
             });
-          if (!expanded.has(id) && data.depth < depth) {
+          if (!expanded.has(id)) {
             expanded.add(id);
+            const family = stateFamily(snapshot),
+              variants = families.get(family) ?? 0;
+            const deferred =
+              data.depth >= depth
+                ? "depth limit"
+                : variants >= (options.maxStateVariants ?? 4)
+                  ? "state variant limit"
+                  : undefined;
+            if (!deferred) families.set(family, variants + 1);
             const enqueue = async (
               step: Json,
               intent: string,
               kind: string,
+              reason = deferred,
             ) => {
               const steps = [...(data.steps ?? []), step];
+              const key = "action:" + hash([id, step]);
+              if (actions.has(key)) return;
+              const action: Json = {
+                id: key,
+                source: id,
+                url: snapshot.url,
+                depth: data.depth + 1,
+                intent,
+                kind,
+                step,
+                replay_steps: steps.length,
+                status: reason ? "deferred" : "queued",
+                ...(reason ? { reason } : {}),
+              };
+              actions.set(key, action);
+              inventory.actions.push(action);
+              if (reason) return;
               await queue.addRequest({
                 url: request.url,
-                uniqueKey: "action:" + hash([id, step]),
+                uniqueKey: key,
                 userData: {
                   depth: data.depth + 1,
                   source: id,
@@ -819,40 +964,6 @@ export async function discoverUrls(
                 },
               });
             };
-            for (const [index, link] of snapshot.links.entries())
-              if (!link.download && allows(link.url))
-                await enqueue(
-                  {
-                    kind: "link",
-                    source: id,
-                    index,
-                    label: link.label,
-                    url: link.url,
-                  },
-                  `Follow ${prose(link.label)}.`,
-                  "executed hyperlink",
-                );
-            if (
-              options.clickButtons &&
-              !sitemap &&
-              options.submitForms !== false
-            )
-              for (const button of snapshot.buttons)
-                if (
-                  !button.disabled &&
-                  !button.submit &&
-                  !options.excludeButtons?.includes(button.label)
-                )
-                  await enqueue(
-                    {
-                      kind: "button",
-                      source: id,
-                      index: button.index,
-                      label: button.label,
-                    },
-                    `Choose ${prose(button.label)}.`,
-                    "executed control",
-                  );
             if (options.submitForms !== false)
               for (const form of snapshot.forms) {
                 if (!allows(form.action)) {
@@ -887,60 +998,201 @@ export async function discoverUrls(
                 }
                 if (!formExamples.has(formKey))
                   formExamples.set(formKey, structuredClone(values));
-                const step = {
-                  kind: "form",
-                  source: id,
-                  form: form.index,
-                  values,
-                };
-                const submitter = form.fields.find((field: Json) =>
-                  ["submit", "image"].includes(field.type),
+                const submitters = form.fields.filter(
+                  (field: Json) =>
+                    field.visible &&
+                    !field.disabled &&
+                    ["submit", "image"].includes(field.type),
                 );
-                const label = prose(submitter?.label ?? form.label);
-                const details = form.fields
-                  .filter(
-                    (field: Json) =>
-                      editableField(field) && field.type !== "password",
+                // A form can offer different journeys, such as Cancel and Continue.
+                // Replay the exact submit control rather than always choosing the first.
+                for (const submitter of submitters.length
+                  ? submitters
+                  : [undefined]) {
+                  const formDeferred = options.excludeButtons?.includes(
+                    submitter?.label,
                   )
-                  .map(
-                    (field: Json) =>
-                      `${prose(field.label)}: ${prose(JSON.stringify(values[field.name || field.label]))}`,
-                  )
-                  .join("; ");
-                await enqueue(
-                  step,
-                  `Submit ${label} with these form details: ${details}.`,
-                  "form submission",
-                );
-                if (options.probeEmptyForms) {
-                  const empty: Json = { ...values };
-                  for (const field of form.fields) {
-                    if (!editableField(field) || field.type === "radio")
-                      continue;
-                    if (
-                      field.tag === "select" &&
-                      !field.options.some((option: Json) => option.value === "")
+                    ? "excluded control"
+                    : submitter?.actionable === false ||
+                        form.fields.some(
+                          (field: Json) =>
+                            editableField(field) && field.actionable === false,
+                        )
+                      ? "covered control"
+                      : deferred;
+                  const step = {
+                    kind: "form",
+                    source: id,
+                    form: form.index,
+                    submitter: submitter?.index,
+                    values,
+                  };
+                  const label = prose(submitter?.label ?? form.label);
+                  const details = form.fields
+                    .filter(
+                      (field: Json) =>
+                        editableField(field) && field.type !== "password",
                     )
-                      continue;
-                    empty[field.name || field.label] =
-                      field.type === "checkbox" ? false : "";
-                  }
+                    .map(
+                      (field: Json) =>
+                        `${prose(field.label)}: ${prose(JSON.stringify(values[field.name || field.label]))}`,
+                    )
+                    .join("; ");
                   await enqueue(
-                    { ...step, values: empty },
-                    `Submit ${label} with all editable text fields empty.`,
-                    "empty form probe; outcome requires review",
+                    step,
+                    `Submit ${label} with these form details: ${details}.`,
+                    "form submission",
+                    formDeferred,
                   );
+                  if (options.probeEmptyForms) {
+                    const empty: Json = { ...values };
+                    for (const field of form.fields) {
+                      if (!editableField(field) || field.type === "radio")
+                        continue;
+                      if (
+                        field.tag === "select" &&
+                        !field.options.some(
+                          (option: Json) => option.value === "",
+                        )
+                      )
+                        continue;
+                      empty[field.name || field.label] =
+                        field.type === "checkbox" ? false : "";
+                    }
+                    await enqueue(
+                      { ...step, values: empty },
+                      `Submit ${label} with all editable text fields empty.`,
+                      "empty form probe; outcome requires review",
+                      formDeferred,
+                    );
+                  }
                 }
               }
+            if (options.submitForms !== false && !sitemap)
+              for (const select of snapshot.selects)
+                if (!select.disabled)
+                  for (const option of select.options)
+                    if (
+                      !option.disabled &&
+                      !select.values.includes(option.value)
+                    )
+                      await enqueue(
+                        {
+                          kind: "select",
+                          source: id,
+                          index: select.index,
+                          label: select.label,
+                          value: option.value,
+                        },
+                        `Select ${prose(option.label)} for ${prose(select.label)}.`,
+                        "native selection",
+                        select.actionable ? deferred : "covered control",
+                      );
+            for (const control of [
+              ...snapshot.links,
+              ...snapshot.buttons,
+              ...snapshot.selects,
+            ])
+              if (control.actionable === false)
+                inventory.blocked.push({
+                  source: id,
+                  label: control.label,
+                  reason:
+                    "Control is covered; revisit after dismissing the overlay",
+                });
+            const linked = new Set<string>();
+            for (const [index, link] of [...snapshot.links.entries()].sort(
+              (a, b) => Number(b[1].actionable) - Number(a[1].actionable),
+            ))
+              if (
+                !link.download &&
+                allows(link.url) &&
+                !linked.has(hash([link.label, link.url]))
+              ) {
+                linked.add(hash([link.label, link.url]));
+                await enqueue(
+                  {
+                    kind: "link",
+                    source: id,
+                    index,
+                    label: link.label,
+                    url: link.url,
+                  },
+                  `Follow ${prose(link.label)}.`,
+                  "executed hyperlink",
+                  link.actionable ? deferred : "covered control",
+                );
+              }
+            if (
+              options.clickButtons &&
+              !sitemap &&
+              options.submitForms !== false
+            )
+              for (const button of snapshot.buttons)
+                if (!button.disabled && !button.href && !button.submit)
+                  await enqueue(
+                    {
+                      kind: "button",
+                      source: id,
+                      index: button.index,
+                      label: button.label,
+                    },
+                    `Choose ${prose(button.label)}.`,
+                    "executed control",
+                    options.excludeButtons?.includes(button.label)
+                      ? "excluded control"
+                      : button.actionable
+                        ? deferred
+                        : "covered control",
+                  );
           }
+        } catch (error) {
+          if (error instanceof CoveredControl) {
+            const action = actions.get(request.uniqueKey);
+            if (action)
+              Object.assign(action, {
+                status: "deferred",
+                reason: error.result.reason,
+                diagnostic: error.result.error,
+                visit: capture.record.id,
+              });
+            capture.record.deferred = error.result;
+            inventory.blocked.push({
+              source: data.source,
+              intent: data.intent,
+              reason: error.result.reason,
+              visit: capture.record.id,
+            });
+            return;
+          }
+          capture.record.error = message(error);
+          if (error instanceof Inconclusive)
+            capture.record.diagnostic = error.result;
+          throw error;
         } finally {
+          readiness.get(request.uniqueKey)?.close();
+          readiness.delete(request.uniqueKey);
           await capture.finish();
           captures.delete(request.uniqueKey);
         }
       },
       failedRequestHandler: async ({ request }, error) => {
         if (!request.userData.budget_pending)
-          inventory.failed.push({ url: request.url, error: message(error) });
+          inventory.failed.push({
+            url: request.url,
+            source: request.userData.source,
+            intent: request.userData.intent,
+            action_id: request.uniqueKey,
+            visit: inventory.visits.find(
+              (visit: Json) => visit.action_id === request.uniqueKey,
+            )?.id,
+            error: message(error),
+          });
+        const action = actions.get(request.uniqueKey);
+        if (action && !request.userData.budget_pending)
+          Object.assign(action, { status: "failed", error: message(error) });
+        readiness.get(request.uniqueKey)?.close();
+        readiness.delete(request.uniqueKey);
         const capture = captures.get(request.uniqueKey);
         if (capture) {
           capture.record.error = message(error);
@@ -952,6 +1204,20 @@ export async function discoverUrls(
     settings,
   );
   try {
+    for (const url of seeds) {
+      const action: Json = {
+        id: "url:" + url,
+        source: null,
+        url,
+        depth: 0,
+        intent: "Inspect seed URL",
+        kind: "seed",
+        replay_steps: 0,
+        status: "queued",
+      };
+      actions.set(action.id, action);
+      inventory.actions.push(action);
+    }
     await crawler.run(
       seeds.map((url) => ({
         url,
@@ -964,6 +1230,21 @@ export async function discoverUrls(
         failed: inventory.failed,
         blocked: inventory.blocked,
       });
+    inventory.pending = inventory.actions
+      .filter(
+        (action: Json) =>
+          action.status === "queued" ||
+          action.status === "running" ||
+          action.status === "deferred",
+      )
+      .map((action: Json) => ({
+        ...action,
+        reason: action.reason ?? inventory.stop_reason ?? "crawl stopped",
+      }));
+    if (inventory.pending.length)
+      inventory.review.push(
+        `${inventory.pending.length} known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.`,
+      );
     inventory.suggested_data_sets = suggestedDataSets(inventory.pages);
     const model = buildModel(
       inventory.pages,

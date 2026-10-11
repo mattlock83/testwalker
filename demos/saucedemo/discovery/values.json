@@ -1,0 +1,10 @@
+{
+  "defaults": {
+    "user-name": "standard_user",
+    "password": "secret_sauce",
+    "firstName": "Alex",
+    "lastName": "Tester",
+    "postalCode": "3000",
+    "email": "alex@example.com"
+  }
+}
