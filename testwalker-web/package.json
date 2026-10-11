@@ -1,0 +1,43 @@
+{
+  "name": "@testwalker/web",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Playwright and PlayJev adapter for Testwalker's Rust JSON-RPC framework",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "testwalker-web": "./bin/cli.js",
+    "testwalker-web-adapter": "./bin/adapter.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "pretest": "npm run build"
+  },
+  "dependencies": {
+    "@filed/playjev": "0.1.0",
+    "crawlee": "3.18.2",
+    "fast-xml-parser": "5.11.2",
+    "playwright": "1.64.0",
+    "tsx": "4.23.15"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.0",
+    "typescript": "5.9.3"
+  }
+}

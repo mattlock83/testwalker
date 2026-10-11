@@ -1,0 +1,24 @@
+{
+  "name": "testwalker-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "testwalker-web",
+    "demos/hello-world",
+    "demos/booking",
+    "demos/feedback",
+    "demos/trailhead"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @testwalker/web",
+    "check": "npm run check --workspace @testwalker/web",
+    "test": "npm run test --workspaces --if-present && node --import tsx --test demos/tests/*.test.ts",
+    "format": "prettier --write \"testwalker-web/bin/*.js\" \"testwalker-web/{src,tests}/**/*.ts\" \"demos/**/*.ts\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

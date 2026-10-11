@@ -1,0 +1,185 @@
+{
+  "models": [
+    {
+      "id": "hello-world",
+      "name": "Hello world",
+      "startElementId": "home",
+      "generator": "new_york_street_sweeper()",
+      "properties": {
+        "business": {
+          "version": 3,
+          "purpose": "A visitor can navigate between Home and Greeting and receive a personal greeting.",
+          "entry path": "/",
+          "coverage": {
+            "edges": 100,
+            "states": 100
+          },
+          "rules": [
+            "Home and Greeting remain available as navigation options in every state."
+          ],
+          "data sets": {
+            "Greeting": {
+              "Name": {
+                "description": "The name of the visitor to greet",
+                "type": "text",
+                "required": true,
+                "minimum length": 2,
+                "maximum length": 30,
+                "example": "Alex"
+              }
+            }
+          }
+        }
+      },
+      "vertices": [
+        {
+          "id": "home",
+          "name": "home",
+          "properties": {
+            "business": {
+              "description": "The Hello world welcome page is visible with no form or personal greeting.",
+              "rules": [
+                "The visitor can choose Greeting to enter a name."
+              ]
+            }
+          }
+        },
+        {
+          "id": "form",
+          "name": "form",
+          "properties": {
+            "business": {
+              "description": "The Create a greeting form is visible with no validation error.",
+              "rules": [
+                "There is one Name input and a Say hello submission action."
+              ]
+            }
+          }
+        },
+        {
+          "id": "rejected",
+          "name": "rejected",
+          "properties": {
+            "business": {
+              "description": "The name submission has been rejected; Please correct your name and a validation explanation are visible.",
+              "rules": [
+                "The Name field remains available for correction.",
+                "No successful personal greeting is displayed."
+              ]
+            }
+          }
+        },
+        {
+          "id": "greeted",
+          "name": "greeted",
+          "properties": {
+            "business": {
+              "description": "Your greeting is visible and the visitor has received a successful personal greeting.",
+              "rules": [
+                "The successful greeting displays the exact submitted Name value, with leading and trailing spaces removed."
+              ]
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "home_to_form",
+          "name": "home_to_form",
+          "sourceVertexId": "home",
+          "targetVertexId": "form",
+          "properties": {
+            "business": {
+              "intent": "Choose Greeting from the navigation to open a fresh name form."
+            }
+          }
+        },
+        {
+          "id": "form_to_home",
+          "name": "form_to_home",
+          "sourceVertexId": "form",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the navigation."
+            }
+          }
+        },
+        {
+          "id": "say_hello",
+          "name": "say_hello",
+          "sourceVertexId": "form",
+          "targetVertexId": "greeted",
+          "properties": {
+            "business": {
+              "intent": "Submit the supplied name to receive a greeting. Stop after the first acceptance or rejection.",
+              "data set": "Greeting",
+              "rejected at": "rejected"
+            }
+          }
+        },
+        {
+          "id": "reject_missing_name",
+          "name": "reject_missing_name",
+          "sourceVertexId": "form",
+          "targetVertexId": "rejected",
+          "properties": {
+            "business": {
+              "intent": "Submit the supplied name to receive a greeting. Stop after the first acceptance or rejection.",
+              "data set": "Greeting",
+              "accepted at": "greeted",
+              "rejected at": "rejected",
+              "example": {
+                "Name": ""
+              }
+            }
+          }
+        },
+        {
+          "id": "rejected_to_form",
+          "name": "rejected_to_form",
+          "sourceVertexId": "rejected",
+          "targetVertexId": "form",
+          "properties": {
+            "business": {
+              "intent": "Choose Greeting from the navigation to discard the error and open a fresh name form."
+            }
+          }
+        },
+        {
+          "id": "rejected_to_home",
+          "name": "rejected_to_home",
+          "sourceVertexId": "rejected",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the navigation."
+            }
+          }
+        },
+        {
+          "id": "greeted_to_form",
+          "name": "greeted_to_form",
+          "sourceVertexId": "greeted",
+          "targetVertexId": "form",
+          "properties": {
+            "business": {
+              "intent": "Choose Greeting from the navigation to begin another greeting."
+            }
+          }
+        },
+        {
+          "id": "greeted_to_home",
+          "name": "greeted_to_home",
+          "sourceVertexId": "greeted",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the navigation."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

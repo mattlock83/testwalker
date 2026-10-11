@@ -1,0 +1,11 @@
+{
+  "launch": {
+    "channel": "chrome"
+  },
+  "context": {
+    "viewport": {
+      "width": 1120,
+      "height": 780
+    }
+  }
+}

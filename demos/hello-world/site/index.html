@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello world</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body { font: 18px/1.5 system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 24px; color: #192530; }
+    nav { display: flex; gap: 24px; margin-bottom: 32px; }
+    a { color: #174ea6; }
+    label { display: block; margin-top: 20px; }
+    input, button { font: inherit; padding: 10px; margin-top: 8px; }
+    input { display: block; width: min(100%, 360px); box-sizing: border-box; }
+    button { display: block; margin-top: 20px; }
+    [role="alert"] { background: #fff0ed; padding: 16px; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Main navigation">
+    <a href="#home">Home</a>
+    <a href="#greeting">Greeting</a>
+  </nav>
+  <main></main>
+  <script>
+    const main = document.querySelector('main');
+
+    function showForm(value = '', error = '') {
+      main.innerHTML = `<h1>${error ? 'Please correct your name' : 'Create a greeting'}</h1>
+        ${error ? '<p role="alert" id="name-error"></p>' : ''}
+        <p>Enter your name to receive a greeting. A name is required and must contain 2 to 30 characters after trimming spaces.</p>
+        <form novalidate>
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="off" aria-required="true">
+          <button type="submit">Say hello</button>
+        </form>`;
+      const input = main.querySelector('input');
+      input.value = value;
+      if (error) {
+        main.querySelector('[role="alert"]').textContent = error;
+        input.setAttribute('aria-invalid', 'true');
+        input.setAttribute('aria-describedby', 'name-error');
+      }
+      main.querySelector('form').onsubmit = event => {
+        event.preventDefault();
+        const raw = input.value;
+        const name = raw.trim();
+        const length = Array.from(name).length;
+        if (!length) return showForm(raw, 'Name is required.');
+        if (length < 2) return showForm(raw, 'Name must contain at least 2 characters.');
+        if (length > 30) return showForm(raw, 'Name must contain at most 30 characters.');
+        main.innerHTML = '<h1>Your greeting</h1><p role="status"></p><p>Use Greeting to start again, or Home to return to the welcome page.</p>';
+        main.querySelector('[role="status"]').textContent = `Hello, ${name}!`;
+      };
+    }
+
+    function navigate() {
+      if (location.hash === '#greeting') showForm();
+      else main.innerHTML = '<h1>Hello world</h1><p>A small Testwalker example with two navigation options and one input.</p><p>Choose Greeting to enter your name.</p>';
+    }
+
+    document.querySelectorAll('nav a').forEach(link => {
+      link.onclick = () => {
+        // Clicking the current navigation option must also restart its page.
+        if (location.hash === link.hash) navigate();
+      };
+    });
+    window.addEventListener('hashchange', navigate);
+    navigate();
+  </script>
+</body>
+</html>

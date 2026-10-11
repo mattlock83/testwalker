@@ -1,0 +1,23 @@
+{
+  "target": {
+    "adapter": "web",
+    "screenshots": true,
+    "limits": {
+      "actions_per_journey": 25
+    }
+  },
+  "options": {
+    "input_mode": "focused",
+    "cases": 1,
+    "max_input_attempts": 1000,
+    "evaluator": "adapter",
+    "max_steps": 1000
+  },
+  "decision": {
+    "provider": "jev",
+    "api_key": "your-jev-key",
+    "model": "jev-latest",
+    "max_calls": 10000,
+    "threshold": 0.8
+  }
+}

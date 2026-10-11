@@ -1,0 +1,12 @@
+{
+  "name": "@testwalker/demo-trailhead",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "demo": "bash run.sh"
+  },
+  "dependencies": {
+    "@testwalker/web": "*"
+  }
+}

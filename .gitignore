@@ -4,6 +4,7 @@ node_modules/
 .env.*
 testwalker.properties
 *.local.properties
+*.local.json
 !.env.example
 artifacts/
 .hegel/
@@ -16,4 +17,4 @@ __pycache__/
 
 build/
 target/
-testwalker/bin/
+testwalker-web/dist/

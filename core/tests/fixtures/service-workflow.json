@@ -1,0 +1,526 @@
+{
+  "models": [
+    {
+      "id": "service-workflow",
+      "name": "Service request lifecycle",
+      "startElementId": "home",
+      "generator": "new_york_street_sweeper()",
+      "predefinedPathEdgeIds": [
+        "begin_request",
+        "reject_request",
+        "correct_request",
+        "confirm_request",
+        "request_cancellation",
+        "reject_cancellation",
+        "correct_cancellation",
+        "confirm_cancellation",
+        "return_after_cancellation",
+        "edit_account",
+        "reject_account",
+        "correct_account",
+        "return_after_account"
+      ],
+      "properties": {
+        "business": {
+          "version": 3,
+          "purpose": "Manage service requests and account preferences across a target-independent workflow",
+          "rules": [
+            "Invalid input is rejected without committing changes.",
+            "Confirmation commits a reviewed request exactly once."
+          ],
+          "data sets": {
+            "Request": {
+              "Reference": {
+                "description": "A human-readable request reference",
+                "type": "text",
+                "required": true,
+                "minimum length": 2,
+                "maximum length": 24,
+                "example": "Sample request"
+              },
+              "Quantity": {
+                "description": "Units of capacity",
+                "type": "whole number",
+                "required": true,
+                "minimum": 1,
+                "maximum": 8,
+                "example": 2
+              },
+              "Credit": {
+                "description": "Optional account credit",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100.5,
+                "example": 10.5
+              }
+            },
+            "Cancellation": {
+              "Reason": {
+                "description": "The reason for cancellation",
+                "type": "choice",
+                "required": true,
+                "options": [
+                  "Changed plans",
+                  "Duplicate request"
+                ],
+                "example": "Changed plans"
+              },
+              "Note": {
+                "description": "Optional cancellation note preserved verbatim",
+                "type": "text",
+                "trim spaces": false,
+                "maximum length": 40,
+                "example": "Retain spaces"
+              }
+            },
+            "Account": {
+              "Email": {
+                "description": "Contact address for service notices",
+                "type": "email",
+                "required": true,
+                "minimum length": 8,
+                "maximum length": 40,
+                "example": "reader@example.test"
+              },
+              "Preference": {
+                "description": "Preferred notification channel",
+                "type": "choice",
+                "options": [
+                  "Email",
+                  "None"
+                ],
+                "example": "Email"
+              }
+            }
+          },
+          "coverage": {
+            "edges": 100,
+            "states": 100
+          }
+        }
+      },
+      "vertices": [
+        {
+          "id": "home",
+          "name": "home",
+          "properties": {
+            "business": {
+              "description": "Service catalog and current account",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "draft",
+          "name": "draft",
+          "properties": {
+            "business": {
+              "description": "An editable service request",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "request_error",
+          "name": "request_error",
+          "properties": {
+            "business": {
+              "description": "The service request was rejected with validation details",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "review",
+          "name": "review",
+          "properties": {
+            "business": {
+              "description": "A valid service request is ready for confirmation",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "submitted",
+          "name": "submitted",
+          "properties": {
+            "business": {
+              "description": "The confirmed service request has an identifier",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "cancellation",
+          "name": "cancellation",
+          "properties": {
+            "business": {
+              "description": "Cancellation details may be supplied",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "cancellation_error",
+          "name": "cancellation_error",
+          "properties": {
+            "business": {
+              "description": "Cancellation details were rejected with validation details",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "cancellation_review",
+          "name": "cancellation_review",
+          "properties": {
+            "business": {
+              "description": "Cancellation is ready for confirmation",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "cancelled",
+          "name": "cancelled",
+          "properties": {
+            "business": {
+              "description": "The service request has been cancelled",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "profile",
+          "name": "profile",
+          "properties": {
+            "business": {
+              "description": "Account preferences may be updated",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "profile_error",
+          "name": "profile_error",
+          "properties": {
+            "business": {
+              "description": "Account preferences were rejected with validation details",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "profile_saved",
+          "name": "profile_saved",
+          "properties": {
+            "business": {
+              "description": "Updated account preferences have been stored",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "help",
+          "name": "help",
+          "properties": {
+            "business": {
+              "description": "Available service operations are described",
+              "rules": [
+                "The current service operation and its outcome are available."
+              ]
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "begin_request",
+          "name": "begin_request",
+          "sourceVertexId": "home",
+          "targetVertexId": "draft",
+          "weight": 0.5,
+          "properties": {
+            "business": {
+              "intent": "begin request"
+            }
+          }
+        },
+        {
+          "id": "review_request",
+          "name": "review_request",
+          "sourceVertexId": "draft",
+          "targetVertexId": "review",
+          "weight": 0.75,
+          "properties": {
+            "business": {
+              "intent": "review request",
+              "data set": "Request",
+              "rejected at": "request_error"
+            }
+          }
+        },
+        {
+          "id": "reject_request",
+          "name": "reject_request",
+          "sourceVertexId": "draft",
+          "targetVertexId": "request_error",
+          "weight": 0.25,
+          "properties": {
+            "business": {
+              "intent": "reject request",
+              "data set": "Request",
+              "rejected at": "request_error",
+              "accepted at": "review",
+              "example": {
+                "Reference": "Sample request",
+                "Quantity": 0,
+                "Credit": 10.5
+              }
+            }
+          }
+        },
+        {
+          "id": "correct_request",
+          "name": "correct_request",
+          "sourceVertexId": "request_error",
+          "targetVertexId": "review",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "correct request",
+              "data set": "Request",
+              "rejected at": "request_error"
+            }
+          }
+        },
+        {
+          "id": "edit_request",
+          "name": "edit_request",
+          "sourceVertexId": "review",
+          "targetVertexId": "draft",
+          "weight": 0.75,
+          "properties": {
+            "business": {
+              "intent": "edit request"
+            }
+          }
+        },
+        {
+          "id": "confirm_request",
+          "name": "confirm_request",
+          "sourceVertexId": "review",
+          "targetVertexId": "submitted",
+          "weight": 0.25,
+          "properties": {
+            "business": {
+              "intent": "confirm request"
+            }
+          }
+        },
+        {
+          "id": "request_cancellation",
+          "name": "request_cancellation",
+          "sourceVertexId": "submitted",
+          "targetVertexId": "cancellation",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "request cancellation"
+            }
+          }
+        },
+        {
+          "id": "review_cancellation",
+          "name": "review_cancellation",
+          "sourceVertexId": "cancellation",
+          "targetVertexId": "cancellation_review",
+          "weight": 0.75,
+          "properties": {
+            "business": {
+              "intent": "review cancellation",
+              "data set": "Cancellation",
+              "rejected at": "cancellation_error"
+            }
+          }
+        },
+        {
+          "id": "reject_cancellation",
+          "name": "reject_cancellation",
+          "sourceVertexId": "cancellation",
+          "targetVertexId": "cancellation_error",
+          "weight": 0.25,
+          "properties": {
+            "business": {
+              "intent": "reject cancellation",
+              "data set": "Cancellation",
+              "rejected at": "cancellation_error",
+              "accepted at": "cancellation_review",
+              "example": {
+                "Reason": "",
+                "Note": "Retain spaces"
+              }
+            }
+          }
+        },
+        {
+          "id": "correct_cancellation",
+          "name": "correct_cancellation",
+          "sourceVertexId": "cancellation_error",
+          "targetVertexId": "cancellation_review",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "correct cancellation",
+              "data set": "Cancellation",
+              "rejected at": "cancellation_error"
+            }
+          }
+        },
+        {
+          "id": "confirm_cancellation",
+          "name": "confirm_cancellation",
+          "sourceVertexId": "cancellation_review",
+          "targetVertexId": "cancelled",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "confirm cancellation"
+            }
+          }
+        },
+        {
+          "id": "return_after_cancellation",
+          "name": "return_after_cancellation",
+          "sourceVertexId": "cancelled",
+          "targetVertexId": "home",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "return after cancellation"
+            }
+          }
+        },
+        {
+          "id": "edit_account",
+          "name": "edit_account",
+          "sourceVertexId": "home",
+          "targetVertexId": "profile",
+          "weight": 0.3,
+          "properties": {
+            "business": {
+              "intent": "edit account"
+            }
+          }
+        },
+        {
+          "id": "save_account",
+          "name": "save_account",
+          "sourceVertexId": "profile",
+          "targetVertexId": "profile_saved",
+          "weight": 0.75,
+          "properties": {
+            "business": {
+              "intent": "save account",
+              "data set": "Account",
+              "rejected at": "profile_error"
+            }
+          }
+        },
+        {
+          "id": "reject_account",
+          "name": "reject_account",
+          "sourceVertexId": "profile",
+          "targetVertexId": "profile_error",
+          "weight": 0.25,
+          "properties": {
+            "business": {
+              "intent": "reject account",
+              "data set": "Account",
+              "rejected at": "profile_error",
+              "accepted at": "profile_saved",
+              "example": {
+                "Email": "not-an-address",
+                "Preference": "Email"
+              }
+            }
+          }
+        },
+        {
+          "id": "correct_account",
+          "name": "correct_account",
+          "sourceVertexId": "profile_error",
+          "targetVertexId": "profile_saved",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "correct account",
+              "data set": "Account",
+              "rejected at": "profile_error"
+            }
+          }
+        },
+        {
+          "id": "return_after_account",
+          "name": "return_after_account",
+          "sourceVertexId": "profile_saved",
+          "targetVertexId": "home",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "return after account"
+            }
+          }
+        },
+        {
+          "id": "open_help",
+          "name": "open_help",
+          "sourceVertexId": "home",
+          "targetVertexId": "help",
+          "weight": 0.2,
+          "properties": {
+            "business": {
+              "intent": "open help"
+            }
+          }
+        },
+        {
+          "id": "close_help",
+          "name": "close_help",
+          "sourceVertexId": "help",
+          "targetVertexId": "home",
+          "weight": 1,
+          "properties": {
+            "business": {
+              "intent": "close help"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

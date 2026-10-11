@@ -1,0 +1,2486 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "Testwalker target adapter callbacks",
+    "version": "4.0.0",
+    "description": "Protocol version 1 callbacks sent by the Testwalker Rust core to the client-owned adapter. This document describes the reverse direction of the bidirectional stdio connection. Worker methods such as run.start and decision.ask are documented separately in openrpc.json. Adapters respond with the same request ID, using either result or error. Evidence and checkpoint handles are adapter-specific JSON. All schemas use JSON Schema Draft 7. The framework writes reports, JUnit and replay files; adapters supply observations, attachment references and optional paginated artifacts."
+  },
+  "methods": [
+    {
+      "name": "target.initialize",
+      "summary": "Initialize the execution target",
+      "description": "Called after planning and optional strategy binding. Validate protocol_version, retain the normalized model and configure target resources from config. The core chooses evaluator from run options, not capabilities.evaluator. When output was requested, config.directory is supplied by the framework. Advertise capabilities.artifacts:true to provide post-cleanup evidence through target.artifacts.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "protocol_version",
+          "required": true,
+          "schema": {
+            "const": "1"
+          }
+        },
+        {
+          "name": "model",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Model"
+          }
+        },
+        {
+          "name": "config",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Initialization"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.initialize example",
+          "params": [
+            {
+              "name": "protocol_version",
+              "value": "1"
+            },
+            {
+              "name": "model",
+              "value": {
+                "models": [
+                  {
+                    "id": "capacity",
+                    "name": "Capacity reservation",
+                    "startElementId": "form",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Reserve capacity",
+                        "rules": [
+                          "Invalid capacity is rejected."
+                        ],
+                        "data sets": {
+                          "Reservation": {
+                            "Places": {
+                              "description": "How many people attend",
+                              "type": "whole number",
+                              "required": true,
+                              "minimum": 1,
+                              "maximum": 4,
+                              "example": 2
+                            }
+                          }
+                        },
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "form",
+                        "name": "form",
+                        "properties": {
+                          "business": {
+                            "description": "Enter reservation details",
+                            "rules": [
+                              "The outcome is visible."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "accepted",
+                        "name": "accepted",
+                        "properties": {
+                          "business": {
+                            "description": "Reservation accepted",
+                            "rules": [
+                              "The outcome is visible."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "rejected",
+                        "name": "rejected",
+                        "properties": {
+                          "business": {
+                            "description": "Reservation rejected with an explanation",
+                            "rules": [
+                              "The outcome is visible."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "submit",
+                        "name": "submit",
+                        "sourceVertexId": "form",
+                        "targetVertexId": "accepted",
+                        "properties": {
+                          "business": {
+                            "intent": "submit",
+                            "data set": "Reservation",
+                            "rejected at": "rejected"
+                          }
+                        }
+                      },
+                      {
+                        "id": "submit_invalid",
+                        "name": "submit_invalid",
+                        "sourceVertexId": "form",
+                        "targetVertexId": "rejected",
+                        "properties": {
+                          "business": {
+                            "intent": "submit_invalid",
+                            "data set": "Reservation",
+                            "accepted at": "accepted",
+                            "rejected at": "rejected",
+                            "example": {
+                              "Places": 0
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "id": "another",
+                        "name": "another",
+                        "sourceVertexId": "accepted",
+                        "targetVertexId": "form",
+                        "properties": {
+                          "business": {
+                            "intent": "another"
+                          }
+                        }
+                      },
+                      {
+                        "id": "correct",
+                        "name": "correct",
+                        "sourceVertexId": "rejected",
+                        "targetVertexId": "form",
+                        "properties": {
+                          "business": {
+                            "intent": "correct"
+                          }
+                        }
+                      }
+                    ],
+                    "generator": "quick_random(edge_coverage(100))"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "config",
+              "value": {
+                "url": "http://127.0.0.1:4183/"
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "capabilities": {
+                "isolated_checkpoints": false,
+                "screenshots": false,
+                "evaluator": "adapter",
+                "artifacts": true
+              }
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay"
+      }
+    },
+    {
+      "name": "target.reset",
+      "summary": "Restore the entry fixture",
+      "description": "Return the target to the modeled entry state. The core subsequently observes and verifies it. Reset is used for graph walks and property setup when isolated checkpoints are unavailable. The adapter owns restoring application and backend fixtures.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Acknowledgement"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.reset example",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {}
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay"
+      }
+    },
+    {
+      "name": "target.execute",
+      "summary": "Perform the selected edge",
+      "description": "Execute the supplied edge intent using literal input. GraphWalker and the Rust core choose the journey. fields describes this edge only; it is empty for navigation-only edges, while input can retain data from an earlier submission. Return after the target is ready to be observed. destination is the nominal edge destination description; states lists all modeled descriptions.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "edge",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Edge"
+          }
+        },
+        {
+          "name": "fields",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Fields"
+          }
+        },
+        {
+          "name": "input",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Input"
+          }
+        },
+        {
+          "name": "destination",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "states",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Acknowledgement"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.execute example",
+          "params": [
+            {
+              "name": "edge",
+              "value": {
+                "id": "submit",
+                "name": "submit",
+                "sourceVertexId": "form",
+                "targetVertexId": "accepted",
+                "properties": {
+                  "business": {
+                    "intent": "submit",
+                    "data set": "Reservation",
+                    "rejected at": "rejected"
+                  }
+                }
+              }
+            },
+            {
+              "name": "fields",
+              "value": {
+                "Places": {
+                  "description": "How many people attend",
+                  "type": "whole number",
+                  "required": true,
+                  "minimum": 1,
+                  "maximum": 4,
+                  "example": 2
+                }
+              }
+            },
+            {
+              "name": "input",
+              "value": {
+                "Places": 2
+              }
+            },
+            {
+              "name": "destination",
+              "value": "Reservation accepted"
+            },
+            {
+              "name": "states",
+              "value": [
+                "Enter reservation details",
+                "Reservation accepted",
+                "Reservation rejected with an explanation"
+              ]
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "executed": true
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay"
+      }
+    },
+    {
+      "name": "target.observe",
+      "summary": "Capture current target evidence",
+      "description": "Return JSON describing the actual current state. A browser adapter may return DOM and page information; an API adapter may return a response body and status. The core treats evidence as untrusted data. Observation itself does not choose or assert the expected state.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/JsonValue"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.observe example",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "state": "accepted",
+              "reservation": {
+                "places": 2
+              }
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay"
+      }
+    },
+    {
+      "name": "target.evaluate",
+      "summary": "Identify state and evaluate requirements",
+      "description": "Only called when options.evaluator is adapter. Identify the observed model state independently from the expected ID, then evaluate relevant state/global rules against the evidence. Rust compares observed with expected and applies the final verdict. Additional fields may explain uncertainty; no adapter-supplied overall status can override the core verdict.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "observation",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        {
+          "name": "expected",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "input",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Input"
+          }
+        },
+        {
+          "name": "violations",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Violations"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Evaluation"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.evaluate example",
+          "params": [
+            {
+              "name": "observation",
+              "value": {
+                "state": "accepted",
+                "reservation": {
+                  "places": 2
+                }
+              }
+            },
+            {
+              "name": "expected",
+              "value": "accepted"
+            },
+            {
+              "name": "input",
+              "value": {
+                "Places": 2
+              }
+            },
+            {
+              "name": "violations",
+              "value": []
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "observed": "accepted",
+              "checks": [
+                {
+                  "scope": "state",
+                  "rule": "The outcome is visible.",
+                  "status": "met"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "options.evaluator = adapter"
+      }
+    },
+    {
+      "name": "target.audit",
+      "summary": "Evaluate remaining global requirements",
+      "description": "Called near the end of a successful non-replay run with adapter evaluation, only when global requirements remain unverified. Inspect accumulated records; do not invent evidence for unvisited scenarios. Broken rules fail the run; unmet, uncertain or inapplicable rules do not count as verified.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "records",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            }
+          }
+        },
+        {
+          "name": "rules",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Check"
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.audit example",
+          "params": [
+            {
+              "name": "records",
+              "value": [
+                {
+                  "status": "PASS",
+                  "observed": "rejected",
+                  "evidence": {
+                    "state": "rejected",
+                    "error": "Places must be at least 1."
+                  }
+                }
+              ]
+            },
+            {
+              "name": "rules",
+              "value": [
+                "Invalid capacity is rejected."
+              ]
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": [
+              {
+                "scope": "global",
+                "rule": "Invalid capacity is rejected.",
+                "status": "met"
+              }
+            ]
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "options.evaluator = adapter and unverified global rules remain after a non-replay run"
+      }
+    },
+    {
+      "name": "target.hook",
+      "summary": "Dispatch a lifecycle hook",
+      "description": "The core wraps run, walk, reset, state, transition and property-case operations with before/after hooks. After hooks run even when the corresponding operation or before hook fails. Cleanup failures do not replace an existing primary defect. Restore calls do not fire reset hooks.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "event",
+          "required": true,
+          "schema": {
+            "enum": [
+              "before_run",
+              "after_run",
+              "before_walk",
+              "after_walk",
+              "before_reset",
+              "after_reset",
+              "before_state",
+              "after_state",
+              "before_transition",
+              "after_transition",
+              "before_case",
+              "after_case"
+            ]
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/HookContext"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Acknowledgement"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.hook example",
+          "params": [
+            {
+              "name": "event",
+              "value": "before_transition"
+            },
+            {
+              "name": "context",
+              "value": {
+                "phase": "graph",
+                "walk": 1,
+                "element": {
+                  "id": "submit",
+                  "name": "submit",
+                  "sourceVertexId": "form",
+                  "targetVertexId": "accepted",
+                  "properties": {
+                    "business": {
+                      "intent": "submit",
+                      "data set": "Reservation",
+                      "rejected at": "rejected"
+                    }
+                  }
+                },
+                "data": {
+                  "Places": 2
+                },
+                "invalid": [],
+                "result": null
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {}
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay"
+      }
+    },
+    {
+      "name": "target.strategy",
+      "summary": "Bind a custom Hegel domain",
+      "description": "Called for generated phases when custom_strategies is true, before target initialization. Return the default domain or a declarative replacement. A field strategy must produce one literal value. A combined strategy must supply exactly all modeled field names. Domain values can intentionally violate business constraints; the core independently calculates violations.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/StrategyContext"
+          }
+        },
+        {
+          "name": "default",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/DefaultDomain"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Domain"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.strategy example",
+          "params": [
+            {
+              "name": "context",
+              "value": {
+                "data_set": "Reservation",
+                "field_name": "Places",
+                "field": {
+                  "description": "How many people attend",
+                  "type": "whole number",
+                  "required": true,
+                  "minimum": 1,
+                  "maximum": 4,
+                  "example": 2
+                },
+                "fields": {
+                  "Places": {
+                    "description": "How many people attend",
+                    "type": "whole number",
+                    "required": true,
+                    "minimum": 1,
+                    "maximum": 4,
+                    "example": 2
+                  }
+                },
+                "partition": "minimum -1",
+                "reference": 0,
+                "options": {
+                  "strategy": "nearby",
+                  "cases": 1,
+                  "radius": 1,
+                  "alphabet": "abcdefghijklmnopqrstuvwxyz"
+                },
+                "violations": [
+                  {
+                    "field": "Places",
+                    "violations": [
+                      "below minimum"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "default",
+              "value": {
+                "kind": "default"
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "kind": "integer",
+              "minimum": -2,
+              "maximum": 0
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "options.custom_strategies = true and the property phase is generated",
+        "before_target_initialization": true
+      }
+    },
+    {
+      "name": "target.close",
+      "summary": "Release owned resources",
+      "description": "Called after terminal outcomes and after the after_run hook, including failures and cooperative cancellation. keep_open is the explicit debug preference from run options; adapters can interpret it when the target supports inspection. Implement cleanup defensively and idempotently. Keep accumulated evidence available after resource cleanup if artifacts capability is enabled; target.artifacts follows cleanup.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "keep_open",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Acknowledgement"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.close example",
+          "params": [
+            {
+              "name": "keep_open",
+              "value": false
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {}
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay"
+      }
+    },
+    {
+      "name": "target.artifacts",
+      "summary": "Return paginated target evidence after cleanup",
+      "description": "Optional callback enabled by target.initialize.capabilities.artifacts:true. Called after after_run and target.close. Return stable ordered trace, hook and decision entries without rendering report files. Metadata is accepted only on offset zero. The framework collects every page, applies authoritative native decision evidence if configured, then writes reports, JUnit and replay files. Errors are recorded as cleanup errors and cannot erase an earlier defect. Adapters must retain evidence after closing target resources.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "offset",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "limit",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 128
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/ArtifactPage"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Return the final evidence page",
+          "params": [
+            {
+              "name": "offset",
+              "value": 0
+            },
+            {
+              "name": "limit",
+              "value": 128
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "entries": [
+                {
+                  "kind": "trace",
+                  "data": {
+                    "action": "submit",
+                    "test_id": "graph/1/1/submit"
+                  }
+                }
+              ],
+              "next_offset": null,
+              "metadata": {
+                "hooks": {
+                  "path": "hooks.py",
+                  "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                "browser_left_open": false
+              }
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "target.initialize returns capabilities.artifacts:true"
+      }
+    },
+    {
+      "name": "target.checkpoint",
+      "summary": "Save an isolated source fixture",
+      "description": "Enabled only after initialization advertises capabilities.isolated_checkpoints = true. Called after reaching a campaign source state, once per campaign. Return an opaque handle for the complete application/backend fixture. The core retains its own input and field state separately.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/JsonValue"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.checkpoint example",
+          "params": [
+            {
+              "name": "state",
+              "value": "form"
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "snapshot": "fixture-1"
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "capabilities.isolated_checkpoints = true during a property campaign"
+      }
+    },
+    {
+      "name": "target.restore",
+      "summary": "Restore an isolated fixture",
+      "description": "Restore the full fixture represented by checkpoint. The core then observes and verifies the campaign source state before executing a property case. The handle is exactly the result previously returned by target.checkpoint. Restores do not fire before_reset/after_reset hooks.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "checkpoint",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/Acknowledgement"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "target.restore example",
+          "params": [
+            {
+              "name": "checkpoint",
+              "value": {
+                "snapshot": "fixture-1"
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {}
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "capabilities.isolated_checkpoints = true and a saved campaign checkpoint is available"
+      }
+    },
+    {
+      "name": "run.event",
+      "summary": "Observe execution and attach evidence",
+      "description": "Every event is a JSON-RPC request requiring a response. type selects data: planned is the authoritative report/inventory including directory (absolute framework-created run directory, or null); test.begin is {id}; step is a graph record; step.result is {index, entry}; case is a property-attempt record; test.end is {id, status, reason}. The planned event precedes target initialization and subsequent events. Only attachment fields returned from case/test.end are merged into reports. Returning {} is sufficient. Adapters supply evidence and must not rewrite authoritative inputs, verdicts or replay paths. The framework formats and writes all test reports.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "type",
+          "required": true,
+          "schema": {
+            "enum": [
+              "planned",
+              "test.begin",
+              "step",
+              "step.result",
+              "case",
+              "test.end"
+            ]
+          }
+        },
+        {
+          "name": "data",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EventData"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/EventAttachments"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "run.event example",
+          "params": [
+            {
+              "name": "type",
+              "value": "test.end"
+            },
+            {
+              "name": "data",
+              "value": {
+                "id": "graph/1/1/submit",
+                "status": "PASS",
+                "reason": null
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "trace_range": [
+                0,
+                3
+              ],
+              "screenshot": "screenshots/graph-1-1.png"
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "run.start and case.replay",
+        "notifications": false
+      }
+    },
+    {
+      "name": "property.evaluate",
+      "summary": "Evaluate a standalone Hegel attempt",
+      "description": "Issued by property.exercise, which tests domains without running a graph. Apply the literal data and return the independently determined property outcome. The phase identifies the selected generation strategy; source names its partition. FAIL can trigger reproduction and shrinking, so calls must be repeatable. This path does not initialize/close a target or emit graph lifecycle hooks.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Input"
+          }
+        },
+        {
+          "name": "violations",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Violations"
+          }
+        },
+        {
+          "name": "source",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "phase",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Phase"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/PropertyOutcome"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/AdapterFault"
+        }
+      ],
+      "examples": [
+        {
+          "name": "property.evaluate example",
+          "params": [
+            {
+              "name": "input",
+              "value": {
+                "Places": 0
+              }
+            },
+            {
+              "name": "violations",
+              "value": [
+                {
+                  "field": "Places",
+                  "violations": [
+                    "below minimum"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "source",
+              "value": "focused: Places — minimum -1"
+            },
+            {
+              "name": "phase",
+              "value": {
+                "id": "focused/0/2",
+                "kind": "generated",
+                "field": "Places",
+                "source": "focused: Places — minimum -1",
+                "max_examples": 1,
+                "partition": "minimum -1",
+                "strategy": {
+                  "strategy": "nearby",
+                  "cases": 1,
+                  "radius": 1,
+                  "alphabet": "abcdefghijklmnopqrstuvwxyz"
+                },
+                "data_set": "Reservation",
+                "boundary_input": {
+                  "Places": 0
+                },
+                "violations": [
+                  {
+                    "field": "Places",
+                    "violations": [
+                      "below minimum"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "status": "PASS",
+              "evidence": {
+                "accepted": false,
+                "error": "Places must be at least 1."
+              }
+            }
+          }
+        }
+      ],
+      "x-testwalker": {
+        "direction": "core-to-adapter",
+        "required_when": "property.exercise"
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "JsonValue": {
+        "description": "Arbitrary JSON supplied by the adapter. Evidence, checkpoint handles and extension data are opaque to the core.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Acknowledgement": {
+        "description": "The core ignores this result. Adapters normally return an empty object; any JSON result is accepted.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Literal": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 2000
+          },
+          {
+            "type": "number"
+          }
+        ],
+        "description": "Literal text or a JSON number. Input values are never executable code.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Input": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": {
+          "$ref": "#/components/schemas/Literal"
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Field": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "type": {
+            "enum": [
+              "text",
+              "email",
+              "whole number",
+              "number",
+              "choice"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "example": {
+            "$ref": "#/components/schemas/Literal"
+          },
+          "minimum": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "maximum": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "minimum length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "maximum length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "trim spaces": {
+            "type": "boolean"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "description",
+          "type",
+          "example"
+        ],
+        "additionalProperties": false,
+        "description": "Business input constraints. Numeric fields have ordered minimum/maximum bounds; whole-number bounds are integers. Choice fields have options. Length constraints apply only to text/email. The example satisfies all declared constraints. The core validates these conditional and cross-field rules before sending callbacks.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Fields": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": {
+          "$ref": "#/components/schemas/Field"
+        },
+        "maxProperties": 20,
+        "description": "Declared fields keyed by business name. Empty on a journey without a data set.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Violation": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "violations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "violations"
+        ],
+        "description": "An independent model constraint violation. target.evaluate receives description as well; property.evaluate and strategy context do not require it.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Violations": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Violation"
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Element": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "business": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              },
+              "rpc": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "business"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "properties"
+        ],
+        "description": "A model state or edge, including GraphWalker metadata and adapter bindings. Extensions are preserved.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Edge": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceVertexId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetVertexId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "business": {
+                "type": "object",
+                "properties": {
+                  "intent": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "data set": {
+                    "type": "string"
+                  },
+                  "accepted at": {
+                    "type": "string"
+                  },
+                  "rejected at": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "$ref": "#/components/schemas/Input"
+                  }
+                },
+                "required": [
+                  "intent"
+                ]
+              },
+              "rpc": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            },
+            "required": [
+              "business"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sourceVertexId",
+          "targetVertexId",
+          "properties"
+        ],
+        "description": "The chosen GraphWalker edge. The adapter carries out its intent; it must not choose a different edge or alter literal input values.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Model": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "startElementId": {
+                  "type": "string"
+                },
+                "generator": {
+                  "type": "string"
+                },
+                "properties": {
+                  "type": "object",
+                  "properties": {
+                    "business": {
+                      "type": "object",
+                      "properties": {},
+                      "required": []
+                    },
+                    "rpc": {
+                      "type": "object",
+                      "properties": {},
+                      "required": []
+                    }
+                  },
+                  "required": [
+                    "business"
+                  ]
+                },
+                "vertices": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Element"
+                  },
+                  "minItems": 1,
+                  "maxItems": 100
+                },
+                "edges": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Edge"
+                  },
+                  "minItems": 1,
+                  "maxItems": 500
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "startElementId",
+                "generator",
+                "properties",
+                "vertices",
+                "edges"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 1
+          }
+        },
+        "required": [
+          "models"
+        ],
+        "description": "Normalized GraphWalker business model version 3. Full input validation belongs to model.validate, documented in openrpc.json. Core-supplied models include generator and coverage defaults.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Capabilities": {
+        "type": "object",
+        "properties": {
+          "isolated_checkpoints": {
+            "type": "boolean",
+            "default": false
+          },
+          "screenshots": {
+            "type": "boolean"
+          },
+          "evaluator": {
+            "type": "string"
+          },
+          "artifacts": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enables target.artifacts after target.close so the framework can collect traces, hook events and target metadata for reports."
+          }
+        },
+        "required": [],
+        "description": "isolated_checkpoints enables complete fixture restoration; artifacts enables post-cleanup evidence collection. screenshots and evaluator describe adapter features; evaluator selection is controlled by run options. Advertise isolated_checkpoints only when the full application/backend fixture can be restored independently.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Initialization": {
+        "type": "object",
+        "properties": {
+          "capabilities": {
+            "$ref": "#/components/schemas/Capabilities"
+          }
+        },
+        "required": [
+          "capabilities"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Check": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "enum": [
+              "state",
+              "global"
+            ]
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "met",
+              "broken",
+              "uncertain",
+              "not_applicable"
+            ]
+          },
+          "answer": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "predicates": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "scope",
+          "rule",
+          "status"
+        ],
+        "description": "One observed requirement. not_applicable is meaningful only for global checks; a state check with any status other than met leaves that state unresolved. Extensions can carry confidence or deterministic predicate diagnostics.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Evaluation": {
+        "type": "object",
+        "properties": {
+          "observed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Check"
+            }
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "observed",
+          "checks"
+        ],
+        "description": "Identify the actual state independently of expected. null, empty string or UNKNOWN means unidentified state. Rust decides PASS/FAIL/INCONCLUSIVE from observed and checks, ignoring any adapter-supplied overall status. Empty checks cannot pass.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Fault": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "FAIL",
+              "INCONCLUSIVE"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "status",
+          "message"
+        ],
+        "description": "Structured JSON-RPC error data. FAIL means a definite observed defect; missing/unrecognized statuses and ordinary transport or provider errors become INCONCLUSIVE.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "HookContext": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "enum": [
+              "graph",
+              "setup",
+              "property"
+            ]
+          },
+          "walk": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "element": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Element"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "invalid": {
+            "$ref": "#/components/schemas/Violations"
+          },
+          "result": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "error": {
+            "$ref": "#/components/schemas/Fault"
+          }
+        },
+        "required": [
+          "phase",
+          "walk",
+          "element",
+          "data",
+          "invalid",
+          "result"
+        ],
+        "description": "Context is created before the operation. An after hook receives its result or error. Run hooks have no element; state/transition/case hooks have the corresponding model element. Walk is null outside a graph walk.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "StrategyOptions": {
+        "type": "object",
+        "properties": {
+          "strategy": {
+            "enum": [
+              "nearby",
+              "boundary"
+            ]
+          },
+          "cases": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "radius": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "alphabet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Phase": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "boundary",
+              "generated"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "max_examples": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "input": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "violations": {
+            "$ref": "#/components/schemas/Violations"
+          },
+          "partition": {
+            "type": "string"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/StrategyOptions"
+          },
+          "data_set": {
+            "type": "string"
+          },
+          "boundary_input": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/Domain"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "source"
+        ],
+        "description": "A planned Hegel phase. Boundary phases supply input and violations. Generated phases supply max_examples; focused generated phases also include partition, strategy, data_set, boundary_input and violations. A custom domain is included after binding.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "StrategyContext": {
+        "type": "object",
+        "properties": {
+          "data_set": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "field_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "field": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Field"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fields": {
+            "$ref": "#/components/schemas/Fields"
+          },
+          "partition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Literal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "options": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrategyOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "violations": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Violations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data_set",
+          "field_name",
+          "field",
+          "fields",
+          "partition",
+          "reference",
+          "options",
+          "violations"
+        ],
+        "description": "Null field_name identifies a combined strategy. The non-focused generated mode supplies null data_set, partition, options, reference and violations. Focused strategies expose their partition and boundary reference.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "DefaultDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "default"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "LiteralDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "literal"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Literal"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "ChoiceDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "choice"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Literal"
+            },
+            "minItems": 1,
+            "maxItems": 200
+          }
+        },
+        "required": [
+          "kind",
+          "values"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "IntegerDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "integer"
+          },
+          "minimum": {
+            "type": "integer",
+            "minimum": -10000000,
+            "maximum": 10000000
+          },
+          "maximum": {
+            "type": "integer",
+            "minimum": -10000000,
+            "maximum": 10000000
+          }
+        },
+        "required": [
+          "kind",
+          "minimum",
+          "maximum"
+        ],
+        "additionalProperties": false,
+        "description": "minimum must be less than or equal to maximum.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "NumberDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "number"
+          },
+          "minimum": {
+            "type": "number",
+            "minimum": -10000000,
+            "maximum": 10000000
+          },
+          "maximum": {
+            "type": "number",
+            "minimum": -10000000,
+            "maximum": 10000000
+          }
+        },
+        "required": [
+          "kind",
+          "minimum",
+          "maximum"
+        ],
+        "additionalProperties": false,
+        "description": "Finite minimum must be less than or equal to finite maximum.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "TextDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "text"
+          },
+          "alphabet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "minimum length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2000
+          },
+          "maximum length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2000
+          }
+        },
+        "required": [
+          "kind",
+          "alphabet",
+          "minimum length",
+          "maximum length"
+        ],
+        "additionalProperties": false,
+        "description": "minimum length must be less than or equal to maximum length.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "ScalarDomain": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LiteralDomain"
+          },
+          {
+            "$ref": "#/components/schemas/ChoiceDomain"
+          },
+          {
+            "$ref": "#/components/schemas/IntegerDomain"
+          },
+          {
+            "$ref": "#/components/schemas/NumberDomain"
+          },
+          {
+            "$ref": "#/components/schemas/TextDomain"
+          }
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "ObjectDomain": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "object"
+          },
+          "fields": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ScalarDomain"
+            },
+            "minProperties": 1,
+            "maxProperties": 20
+          }
+        },
+        "required": [
+          "kind",
+          "fields"
+        ],
+        "additionalProperties": false,
+        "description": "A combined domain must describe exactly the modeled field names. Nested object/default field domains are not supported.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Domain": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/DefaultDomain"
+          },
+          {
+            "$ref": "#/components/schemas/ScalarDomain"
+          },
+          {
+            "$ref": "#/components/schemas/ObjectDomain"
+          }
+        ],
+        "description": "A finite, declarative Hegel generation/shrinking domain. Field strategies may return default or a scalar domain; combined strategies may return default or an object domain. No executable code crosses the protocol.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "ReplayRecipe": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "graph",
+              "property"
+            ]
+          },
+          "model_hash": {
+            "type": "string"
+          },
+          "journey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "input": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "setup_path": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "model_hash",
+          "journey",
+          "input",
+          "seed"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "Record": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "edge",
+              "state"
+            ]
+          },
+          "walk": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "test_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "EXECUTED",
+              "PASS",
+              "FAIL",
+              "INCONCLUSIVE"
+            ]
+          },
+          "expected": {
+            "type": "string"
+          },
+          "observed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Check"
+            }
+          },
+          "input": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "violations": {
+            "$ref": "#/components/schemas/Violations"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "source": {
+            "type": "string"
+          },
+          "journey": {
+            "type": "string"
+          },
+          "setup_path": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "replay_recipe": {
+            "$ref": "#/components/schemas/ReplayRecipe"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "description": "A graph step or property attempt. Executed edges may have no observation; state and case records carry evaluation evidence when available. Additional diagnostic and attachment fields are preserved.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "PlannedReport": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            }
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            }
+          },
+          "model": {
+            "type": "string",
+            "description": "Graph display name."
+          },
+          "planning": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "scope": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "directory": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absolute framework-created output directory, or null when no output was requested. Available before subsequent case events so adapters can save screenshots and return relative references."
+          }
+        },
+        "required": [
+          "status",
+          "tests",
+          "steps",
+          "cases",
+          "model",
+          "planning",
+          "scope"
+        ],
+        "description": "The authoritative selected inventory emitted before target initialization. Detailed report and plan schemas are documented in the worker API specification openrpc.json. The framework has saved model.json and plan.json before sending this event when output is configured.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "IndexRange": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Start index and, when complete, exclusive end index in the saved trace or decision sequence.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "EventAttachments": {
+        "type": "object",
+        "properties": {
+          "screenshot": {
+            "type": "string"
+          },
+          "screenshot_at": {
+            "type": "string"
+          },
+          "screenshot_error": {
+            "type": "string"
+          },
+          "trace_range": {
+            "$ref": "#/components/schemas/IndexRange"
+          },
+          "decision_range": {
+            "$ref": "#/components/schemas/IndexRange"
+          },
+          "attachments": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [],
+        "description": "Only these attachment keys from case/test.end results are merged into the authoritative report. Other fields are ignored. All other event results are ignored. Replay paths, inputs, coverage and verdicts are owned by the framework.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "PropertyOutcome": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "INCONCLUSIVE"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Check"
+            }
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "description": "PASS completes the attempt; FAIL is an observed property defect eligible for reproduction/shrinking. Every other or missing status is INCONCLUSIVE. Diagnostic extensions are preserved in failure evidence.",
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "EventData": {
+        "description": "See run.event for the correlation between type and data. The shape is selected by the type parameter.",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/PlannedReport"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "INCONCLUSIVE"
+                ]
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "reason"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/Record"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "entry": {
+                "$ref": "#/components/schemas/Record"
+              }
+            },
+            "required": [
+              "index",
+              "entry"
+            ]
+          }
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "ArtifactEntry": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "trace",
+              "hook",
+              "decision"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "kind",
+          "data"
+        ],
+        "additionalProperties": false,
+        "description": "An adapter-owned evidence entry; it cannot replace tests, inputs, coverage or verdicts."
+      },
+      "ArtifactMetadata": {
+        "type": "object",
+        "properties": {
+          "hooks": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "sha256": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "usage": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "browser_left_open": {
+            "type": "boolean"
+          },
+          "adapter_tracebacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonValue"
+            }
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "description": "Optional metadata accepted only from the first page (offset zero). The framework uses native decision audit and usage instead of adapter values whenever a native provider is configured. Unknown metadata cannot overwrite framework outcomes."
+      },
+      "ArtifactPage": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "$ref": "#/components/schemas/ArtifactEntry"
+            }
+          },
+          "next_offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Null at the end; otherwise the request offset plus the number of returned entries. A nonterminal page must contain at least one entry."
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ArtifactMetadata"
+          }
+        },
+        "required": [
+          "entries",
+          "next_offset"
+        ],
+        "additionalProperties": false,
+        "description": "Bounded adapter evidence page, fetched after lifecycle cleanup. Return at most the requested limit and keep each message within the transport byte limit."
+      }
+    },
+    "errors": {
+      "AdapterFault": {
+        "code": -32001,
+        "message": "Adapter operation failed",
+        "data": {
+          "status": "INCONCLUSIVE",
+          "message": "The target could not be observed.",
+          "result": null
+        }
+      }
+    }
+  },
+  "x-testwalker": {
+    "protocol_version": "1",
+    "direction": "core-to-adapter",
+    "transport": {
+      "kind": "stdio",
+      "framing": "One UTF-8 JSON-RPC 2.0 object per line. Stdout is reserved for protocol messages; diagnostics use stderr.",
+      "max_message_bytes": 67108864,
+      "batches": false,
+      "callback_ids": "core/<sequence>",
+      "nested_requests": "While servicing a callback the client may send worker requests, including decision.* or run.cancel, and must continue servicing the bidirectional connection."
+    },
+    "error_data_schema": {
+      "$ref": "#/components/schemas/Fault"
+    },
+    "worker_spec": "openrpc.json",
+    "extension_policy": "Known callback fields are typed; evidence, result attachments and adapter-owned metadata may carry additional fields. The core performs business and cross-field validation not expressible solely through these structural schemas."
+  }
+}

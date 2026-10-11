@@ -1,0 +1,4416 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "Testwalker core JSON-RPC API",
+    "version": "4.0.0",
+    "description": "Testwalker coordinates GraphWalker exploration, Hegel property generation, target adapters, replay, reports, JUnit, evidence and decision providers. This document describes client-to-core requests. The core is a spawned executable using bidirectional stdio; it does not provide an HTTP server. Implement the separately documented core-to-adapter callbacks for execution. Models and target/provider payloads remain extensible where their owners define the contract."
+  },
+  "externalDocs": {
+    "description": "Transport, callback and lifecycle documentation",
+    "url": "https://github.com/mattlock83/testwalker/blob/main/docs/protocol.md"
+  },
+  "servers": [
+    {
+      "name": "Local stdio worker",
+      "url": "stdio://testwalker-core",
+      "description": "Descriptive transport identifier, not a network endpoint. Spawn testwalker-core and exchange NDJSON through stdin/stdout."
+    }
+  ],
+  "methods": [
+    {
+      "name": "rpc.discover",
+      "summary": "Read this API specification.",
+      "description": "Returns the complete bundled OpenRPC document. It is a local, read-only request and does not require a target adapter or decision provider.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/OpenRpcDocument"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        }
+      ]
+    },
+    {
+      "name": "core.info",
+      "summary": "Inspect the running worker.",
+      "description": "Returns implementation version, protocol profile, pinned native dependency revisions and supported client-to-core method names.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/CoreInfo"
+        }
+      },
+      "examples": [
+        {
+          "name": "Inspect a worker",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "name": "testwalker-core",
+              "version": "4.0.0",
+              "protocol_version": "1",
+              "transport": "json-rpc-2.0/ndjson",
+              "graphwalker_revision": "21e6b7d72c3daab26d9cd6a1dff899275e411b23",
+              "hegel_revision": "33d94c659e441127ce7b5a0f046ec4aa9315d794",
+              "methods": [
+                "rpc.discover",
+                "core.info",
+                "model.validate",
+                "graph.plan",
+                "run.plan",
+                "run.start",
+                "case.replay",
+                "run.cancel",
+                "run.results",
+                "property.plan",
+                "property.samples",
+                "property.exercise",
+                "decision.configure",
+                "decision.ask",
+                "decision.answer",
+                "decision.post",
+                "decision.stats",
+                "decision.audit",
+                "core.shutdown",
+                "model.configure",
+                "graph.setup",
+                "property.validate",
+                "property.policy",
+                "run.validate"
+              ]
+            }
+          }
+        }
+      ],
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        }
+      ]
+    },
+    {
+      "name": "model.validate",
+      "summary": "Validate a business model.",
+      "description": "Applies defaults, checks the supported business vocabulary and model relationships, and returns the canonical model hash and counts. It does not execute the graph or contact a provider. Returns the normalized document and resolved nominal inputs; adapters must use these rather than implementing defaults or input rules.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "description": "Complete GraphWalker business-v3 model.",
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "model_hash": {
+              "$ref": "#/components/schemas/ModelHash"
+            },
+            "states": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "edges": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            },
+            "data_sets": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20
+            },
+            "document": {
+              "$ref": "#/components/schemas/ModelDocument"
+            },
+            "examples": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          },
+          "required": [
+            "model_hash",
+            "states",
+            "edges",
+            "data_sets"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Validate a small lifecycle model",
+          "params": [
+            {
+              "name": "model",
+              "value": {
+                "models": [
+                  {
+                    "id": "subject-fixture",
+                    "name": "Subject lifecycle fixture",
+                    "startElementId": "ready",
+                    "generator": "a_star(reached_vertex(done))",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Demonstrate a complete run through one independently observed transition.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ],
+                        "data sets": {},
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "ready",
+                        "name": "ready",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture is ready to receive a request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "done",
+                        "name": "done",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture has completed its request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "complete",
+                        "name": "complete",
+                        "sourceVertexId": "ready",
+                        "targetVertexId": "done",
+                        "properties": {
+                          "business": {
+                            "intent": "Complete the fixture request."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+              "states": 2,
+              "edges": 1,
+              "data_sets": 0,
+              "document": {
+                "models": [
+                  {
+                    "id": "subject-fixture",
+                    "name": "Subject lifecycle fixture",
+                    "startElementId": "ready",
+                    "generator": "a_star(reached_vertex(done))",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Demonstrate a complete run through one independently observed transition.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ],
+                        "data sets": {},
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "ready",
+                        "name": "ready",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture is ready to receive a request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "done",
+                        "name": "done",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture has completed its request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "complete",
+                        "name": "complete",
+                        "sourceVertexId": "ready",
+                        "targetVertexId": "done",
+                        "properties": {
+                          "business": {
+                            "intent": "Complete the fixture request."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "examples": {
+                "complete": {}
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "graph.plan",
+      "summary": "Plan one graph route.",
+      "description": "Uses the model generator, options.seed and options.max_steps to produce a connected GraphWalker route. States and edges both count toward the limit; the last destination is always included for verification. Other shared option fields are validated but do not change this single route. No callbacks or provider calls.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "description": "Complete GraphWalker business-v3 model.",
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/GraphRoute"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Plan a ready-to-done route",
+          "params": [
+            {
+              "name": "model",
+              "value": {
+                "models": [
+                  {
+                    "id": "subject-fixture",
+                    "name": "Subject lifecycle fixture",
+                    "startElementId": "ready",
+                    "generator": "a_star(reached_vertex(done))",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Demonstrate a complete run through one independently observed transition.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ],
+                        "data sets": {},
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "ready",
+                        "name": "ready",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture is ready to receive a request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "done",
+                        "name": "done",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture has completed its request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "complete",
+                        "name": "complete",
+                        "sourceVertexId": "ready",
+                        "targetVertexId": "done",
+                        "properties": {
+                          "business": {
+                            "intent": "Complete the fixture request."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": [
+              {
+                "id": "ready",
+                "name": "ready",
+                "properties": {
+                  "business": {
+                    "description": "The fixture is ready to receive a request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ]
+                  }
+                },
+                "kind": "state"
+              },
+              {
+                "id": "complete",
+                "name": "complete",
+                "sourceVertexId": "ready",
+                "targetVertexId": "done",
+                "properties": {
+                  "business": {
+                    "intent": "Complete the fixture request."
+                  }
+                },
+                "kind": "edge"
+              },
+              {
+                "id": "done",
+                "name": "done",
+                "properties": {
+                  "business": {
+                    "description": "The fixture has completed its request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ]
+                  }
+                },
+                "kind": "state"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "run.plan",
+      "summary": "Calculate the selected test inventory.",
+      "description": "Plans graph walks, property campaigns and execution scope without running targets or strategy callbacks. Property input limits select phases before execution. Generated draws and shrinking are determined later by Hegel. Custom strategies are bound by run.start, which emits its authoritative inventory through run.event.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "description": "Complete GraphWalker business-v3 model.",
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/RunInventory"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Plan graph checks without properties",
+          "params": [
+            {
+              "name": "model",
+              "value": {
+                "models": [
+                  {
+                    "id": "subject-fixture",
+                    "name": "Subject lifecycle fixture",
+                    "startElementId": "ready",
+                    "generator": "a_star(reached_vertex(done))",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Demonstrate a complete run through one independently observed transition.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ],
+                        "data sets": {},
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "ready",
+                        "name": "ready",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture is ready to receive a request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "done",
+                        "name": "done",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture has completed its request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "complete",
+                        "name": "complete",
+                        "sourceVertexId": "ready",
+                        "targetVertexId": "done",
+                        "properties": {
+                          "business": {
+                            "intent": "Complete the fixture request."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "options",
+              "value": {
+                "input_mode": "none"
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "status": "RUNNING",
+              "model": "Subject lifecycle fixture",
+              "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+              "seed": 42,
+              "replay": false,
+              "runtime": {
+                "core": "rust",
+                "protocol": "2.0",
+                "graph": "graphwalker-rs",
+                "properties": "hegel"
+              },
+              "exploration": {
+                "generator": "a_star(reached_vertex(done))",
+                "required": {
+                  "edges": 100,
+                  "states": 100
+                }
+              },
+              "graph": {
+                "start": "ready",
+                "states": [
+                  {
+                    "description": "The fixture is ready to receive a request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ],
+                    "id": "ready",
+                    "name": "ready"
+                  },
+                  {
+                    "description": "The fixture has completed its request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ],
+                    "id": "done",
+                    "name": "done"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "complete",
+                    "name": "complete",
+                    "source": "ready",
+                    "target": "done",
+                    "intent": "Complete the fixture request."
+                  }
+                ]
+              },
+              "tests": [
+                {
+                  "id": "graph/1/0/ready",
+                  "kind": "graph",
+                  "status": "NOT_RUN",
+                  "name": "Walk 1, step 0: ready \u2192 ready",
+                  "walk": 1,
+                  "seed": 42,
+                  "position": 0,
+                  "element": {
+                    "id": "ready",
+                    "name": "ready",
+                    "properties": {
+                      "business": {
+                        "description": "The fixture is ready to receive a request.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ]
+                      }
+                    },
+                    "kind": "state"
+                  },
+                  "expected_state": "ready",
+                  "description": "The fixture is ready to receive a request.",
+                  "rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "global_rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "replay_recipe": {
+                    "kind": "graph",
+                    "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+                    "journey": null,
+                    "state": "ready",
+                    "seed": 42,
+                    "input": {}
+                  }
+                },
+                {
+                  "id": "graph/1/1/complete",
+                  "kind": "graph",
+                  "status": "NOT_RUN",
+                  "name": "Walk 1, step 1: complete \u2192 done",
+                  "walk": 1,
+                  "seed": 42,
+                  "position": 1,
+                  "element": {
+                    "id": "complete",
+                    "name": "complete",
+                    "sourceVertexId": "ready",
+                    "targetVertexId": "done",
+                    "properties": {
+                      "business": {
+                        "intent": "Complete the fixture request."
+                      }
+                    },
+                    "kind": "edge"
+                  },
+                  "expected_state": "done",
+                  "description": "The fixture has completed its request.",
+                  "rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "global_rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "replay_recipe": {
+                    "kind": "graph",
+                    "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+                    "journey": "complete",
+                    "state": "done",
+                    "seed": 42,
+                    "input": {}
+                  },
+                  "intent": "Complete the fixture request."
+                }
+              ],
+              "steps": [],
+              "cases": [],
+              "walks": [
+                {
+                  "seed": 42,
+                  "planned_path": [
+                    {
+                      "id": "ready",
+                      "kind": "state"
+                    },
+                    {
+                      "id": "complete",
+                      "kind": "edge"
+                    },
+                    {
+                      "id": "done",
+                      "kind": "state"
+                    }
+                  ]
+                }
+              ],
+              "planning": {
+                "complete": true,
+                "graph_count": "exact for successfully planned walks",
+                "generated_count": "phases only; draws and shrinking are determined at runtime",
+                "unselected_properties": [],
+                "unselected_edges": []
+              },
+              "scope": {
+                "input_mode": "none",
+                "available_campaigns": 0,
+                "selected_campaigns": 0,
+                "walks_requested": 1,
+                "property_selection": {
+                  "policy": "model order",
+                  "input_limit": 1000,
+                  "available_phases": 0,
+                  "selected_phases": 0,
+                  "excluded_phases": 0,
+                  "available_examples": 0,
+                  "selected_examples": 0
+                }
+              },
+              "planned_path": [
+                {
+                  "id": "ready",
+                  "kind": "state"
+                },
+                {
+                  "id": "complete",
+                  "kind": "edge"
+                },
+                {
+                  "id": "done",
+                  "kind": "state"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "run.start",
+      "summary": "Execute a model through a target adapter.",
+      "description": "Runs synchronously and returns the final report. While awaiting a callback response, the worker can service nested client requests. One worker permits one active run/property exercise. The client must implement the adapter callbacks. A completed FAIL or INCONCLUSIVE run is represented in the result report; planning/setup errors may return -32001. This method also accepts an optional saved case to perform replay. The framework owns report persistence and collects optional paginated target.artifacts after lifecycle cleanup. The returned report.directory is the absolute run directory when output is supplied, otherwise null.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "description": "Complete GraphWalker business-v3 model.",
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        },
+        {
+          "name": "target",
+          "required": false,
+          "description": "Adapter-specific configuration forwarded unchanged as target.initialize.config; defaults to {}.",
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        {
+          "name": "case",
+          "required": false,
+          "description": "Saved replay_recipe associated with the same model hash.",
+          "schema": {
+            "$ref": "#/components/schemas/ReplayCase"
+          }
+        },
+        {
+          "name": "output",
+          "required": false,
+          "description": "Optional output parent directory on the worker host. The framework creates a unique run directory, announces it in run.event(planned).data.directory, and writes model.json, plan.json, report.json, report.html, junit.xml and replay artifacts. Omit to return results without writing a report bundle. Relative paths resolve from the worker working directory.",
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/RunReport"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Run with deterministic adapter assertions",
+          "params": [
+            {
+              "name": "model",
+              "value": {
+                "models": [
+                  {
+                    "id": "subject-fixture",
+                    "name": "Subject lifecycle fixture",
+                    "startElementId": "ready",
+                    "generator": "a_star(reached_vertex(done))",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Demonstrate a complete run through one independently observed transition.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ],
+                        "data sets": {},
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "ready",
+                        "name": "ready",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture is ready to receive a request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "done",
+                        "name": "done",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture has completed its request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "complete",
+                        "name": "complete",
+                        "sourceVertexId": "ready",
+                        "targetVertexId": "done",
+                        "properties": {
+                          "business": {
+                            "intent": "Complete the fixture request."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "options",
+              "value": {
+                "input_mode": "none",
+                "evaluator": "adapter"
+              }
+            },
+            {
+              "name": "output",
+              "value": "artifacts"
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "status": "PASS",
+              "model": "Subject lifecycle fixture",
+              "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+              "seed": 42,
+              "replay": false,
+              "runtime": {
+                "core": "rust",
+                "protocol": "2.0",
+                "graph": "graphwalker-rs",
+                "properties": "hegel"
+              },
+              "exploration": {
+                "generator": "a_star(reached_vertex(done))",
+                "required": {
+                  "edges": 100,
+                  "states": 100
+                }
+              },
+              "graph": {
+                "start": "ready",
+                "states": [
+                  {
+                    "description": "The fixture is ready to receive a request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ],
+                    "id": "ready",
+                    "name": "ready"
+                  },
+                  {
+                    "description": "The fixture has completed its request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ],
+                    "id": "done",
+                    "name": "done"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "complete",
+                    "name": "complete",
+                    "source": "ready",
+                    "target": "done",
+                    "intent": "Complete the fixture request."
+                  }
+                ]
+              },
+              "tests": [
+                {
+                  "id": "graph/1/0/ready",
+                  "kind": "graph",
+                  "status": "PASS",
+                  "name": "Walk 1, step 0: ready \u2192 ready",
+                  "walk": 1,
+                  "seed": 42,
+                  "position": 0,
+                  "element": {
+                    "id": "ready",
+                    "name": "ready",
+                    "properties": {
+                      "business": {
+                        "description": "The fixture is ready to receive a request.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ]
+                      }
+                    },
+                    "kind": "state"
+                  },
+                  "expected_state": "ready",
+                  "description": "The fixture is ready to receive a request.",
+                  "rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "global_rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "replay_recipe": {
+                    "kind": "graph",
+                    "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+                    "journey": null,
+                    "state": "ready",
+                    "seed": 42,
+                    "input": {}
+                  },
+                  "step_indices": [
+                    0
+                  ],
+                  "attempt_indices": [],
+                  "duration": 0.001
+                },
+                {
+                  "id": "graph/1/1/complete",
+                  "kind": "graph",
+                  "status": "PASS",
+                  "name": "Walk 1, step 1: complete \u2192 done",
+                  "walk": 1,
+                  "seed": 42,
+                  "position": 1,
+                  "element": {
+                    "id": "complete",
+                    "name": "complete",
+                    "sourceVertexId": "ready",
+                    "targetVertexId": "done",
+                    "properties": {
+                      "business": {
+                        "intent": "Complete the fixture request."
+                      }
+                    },
+                    "kind": "edge"
+                  },
+                  "expected_state": "done",
+                  "description": "The fixture has completed its request.",
+                  "rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "global_rules": [
+                    "Fixture responds to requests."
+                  ],
+                  "replay_recipe": {
+                    "kind": "graph",
+                    "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+                    "journey": "complete",
+                    "state": "done",
+                    "seed": 42,
+                    "input": {}
+                  },
+                  "intent": "Complete the fixture request.",
+                  "step_indices": [
+                    1,
+                    2
+                  ],
+                  "attempt_indices": [],
+                  "duration": 0.001
+                }
+              ],
+              "steps": [
+                {
+                  "id": "ready",
+                  "name": "ready",
+                  "kind": "state",
+                  "walk": 1,
+                  "test_id": "graph/1/0/ready",
+                  "observed": "ready",
+                  "checks": [
+                    {
+                      "rule": "Fixture responds to requests.",
+                      "scope": "state",
+                      "status": "met"
+                    },
+                    {
+                      "rule": "Fixture responds to requests.",
+                      "scope": "global",
+                      "status": "met"
+                    }
+                  ],
+                  "expected": "ready",
+                  "input": {},
+                  "violations": [],
+                  "evidence": {
+                    "state": "ready"
+                  },
+                  "status": "PASS"
+                },
+                {
+                  "id": "complete",
+                  "name": "complete",
+                  "kind": "edge",
+                  "walk": 1,
+                  "test_id": "graph/1/1/complete",
+                  "status": "EXECUTED"
+                },
+                {
+                  "id": "done",
+                  "name": "done",
+                  "kind": "state",
+                  "walk": 1,
+                  "test_id": "graph/1/1/complete",
+                  "observed": "done",
+                  "checks": [
+                    {
+                      "rule": "Fixture responds to requests.",
+                      "scope": "state",
+                      "status": "met"
+                    },
+                    {
+                      "rule": "Fixture responds to requests.",
+                      "scope": "global",
+                      "status": "met"
+                    }
+                  ],
+                  "expected": "done",
+                  "input": {},
+                  "violations": [],
+                  "evidence": {
+                    "state": "done"
+                  },
+                  "status": "PASS"
+                }
+              ],
+              "cases": [],
+              "walks": [
+                {
+                  "seed": 42,
+                  "planned_path": [
+                    {
+                      "id": "ready",
+                      "kind": "state"
+                    },
+                    {
+                      "id": "complete",
+                      "kind": "edge"
+                    },
+                    {
+                      "id": "done",
+                      "kind": "state"
+                    }
+                  ]
+                }
+              ],
+              "planning": {
+                "complete": true,
+                "graph_count": "exact for successfully planned walks",
+                "generated_count": "phases only; draws and shrinking are determined at runtime",
+                "unselected_properties": [],
+                "unselected_edges": []
+              },
+              "scope": {
+                "input_mode": "none",
+                "available_campaigns": 0,
+                "selected_campaigns": 0,
+                "walks_requested": 1,
+                "property_selection": {
+                  "policy": "model order",
+                  "input_limit": 1000,
+                  "available_phases": 0,
+                  "selected_phases": 0,
+                  "excluded_phases": 0,
+                  "available_examples": 0,
+                  "selected_examples": 0
+                }
+              },
+              "planned_path": [
+                {
+                  "id": "ready",
+                  "kind": "state"
+                },
+                {
+                  "id": "complete",
+                  "kind": "edge"
+                },
+                {
+                  "id": "done",
+                  "kind": "state"
+                }
+              ],
+              "input_attempts": 0,
+              "coverage": {
+                "edges": {
+                  "verified": 1,
+                  "total": 1,
+                  "ids": [
+                    "complete"
+                  ]
+                },
+                "states": {
+                  "verified": 2,
+                  "total": 2,
+                  "ids": [
+                    "done",
+                    "ready"
+                  ]
+                },
+                "properties": {
+                  "completed": 0,
+                  "total": 0
+                },
+                "property phases": {
+                  "completed": 0,
+                  "total": 0,
+                  "available": 0
+                },
+                "global requirements": {
+                  "verified": 1,
+                  "total": 1
+                }
+              },
+              "test_summary": {
+                "PASS": 2,
+                "FAIL": 0,
+                "INCONCLUSIVE": 0,
+                "SKIPPED": 0
+              },
+              "directory": "/work/artifacts/example-run"
+            }
+          }
+        }
+      ],
+      "x-testwalker-callbacks": [
+        "run.event",
+        "target.initialize",
+        "target.hook",
+        "target.reset",
+        "target.execute",
+        "target.observe",
+        "target.evaluate",
+        "target.audit",
+        "target.strategy",
+        "target.checkpoint",
+        "target.restore",
+        "target.close"
+      ]
+    },
+    {
+      "name": "case.replay",
+      "summary": "Reproduce one saved test case.",
+      "description": "Requires a saved replay recipe and the original model hash. Restores the entry fixture, follows a setup route, executes the chosen journey and verifies its outcome. Graph-start recipes only reset and verify the initial state. Does not attempt full-model coverage. Callback and report contracts are the same as run.start. options.seed remains authoritative; recipe seed is saved metadata. The framework owns report persistence and collects optional paginated target.artifacts after lifecycle cleanup. The returned report.directory is the absolute run directory when output is supplied, otherwise null.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "description": "Complete GraphWalker business-v3 model.",
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "case",
+          "required": true,
+          "description": "Saved replay_recipe associated with the same model hash.",
+          "schema": {
+            "$ref": "#/components/schemas/ReplayCase"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        },
+        {
+          "name": "target",
+          "required": false,
+          "description": "Adapter-specific configuration forwarded unchanged as target.initialize.config; defaults to {}.",
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        {
+          "name": "output",
+          "required": false,
+          "description": "Optional output parent directory on the worker host. The framework creates a unique run directory, announces it in run.event(planned).data.directory, and writes model.json, plan.json, report.json, report.html, junit.xml and replay artifacts. Omit to return results without writing a report bundle. Relative paths resolve from the worker working directory.",
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/RunReport"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Replay one saved graph journey",
+          "params": [
+            {
+              "name": "model",
+              "value": {
+                "models": [
+                  {
+                    "id": "subject-fixture",
+                    "name": "Subject lifecycle fixture",
+                    "startElementId": "ready",
+                    "generator": "a_star(reached_vertex(done))",
+                    "properties": {
+                      "business": {
+                        "version": 3,
+                        "purpose": "Demonstrate a complete run through one independently observed transition.",
+                        "rules": [
+                          "Fixture responds to requests."
+                        ],
+                        "data sets": {},
+                        "coverage": {
+                          "edges": 100,
+                          "states": 100
+                        }
+                      }
+                    },
+                    "vertices": [
+                      {
+                        "id": "ready",
+                        "name": "ready",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture is ready to receive a request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "id": "done",
+                        "name": "done",
+                        "properties": {
+                          "business": {
+                            "description": "The fixture has completed its request.",
+                            "rules": [
+                              "Fixture responds to requests."
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "edges": [
+                      {
+                        "id": "complete",
+                        "name": "complete",
+                        "sourceVertexId": "ready",
+                        "targetVertexId": "done",
+                        "properties": {
+                          "business": {
+                            "intent": "Complete the fixture request."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "case",
+              "value": {
+                "kind": "graph",
+                "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+                "journey": "complete",
+                "state": "done",
+                "input": {},
+                "seed": 42
+              }
+            },
+            {
+              "name": "options",
+              "value": {
+                "evaluator": "adapter"
+              }
+            },
+            {
+              "name": "output",
+              "value": "artifacts"
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "status": "PASS",
+              "model": "Subject lifecycle fixture",
+              "model_hash": "caf2941d21db12472356a7045eee53bc778ac3cfbc342dcf0090194706bd0d8a",
+              "seed": 42,
+              "replay": true,
+              "runtime": {
+                "core": "rust",
+                "protocol": "2.0",
+                "graph": "graphwalker-rs",
+                "properties": "hegel"
+              },
+              "exploration": {
+                "generator": "a_star(reached_vertex(done))",
+                "required": {
+                  "edges": 100,
+                  "states": 100
+                }
+              },
+              "graph": {
+                "start": "ready",
+                "states": [
+                  {
+                    "description": "The fixture is ready to receive a request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ],
+                    "id": "ready",
+                    "name": "ready"
+                  },
+                  {
+                    "description": "The fixture has completed its request.",
+                    "rules": [
+                      "Fixture responds to requests."
+                    ],
+                    "id": "done",
+                    "name": "done"
+                  }
+                ],
+                "edges": [
+                  {
+                    "id": "complete",
+                    "name": "complete",
+                    "source": "ready",
+                    "target": "done",
+                    "intent": "Complete the fixture request."
+                  }
+                ]
+              },
+              "tests": [
+                {
+                  "id": "property/replay",
+                  "kind": "graph",
+                  "status": "PASS",
+                  "journey": "complete",
+                  "input": {},
+                  "phase": {
+                    "kind": "replay",
+                    "source": "replay"
+                  },
+                  "step_indices": [],
+                  "attempt_indices": [],
+                  "duration": 0.001
+                }
+              ],
+              "steps": [],
+              "cases": [],
+              "walks": [],
+              "planning": {
+                "complete": true,
+                "graph_count": "exact for successfully planned walks",
+                "generated_count": "phases only; draws and shrinking are determined at runtime",
+                "unselected_properties": []
+              },
+              "scope": {
+                "input_mode": "focused",
+                "available_campaigns": 0,
+                "selected_campaigns": 1,
+                "walks_requested": 1,
+                "property_selection": {
+                  "policy": "model order",
+                  "input_limit": 1000,
+                  "available_phases": 0,
+                  "selected_phases": 0,
+                  "excluded_phases": 0,
+                  "available_examples": 0,
+                  "selected_examples": 0
+                }
+              },
+              "input_attempts": 0,
+              "coverage": {
+                "edges": {
+                  "verified": 0,
+                  "total": 1,
+                  "ids": []
+                },
+                "states": {
+                  "verified": 0,
+                  "total": 2,
+                  "ids": []
+                },
+                "properties": {
+                  "completed": 0,
+                  "total": 0
+                },
+                "property phases": {
+                  "completed": 0,
+                  "total": 0,
+                  "available": 0
+                },
+                "global requirements": {
+                  "verified": 1,
+                  "total": 1
+                }
+              },
+              "test_summary": {
+                "PASS": 1,
+                "FAIL": 0,
+                "INCONCLUSIVE": 0,
+                "SKIPPED": 0
+              },
+              "directory": "/work/artifacts/example-run"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "run.cancel",
+      "summary": "Request cooperative cancellation.",
+      "description": "Sets cancellation when an execution is active and returns whether there was an active execution. Send this as a nested request while servicing a callback. The next cancellable callback boundary observes it; it cannot interrupt an in-flight HTTP request or adapter operation. Cleanup hooks/events/close remain allowed. When idle it returns false.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "cancelled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "cancelled"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "examples": [
+        {
+          "name": "Cancel an idle worker",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "cancelled": false
+            }
+          }
+        }
+      ],
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        }
+      ]
+    },
+    {
+      "name": "run.results",
+      "summary": "Read the last completed run report.",
+      "description": "Returns the most recently completed run.start/case.replay report, or null before any such report is completed. It does not expose a live snapshot and property.exercise does not replace this saved report.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/RunReport"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "examples": [
+        {
+          "name": "No completed run yet",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": null
+          }
+        }
+      ],
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        }
+      ]
+    },
+    {
+      "name": "property.plan",
+      "summary": "Plan independent Hegel property phases.",
+      "description": "Validates field definitions and returns phases for the selected input mode. This does not generate every eventual input, invoke target callbacks, run a graph or require Jev. Boundary mode materializes literal samples; focused mode plans targeted Hegel partitions.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "fields",
+          "required": true,
+          "description": "One to twenty business field definitions. Missing descriptions are set to the field name.",
+          "schema": {
+            "$ref": "#/components/schemas/PropertyFields"
+          }
+        },
+        {
+          "name": "data_set",
+          "required": false,
+          "description": "Data-set label used to select focused strategy overrides.",
+          "schema": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PropertyPhase"
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Plan quantity boundaries",
+          "params": [
+            {
+              "name": "fields",
+              "value": {
+                "Quantity": {
+                  "description": "A small number of items.",
+                  "type": "whole number",
+                  "required": true,
+                  "minimum": 1,
+                  "maximum": 4,
+                  "example": 2
+                }
+              }
+            },
+            {
+              "name": "options",
+              "value": {
+                "input_mode": "boundaries"
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": [
+              {
+                "id": "boundary/0/0",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 valid example",
+                "input": {
+                  "Quantity": 2
+                },
+                "violations": []
+              },
+              {
+                "id": "boundary/0/1",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 blank",
+                "input": {
+                  "Quantity": ""
+                },
+                "violations": [
+                  {
+                    "field": "Quantity",
+                    "violations": [
+                      "required"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "boundary/0/2",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 whitespace only",
+                "input": {
+                  "Quantity": "   "
+                },
+                "violations": [
+                  {
+                    "field": "Quantity",
+                    "violations": [
+                      "required"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "boundary/0/3",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 minimum -1",
+                "input": {
+                  "Quantity": 0
+                },
+                "violations": [
+                  {
+                    "field": "Quantity",
+                    "violations": [
+                      "below minimum"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "boundary/0/4",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 minimum +0",
+                "input": {
+                  "Quantity": 1
+                },
+                "violations": []
+              },
+              {
+                "id": "boundary/0/5",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 maximum -1",
+                "input": {
+                  "Quantity": 3
+                },
+                "violations": []
+              },
+              {
+                "id": "boundary/0/6",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 maximum +0",
+                "input": {
+                  "Quantity": 4
+                },
+                "violations": []
+              },
+              {
+                "id": "boundary/0/7",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 maximum +1",
+                "input": {
+                  "Quantity": 5
+                },
+                "violations": [
+                  {
+                    "field": "Quantity",
+                    "violations": [
+                      "above maximum"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "boundary/0/8",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 fraction instead of whole number",
+                "input": {
+                  "Quantity": "1.5"
+                },
+                "violations": [
+                  {
+                    "field": "Quantity",
+                    "violations": [
+                      "whole number required"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "boundary/0/9",
+                "kind": "boundary",
+                "field": "Quantity",
+                "source": "boundary: Quantity \u2014 non-numeric text",
+                "input": {
+                  "Quantity": "not a number"
+                },
+                "violations": [
+                  {
+                    "field": "Quantity",
+                    "violations": [
+                      "number required"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "property.samples",
+      "summary": "List one field\u2019s named boundary samples.",
+      "description": "Requires exactly one business field. Returns a list of [reason, value] pairs, including the example and appropriate positive/negative boundaries. No Hegel execution or callbacks occur. This method does not consume ExecutionOptions.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "fields",
+          "required": true,
+          "description": "Exactly one field definition; a missing description defaults to the field name.",
+          "schema": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PropertyFields"
+              }
+            ],
+            "maxProperties": 1
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/BoundarySample"
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Sample a bounded quantity",
+          "params": [
+            {
+              "name": "fields",
+              "value": {
+                "Quantity": {
+                  "description": "A small number of items.",
+                  "type": "whole number",
+                  "required": true,
+                  "minimum": 1,
+                  "maximum": 4,
+                  "example": 2
+                }
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": [
+              [
+                "valid example",
+                2
+              ],
+              [
+                "blank",
+                ""
+              ],
+              [
+                "whitespace only",
+                "   "
+              ],
+              [
+                "minimum -1",
+                0
+              ],
+              [
+                "minimum +0",
+                1
+              ],
+              [
+                "maximum -1",
+                3
+              ],
+              [
+                "maximum +0",
+                4
+              ],
+              [
+                "maximum +1",
+                5
+              ],
+              [
+                "fraction instead of whole number",
+                "1.5"
+              ],
+              [
+                "non-numeric text",
+                "not a number"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "property.exercise",
+      "summary": "Exercise property domains without a graph.",
+      "description": "Plans and executes selected Hegel phases, calling property.evaluate with each actual input and its independently calculated violations. The callback returns status=PASS or FAIL; unknown outcomes become INCONCLUSIVE. Definite failures may be shrunk. Returns PASS after all selected phases complete, including an empty selection. Fails with -32001 for FAIL/INCONCLUSIVE outcomes; does not store a run report. custom_strategies uses target.strategy before exercising. max_input_attempts is not an aggregate limiter for this standalone method.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "fields",
+          "required": true,
+          "description": "One to twenty business field definitions. Missing descriptions are set to the field name.",
+          "schema": {
+            "$ref": "#/components/schemas/PropertyFields"
+          }
+        },
+        {
+          "name": "data_set",
+          "required": false,
+          "description": "Data-set label used to select focused strategy overrides.",
+          "schema": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        },
+        {
+          "name": "phase_ids",
+          "required": false,
+          "description": "Optional subset of IDs from property.plan. Every selected ID must exist. Omit to use all phases; [] executes none.",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "PASS"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Exercise an empty explicitly selected phase set",
+          "params": [
+            {
+              "name": "fields",
+              "value": {
+                "Quantity": {
+                  "description": "A small number of items.",
+                  "type": "whole number",
+                  "required": true,
+                  "minimum": 1,
+                  "maximum": 4,
+                  "example": 2
+                }
+              }
+            },
+            {
+              "name": "phase_ids",
+              "value": []
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "status": "PASS"
+            }
+          }
+        },
+        {
+          "name": "Exercise quantity boundaries with an evaluator callback",
+          "summary": "Requires property.evaluate to return PASS for each correctly observed outcome.",
+          "params": [
+            {
+              "name": "fields",
+              "value": {
+                "Quantity": {
+                  "description": "A small number of items.",
+                  "type": "whole number",
+                  "required": true,
+                  "minimum": 1,
+                  "maximum": 4,
+                  "example": 2
+                }
+              }
+            },
+            {
+              "name": "options",
+              "value": {
+                "input_mode": "boundaries",
+                "shrink": false
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "status": "PASS"
+            }
+          }
+        }
+      ],
+      "x-testwalker-callbacks": [
+        "target.strategy",
+        "property.evaluate"
+      ]
+    },
+    {
+      "name": "decision.configure",
+      "summary": "Configure the Jev provider and decision policy.",
+      "description": "Configure before starting an execution. Replaces the provider and resets cache, counters and audit. Configuration itself performs no provider call. A key is needed for live decision.ask; offline decision.answer can be used with no key. The currently shipped provider is jev.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "provider",
+          "required": false,
+          "description": "Native decision provider.",
+          "schema": {
+            "enum": [
+              "jev"
+            ],
+            "default": "jev"
+          }
+        },
+        {
+          "name": "api_key",
+          "required": false,
+          "description": "Bearer credential for decision.ask; omit for offline answer validation only.",
+          "schema": {
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        {
+          "name": "model",
+          "required": false,
+          "description": "Provider model name.",
+          "schema": {
+            "type": "string",
+            "default": "jev-latest"
+          }
+        },
+        {
+          "name": "endpoint",
+          "required": false,
+          "description": "Provider HTTP endpoint for decision.ask.",
+          "schema": {
+            "type": "string",
+            "default": "https://api.typesafe.ai/v1/systemone"
+          }
+        },
+        {
+          "name": "max_calls",
+          "required": false,
+          "description": "Shared call allowance for decision.ask and decision.post.",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1000,
+            "maximum": 10000
+          }
+        },
+        {
+          "name": "threshold",
+          "required": false,
+          "description": "Default answer confidence threshold.",
+          "schema": {
+            "default": 0.8,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConfidenceThreshold"
+              }
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/EmptyResult"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Prepare offline answer validation",
+          "params": [
+            {
+              "name": "provider",
+              "value": "jev"
+            },
+            {
+              "name": "max_calls",
+              "value": 1000
+            },
+            {
+              "name": "threshold",
+              "value": 0.8
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "decision.ask",
+      "summary": "Ask the configured decision provider.",
+      "description": "Posts evidence as state plus questions and configured model to Jev. Identical evidence/questions reuse a cached successful response without consuming a call. Failed attempts consume allowance. Records every ask attempt in decision.audit, including cache hits/errors. The returned provider JSON is opaque until decision.answer validates a named answer.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "evidence",
+          "required": true,
+          "description": "Observed target evidence; structured JSON is forwarded as provider state.",
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        {
+          "name": "questions",
+          "required": true,
+          "description": "Provider-specific questions. The core forwards them unchanged; Jev commonly uses a map of choice-question objects.",
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/DecisionResponse"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Classify a synthetic state",
+          "params": [
+            {
+              "name": "evidence",
+              "value": {
+                "page": "Done"
+              }
+            },
+            {
+              "name": "questions",
+              "value": {
+                "state": {
+                  "type": "choice",
+                  "criteria": {
+                    "accepted": "The operation completed.",
+                    "rejected": "The operation was rejected."
+                  },
+                  "instructions": "Judge the observed evidence."
+                }
+              }
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "answers": {
+                "state": {
+                  "choice": "accepted",
+                  "confidence": 0.95,
+                  "probabilities": {
+                    "accepted": 0.95,
+                    "rejected": 0.05
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "decision.answer",
+      "summary": "Validate one named decision and threshold.",
+      "description": "Performs local validation only; requires decision.configure but makes no HTTP call or budget charge. The selected answer must match the allowed choices, have a valid normalized probability distribution, select a maximal probability and meet confidence and selected-probability thresholds. A valid but uncertain answer returns -32001 with data.result.uncertain_decision=true.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "result",
+          "required": true,
+          "description": "Provider result or synthetic result to inspect.",
+          "schema": {
+            "$ref": "#/components/schemas/DecisionResponse"
+          }
+        },
+        {
+          "name": "name",
+          "required": true,
+          "description": "Name of the answer in result.answers.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "choices",
+          "required": true,
+          "description": "Allowed choice names; probabilities must contain exactly these keys.",
+          "schema": {
+            "$ref": "#/components/schemas/DecisionChoices"
+          }
+        },
+        {
+          "name": "threshold",
+          "required": false,
+          "description": "Override the configured threshold for this check only.",
+          "schema": {
+            "$ref": "#/components/schemas/ConfidenceThreshold"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Validate a confident answer",
+          "params": [
+            {
+              "name": "result",
+              "value": {
+                "answers": {
+                  "state": {
+                    "choice": "accepted",
+                    "confidence": 0.95,
+                    "probabilities": {
+                      "accepted": 0.95,
+                      "rejected": 0.05
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "name",
+              "value": "state"
+            },
+            {
+              "name": "choices",
+              "value": [
+                "accepted",
+                "rejected"
+              ]
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": "accepted"
+          }
+        }
+      ]
+    },
+    {
+      "name": "decision.post",
+      "summary": "Call an auxiliary JSON decision endpoint.",
+      "description": "Uses the configured provider HTTP transport to POST an arbitrary JSON body with the supplied bearer key. Shares decision.ask call and token allowance. Successful responses must be JSON objects. Optional caching uses URL and body; credentials are not part of that cache identity. Calls are counted by decision.stats but are not included in decision.audit. HTTP timeout is 30 seconds and connect timeout is 10 seconds.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "url",
+          "required": true,
+          "description": "HTTP endpoint URL.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "key",
+          "required": true,
+          "description": "Bearer credential for this endpoint.",
+          "schema": {
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        {
+          "name": "body",
+          "required": true,
+          "description": "Endpoint-specific request body.",
+          "schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        {
+          "name": "cache",
+          "required": false,
+          "description": "Reuse successful cached responses for the same URL/body.",
+          "schema": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/DecisionResponse"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Illustrative auxiliary helper call",
+          "summary": "Synthetic endpoint and credential; replace both to execute this example.",
+          "params": [
+            {
+              "name": "url",
+              "value": "https://example.invalid/decisions"
+            },
+            {
+              "name": "key",
+              "value": "synthetic-example-key"
+            },
+            {
+              "name": "body",
+              "value": {
+                "prompt": "Summarise this synthetic observation."
+              }
+            },
+            {
+              "name": "cache",
+              "value": true
+            }
+          ],
+          "result": {
+            "name": "result",
+            "value": {
+              "text": "The fixture is ready.",
+              "usage": {
+                "input_tokens": 10,
+                "output_tokens": 5
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "decision.stats",
+      "summary": "Read decision usage counters.",
+      "description": "Reports charged provider attempts, reused cache entries and provider-reported input/output tokens. Returns zeros before configuration. decision.answer is local and does not increment calls.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/DecisionStats"
+        }
+      },
+      "examples": [
+        {
+          "name": "A fresh worker",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "calls": 0,
+              "cache_hits": 0,
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          }
+        }
+      ],
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        }
+      ]
+    },
+    {
+      "name": "decision.audit",
+      "summary": "Read a bounded page of decision attempts.",
+      "description": "Reads decision.ask audit entries in original order. offset must not exceed total. limit is an entry cap: pages also stop before exceeding roughly 4 MiB once they contain an entry. A single larger entry may be returned alone, up to 32 MiB; larger entries raise -32001. Continue using next_offset until null. Returns an empty page before configuration. Does not contain auxiliary decision.post calls.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "offset",
+          "required": false,
+          "description": "Zero-based entry offset.",
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          }
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "description": "Maximum number of entries in this page.",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 128,
+            "maximum": 1024
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/DecisionAuditPage"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "An empty transcript",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {
+              "entries": [],
+              "total": 0,
+              "next_offset": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "core.shutdown",
+      "summary": "Shut down an idle worker.",
+      "description": "Acknowledges with {} and exits after sending the response. Fails while execution is active; cancel and finish cleanup first. A valid notification can request shutdown without a response.",
+      "paramStructure": "by-name",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/EmptyResult"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Graceful shutdown",
+          "params": [],
+          "result": {
+            "name": "result",
+            "value": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "model.configure",
+      "summary": "Apply runtime exploration overrides using the framework policy; preserve authored input and exact verification thresholds.",
+      "description": "Apply runtime exploration overrides using the framework policy; preserve authored input and exact verification thresholds.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "exploration",
+          "required": false,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "generator": {
+                "type": "string"
+              },
+              "edges": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "states": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "model_hash": {
+              "$ref": "#/components/schemas/ModelHash"
+            },
+            "states": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "edges": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            },
+            "data_sets": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20
+            },
+            "document": {
+              "$ref": "#/components/schemas/ModelDocument"
+            },
+            "examples": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          },
+          "required": [
+            "model_hash",
+            "states",
+            "edges",
+            "data_sets"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ]
+    },
+    {
+      "name": "graph.setup",
+      "summary": "Return modeled nominal setup edges from the start state to a destination; returns an empty list at the start.",
+      "description": "Return modeled nominal setup edges from the start state to a destination; returns an empty list at the start.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Edge"
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ]
+    },
+    {
+      "name": "property.validate",
+      "summary": "Evaluate independent business input validity. Missing fields and wrong types are reported as violations.",
+      "description": "Evaluate independent business input validity. Missing fields and wrong types are reported as violations.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "fields",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/BusinessFields"
+          }
+        },
+        {
+          "name": "input",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "violations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Violation"
+              }
+            }
+          },
+          "required": [
+            "violations"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ]
+    },
+    {
+      "name": "property.policy",
+      "summary": "Validate focused strategy settings and their references against the supplied business data dictionary.",
+      "description": "Validate focused strategy settings and their references against the supplied business data dictionary.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "policy",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/InputStrategies"
+          }
+        },
+        {
+          "name": "data_sets",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BusinessFields"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/InputStrategies"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ]
+    },
+    {
+      "name": "run.validate",
+      "summary": "Validate and normalize execution options before initializing a target.",
+      "description": "Validate the model, budgets, modes and strategy references without planning paths or contacting a target or provider.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "model",
+          "required": true,
+          "description": "Complete GraphWalker business-v3 model.",
+          "schema": {
+            "$ref": "#/components/schemas/ModelDocument"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "description": "Execution/planning settings; omitted fields use the documented defaults.",
+          "schema": {
+            "$ref": "#/components/schemas/ExecutionOptions"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/ExecutionOptions"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ParseError"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRequest"
+        },
+        {
+          "$ref": "#/components/errors/InvalidParams"
+        },
+        {
+          "$ref": "#/components/errors/DomainError"
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "JsonValue": {
+        "description": "Any JSON value. Target observations, evidence and provider payloads are opaque to the transport; their specific meaning belongs to the selected adapter or provider."
+      },
+      "EmptyResult": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "ModelHash": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "SHA-256 of the canonical model after native defaults are applied. Includes adapter metadata; replay requires the same hash."
+      },
+      "BusinessText": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000,
+        "description": "Nonempty business prose. Whitespace-only text, selectors and executable snippets are rejected by model validation."
+      },
+      "LiteralInput": {
+        "type": [
+          "string",
+          "number"
+        ],
+        "description": "Literal text or a number, with at most 2,000 characters when rendered. Booleans, null, arrays and objects are not business field values.",
+        "maxLength": 2000
+      },
+      "Input": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/LiteralInput"
+        },
+        "description": "Field-name to literal-value map. Complete input must contain exactly the fields declared by the journey data set."
+      },
+      "PropertyField": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "type": {
+            "enum": [
+              "text",
+              "email",
+              "whole number",
+              "number",
+              "choice"
+            ]
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "example": {
+            "$ref": "#/components/schemas/LiteralInput"
+          },
+          "minimum": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "maximum": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "minimum length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "maximum length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "trim spaces": {
+            "type": "boolean",
+            "default": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessText"
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "type",
+          "example"
+        ],
+        "additionalProperties": false,
+        "description": "Independent input constraints. Numeric types require ordered minimum/maximum bounds; whole-number bounds must be integers. Text length limits apply only to text/email. Options apply only to choice and are required for choice. Examples must satisfy the independent rules. These cross-field relationships are additionally enforced by the worker.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "number",
+                    "whole number"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "minimum",
+                "maximum"
+              ]
+            },
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "minimum"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "maximum"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "whole number"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "choice"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "options"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "options"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "text",
+                    "email"
+                  ]
+                }
+              }
+            },
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "minimum length"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "maximum length"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "BusinessField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PropertyField"
+          },
+          {
+            "required": [
+              "description"
+            ]
+          }
+        ],
+        "description": "Business-model fields require a description. Standalone property methods may omit it and use the field name."
+      },
+      "PropertyFields": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 20,
+        "propertyNames": {
+          "$ref": "#/components/schemas/BusinessText"
+        },
+        "additionalProperties": {
+          "$ref": "#/components/schemas/PropertyField"
+        }
+      },
+      "BusinessFields": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 20,
+        "propertyNames": {
+          "$ref": "#/components/schemas/BusinessText"
+        },
+        "additionalProperties": {
+          "$ref": "#/components/schemas/BusinessField"
+        }
+      },
+      "CoverageRequirements": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "states": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "edges",
+          "states"
+        ],
+        "additionalProperties": false
+      },
+      "GraphBusiness": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "const": 3
+          },
+          "purpose": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "entry path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Relative target entry path; absolute URLs, protocol-relative paths, backslashes and control characters are rejected."
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessText"
+            },
+            "minItems": 1,
+            "maxItems": 30
+          },
+          "data sets": {
+            "type": "object",
+            "maxProperties": 20,
+            "propertyNames": {
+              "$ref": "#/components/schemas/BusinessText"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BusinessFields"
+            }
+          },
+          "coverage": {
+            "default": {
+              "edges": 100,
+              "states": 100
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CoverageRequirements"
+              }
+            ]
+          }
+        },
+        "required": [
+          "version",
+          "purpose",
+          "rules"
+        ],
+        "additionalProperties": false
+      },
+      "StateBusiness": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessText"
+            },
+            "minItems": 1,
+            "maxItems": 30
+          }
+        },
+        "required": [
+          "description",
+          "rules"
+        ],
+        "additionalProperties": false
+      },
+      "EdgeBusiness": {
+        "type": "object",
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "data set": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "example": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "accepted at": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "rejected at": {
+            "$ref": "#/components/schemas/BusinessText"
+          }
+        },
+        "required": [
+          "intent"
+        ],
+        "additionalProperties": false,
+        "description": "A data journey must name an existing data set, distinct existing acceptance/rejection states, and have examples consistent with its target state. Without a data set, example/accepted at/rejected at are forbidden. Graph relations are checked by model.validate."
+      },
+      "State": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "name": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "actions": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "maxItems": 0
+          },
+          "guard": {
+            "enum": [
+              null,
+              ""
+            ]
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "business": {
+                "$ref": "#/components/schemas/StateBusiness"
+              },
+              "rpc": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "RPC state or edge bindings, requiring graph-level RPC profile version 1. Rust validates predicates, requests and rule bindings before execution."
+              }
+            },
+            "required": [
+              "business"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "properties"
+        ],
+        "additionalProperties": true
+      },
+      "Edge": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "name": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "actions": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "maxItems": 0
+          },
+          "guard": {
+            "enum": [
+              null,
+              ""
+            ]
+          },
+          "sourceVertexId": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "targetVertexId": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "business": {
+                "$ref": "#/components/schemas/EdgeBusiness"
+              },
+              "rpc": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "RPC state or edge bindings, requiring graph-level RPC profile version 1. Rust validates predicates, requests and rule bindings before execution."
+              }
+            },
+            "required": [
+              "business"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sourceVertexId",
+          "targetVertexId",
+          "properties"
+        ],
+        "additionalProperties": true
+      },
+      "Graph": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "name": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "startElementId": {
+            "$ref": "#/components/schemas/BusinessText"
+          },
+          "generator": {
+            "default": "quick_random(edge_coverage(100))",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BusinessText"
+              }
+            ]
+          },
+          "actions": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "maxItems": 0
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "business": {
+                "$ref": "#/components/schemas/GraphBusiness"
+              },
+              "rpc": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "const": 1
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": true,
+                "description": "The native core validates the complete RPC profile, including request templates, predicates, callbacks and global/state rule bindings. This structural schema leaves those binding details open; see docs/rpc-testing.md for semantic constraints."
+              }
+            },
+            "required": [
+              "business"
+            ],
+            "additionalProperties": false
+          },
+          "vertices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/State"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            },
+            "minItems": 1,
+            "maxItems": 500
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "startElementId",
+          "properties",
+          "vertices",
+          "edges"
+        ],
+        "additionalProperties": true,
+        "description": "One GraphWalker business graph. IDs and names are unique across states and edges; startElementId names a state. Generator syntax, reachability and edge/data relationships require native validation. Additional GraphWalker presentation metadata is retained."
+      },
+      "ModelDocument": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Graph"
+            },
+            "minItems": 1,
+            "maxItems": 1
+          }
+        },
+        "required": [
+          "models"
+        ],
+        "additionalProperties": true,
+        "description": "A GraphWalker JSON document containing exactly one Testwalker business-v3 graph. The worker applies defaults before hashing. These schemas describe structure; model.validate additionally checks cross-references, supported prose and independent business constraints."
+      },
+      "RouteReference": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "state",
+              "edge"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "additionalProperties": true,
+        "description": "Imported route references are canonicalized against the supplied model; other supplied element fields cannot override it."
+      },
+      "RouteElement": {
+        "oneOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/State"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "state"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Edge"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "edge"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "GraphRoute": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/RouteElement"
+        },
+        "minItems": 1,
+        "description": "Connected, alternating state/edge route, starting at the model start state and ending at a verification state. Each state and edge consumes one max_steps unit. This is a plan, not verified coverage."
+      },
+      "StrategyOptions": {
+        "type": "object",
+        "properties": {
+          "strategy": {
+            "enum": [
+              "nearby",
+              "boundary"
+            ],
+            "default": "nearby"
+          },
+          "cases": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Examples per focused partition; defaults to ExecutionOptions.cases.",
+            "maximum": 200
+          },
+          "radius": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "maximum": 1000
+          },
+          "alphabet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "default": "abcdefghijklmnopqrstuvwxyz",
+            "description": "Only Unicode alphabetic characters are accepted."
+          }
+        },
+        "additionalProperties": false
+      },
+      "InputStrategies": {
+        "type": "object",
+        "properties": {
+          "defaults": {
+            "$ref": "#/components/schemas/StrategyOptions"
+          },
+          "data sets": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/StrategyOptions"
+              }
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Focused strategy overrides by data-set name then field name. Unknown model data sets or fields are rejected. Nonempty policies require input_mode=focused."
+      },
+      "ExecutionOptions": {
+        "type": "object",
+        "properties": {
+          "seed": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 42,
+            "maximum": 2147483647
+          },
+          "walks": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "maximum": 100
+          },
+          "max_steps": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 200,
+            "description": "Maximum route entries per walk, counting both states and edges.",
+            "maximum": 10000
+          },
+          "cases": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Requested examples per generated/focused phase; Hegel may exhaust or deduplicate finite domains.",
+            "maximum": 200
+          },
+          "input_mode": {
+            "enum": [
+              "focused",
+              "boundaries",
+              "generated",
+              "all",
+              "none"
+            ],
+            "default": "focused"
+          },
+          "input_strategies": {
+            "default": {},
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InputStrategies"
+              }
+            ]
+          },
+          "custom_strategies": {
+            "type": "boolean",
+            "default": false,
+            "description": "Bind declarative domains using target.strategy callbacks before execution. Planning alone does not invoke callbacks."
+          },
+          "shrink": {
+            "type": "boolean",
+            "default": true
+          },
+          "max_input_attempts": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1000,
+            "description": "Select property scope before execution and bound additional reproduction/shrinking attempts for graph runs. Standalone property.exercise iterates its selected phases directly.",
+            "maximum": 10000
+          },
+          "keep_target_open": {
+            "type": "boolean",
+            "default": false
+          },
+          "evaluator": {
+            "enum": [
+              "core",
+              "adapter"
+            ],
+            "default": "core",
+            "description": "core asks the configured decision provider; adapter calls target.evaluate and Rust derives the verdict from observed state and checks."
+          },
+          "paths": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/RouteReference"
+              }
+            },
+            "default": null,
+            "description": "Optional imported walks. Length must equal walks; each route must fit max_steps and be a valid connected route."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Unknown fields are rejected. Shared option type is accepted by planning, runs and standalone properties, but methods only apply options relevant to their operation. graph.plan uses seed/max_steps and the model generator for one route; property methods use seed/cases/input strategy/shrink settings."
+      },
+      "Violation": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "violations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "field",
+          "violations"
+        ],
+        "additionalProperties": true
+      },
+      "PropertyPhase": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "boundary",
+              "generated"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "max_examples": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "input": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "violations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Violation"
+            }
+          },
+          "partition": {
+            "type": "string"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/StrategyOptions"
+          },
+          "data_set": {
+            "type": "string"
+          },
+          "boundary_input": {
+            "$ref": "#/components/schemas/Input"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "source"
+        ],
+        "additionalProperties": true,
+        "description": "One Hegel campaign phase. Boundary phases carry literal input. Focused phases are generated phases with a partition, boundary_input, expected violations and strategy. Generated modes need not carry known inputs before execution. Custom strategy binding can add a declarative domain."
+      },
+      "BoundarySample": {
+        "type": "array",
+        "items": [
+          {
+            "type": "string"
+          },
+          {
+            "$ref": "#/components/schemas/LiteralInput"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2,
+        "additionalItems": false,
+        "description": "Tuple [human-readable reason, literal sample]. Includes positive and negative boundary examples."
+      },
+      "ReplayCase": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "graph",
+              "property"
+            ]
+          },
+          "model_hash": {
+            "$ref": "#/components/schemas/ModelHash"
+          },
+          "journey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "model_hash"
+        ],
+        "additionalProperties": true,
+        "description": "Pass a saved replay_recipe unchanged. Graph-start replay uses kind=graph and journey=null. Other cases name the journey; data cases supply the complete literal input. The model hash must match. Unknown report metadata is retained/ignored rather than used to alter execution. Replay seed metadata does not override options.seed."
+      },
+      "TestRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "NOT_RUN",
+              "RUNNING",
+              "PASS",
+              "FAIL",
+              "INCONCLUSIVE",
+              "SKIPPED"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number",
+            "minimum": 0
+          },
+          "replay_recipe": {
+            "$ref": "#/components/schemas/ReplayCase"
+          },
+          "phase": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PropertyPhase"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "replay"
+                  },
+                  "source": {
+                    "const": "replay"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "source"
+                ],
+                "additionalProperties": true
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status"
+        ],
+        "additionalProperties": true,
+        "description": "Graph checkpoint or property phase plus execution evidence. Graph records carry expected_state/element; property records carry fields/phase/journey. Adapter attachments, observations, diagnostics and attempt indices remain extensible."
+      },
+      "ReportBase": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "RUNNING",
+              "PASS",
+              "FAIL",
+              "INCONCLUSIVE"
+            ]
+          },
+          "model": {
+            "type": "string"
+          },
+          "model_hash": {
+            "$ref": "#/components/schemas/ModelHash"
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "replay": {
+            "type": "boolean"
+          },
+          "runtime": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "exploration": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "graph": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestRecord"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "walks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "planning": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "scope": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "planned_path": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RouteReference"
+            }
+          },
+          "directory": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absolute framework-created run directory when persistence was requested; null for in-memory runs. Planning-only responses may omit this field."
+          }
+        },
+        "required": [
+          "status",
+          "model",
+          "model_hash",
+          "seed",
+          "replay",
+          "runtime",
+          "exploration",
+          "graph",
+          "tests",
+          "steps",
+          "cases",
+          "walks",
+          "planning",
+          "scope"
+        ],
+        "additionalProperties": true,
+        "description": "Shared report envelope. Detailed evidence, stop diagnostics and adapter attachments are deliberately extensible. NOT_RUN inventory entries become SKIPPED with a reason if execution stops before reaching them."
+      },
+      "RunInventory": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReportBase"
+          },
+          {
+            "properties": {
+              "status": {
+                "const": "RUNNING"
+              }
+            }
+          }
+        ],
+        "description": "Selected graph checkpoints and property phases, routes and scope. RUNNING denotes the initial report format; this method does not start execution. Generated values and shrinking happen later."
+      },
+      "DecisionStats": {
+        "type": "object",
+        "properties": {
+          "calls": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "cache_hits": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "input_tokens": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "output_tokens": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "calls",
+          "cache_hits",
+          "input_tokens",
+          "output_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "RunReport": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReportBase"
+          },
+          {
+            "properties": {
+              "status": {
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "INCONCLUSIVE"
+                ]
+              },
+              "coverage": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "input_attempts": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "test_summary": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "error": {
+                "type": "string"
+              },
+              "stop": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "failure": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "counterexample": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "cleanup_errors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonValue"
+                }
+              },
+              "usage": {
+                "$ref": "#/components/schemas/JsonValue",
+                "description": "Framework provider usage when configured, otherwise adapter-supplied usage metadata or zero calls. Native provider usage takes precedence over adapter metadata."
+              },
+              "decision_audit": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "const": "decision.audit"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "method",
+                  "total"
+                ],
+                "additionalProperties": false
+              },
+              "decisions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "description": "Decision evidence, when retained inline. Full provider transcripts are also saved in report.json. Large RPC results may omit this array in favor of decision_audit pagination."
+              }
+            }
+          }
+        ],
+        "description": "Completed run, including verified coverage, test outcomes, input attempts, failure/stop diagnostics and framework-owned artifact directory. A FAIL or INCONCLUSIVE test run normally returns this successful JSON-RPC result; protocol/setup failures can instead return error -32001. The persisted report retains full evidence; decision_audit advertises paginated provider transcripts when they are omitted from the RPC result."
+      },
+      "Fault": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "FAIL",
+              "INCONCLUSIVE"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "result"
+        ],
+        "additionalProperties": false,
+        "description": "Structured Testwalker fault in JSON-RPC error.data. result may be null or contain partial_report, case/counterexample, or uncertain_decision details."
+      },
+      "ConfidenceThreshold": {
+        "type": "number",
+        "exclusiveMinimum": 0.5,
+        "maximum": 1
+      },
+      "DecisionChoices": {
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          {
+            "type": "object",
+            "additionalProperties": true
+          }
+        ],
+        "description": "Either a distinct list of allowed choice names or an object whose keys are those names. Object values are ignored by decision.answer."
+      },
+      "DecisionAnswer": {
+        "type": "object",
+        "properties": {
+          "choice": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "probabilities": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "required": [
+          "choice",
+          "confidence",
+          "probabilities"
+        ],
+        "additionalProperties": true,
+        "description": "decision.answer additionally requires exactly the allowed probability keys, a sum within 0.02 of 1, and a selected choice with maximal probability (tolerance 0.000001). Both confidence and chosen probability must meet the threshold."
+      },
+      "DecisionResponse": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Opaque provider response object returned by decision.ask or decision.post. Provider-specific answers and usage are not validated here; decision.answer validates its selected result.answers[name] using the DecisionAnswer contract. Additional or refused provider payloads are returned unchanged.",
+        "x-validated-answer-schema": {
+          "$ref": "#/components/schemas/DecisionAnswer"
+        }
+      },
+      "DecisionAuditEntry": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "questions": {
+                "$ref": "#/components/schemas/JsonValue"
+              }
+            },
+            "required": [
+              "state",
+              "questions"
+            ],
+            "additionalProperties": false
+          },
+          "response": {
+            "$ref": "#/components/schemas/DecisionResponse"
+          },
+          "error": {
+            "type": "string"
+          },
+          "cache_hit": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "additionalProperties": true,
+        "description": "One decision.ask attempt, including cache hits and errors. Auxiliary decision.post calls share usage but are not recorded in this transcript."
+      },
+      "DecisionAuditPage": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DecisionAuditEntry"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next_offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        },
+        "required": [
+          "entries",
+          "total",
+          "next_offset"
+        ],
+        "additionalProperties": false
+      },
+      "CoreInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "const": "testwalker-core"
+          },
+          "version": {
+            "type": "string"
+          },
+          "protocol_version": {
+            "const": "1"
+          },
+          "transport": {
+            "const": "json-rpc-2.0/ndjson"
+          },
+          "graphwalker_revision": {
+            "type": "string"
+          },
+          "hegel_revision": {
+            "type": "string"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "protocol_version",
+          "transport",
+          "graphwalker_revision",
+          "hegel_revision",
+          "methods"
+        ],
+        "additionalProperties": false
+      },
+      "OpenRpcDocument": {
+        "type": "object",
+        "properties": {
+          "openrpc": {
+            "type": "string"
+          },
+          "info": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "version"
+            ],
+            "additionalProperties": true
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "components": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "openrpc",
+          "info",
+          "methods"
+        ],
+        "additionalProperties": true,
+        "description": "This OpenRPC document, returned in full by rpc.discover. Validate the complete document with the official OpenRPC 1.3 meta-schema; this local shape avoids a network fetch when validating a response."
+      }
+    },
+    "errors": {
+      "ParseError": {
+        "code": -32700,
+        "message": "Invalid JSON-RPC JSON"
+      },
+      "InvalidRequest": {
+        "code": -32600,
+        "message": "Invalid JSON-RPC request"
+      },
+      "MethodNotFound": {
+        "code": -32601,
+        "message": "Unknown JSON-RPC method"
+      },
+      "InvalidParams": {
+        "code": -32602,
+        "message": "JSON-RPC params must be an object or array"
+      },
+      "DomainError": {
+        "code": -32001,
+        "message": "Testwalker operation failed"
+      }
+    }
+  },
+  "x-testwalker": {
+    "protocol_version": "1",
+    "direction": "client-to-core",
+    "transport": {
+      "kind": "stdio",
+      "framing": "One UTF-8 JSON-RPC 2.0 object per line (NDJSON).",
+      "max_message_bytes": 67108864,
+      "batch_requests": false,
+      "parameters": "Named object parameters; omit params for no parameters. Positional binding is not implemented.",
+      "stdout": "Protocol messages only.",
+      "stderr": "Diagnostics only.",
+      "notifications": "Valid notifications produce no response.",
+      "request_ids": "Strings, numbers or null; callback IDs use core/<sequence>.",
+      "concurrency": "One synchronous execution per worker. Nested client requests are serviced while waiting for callback responses. Use separate worker processes for parallel execution."
+    },
+    "callback_spec": "openrpc.adapter.json",
+    "errors": {
+      "unknown_method": {
+        "$ref": "#/components/errors/MethodNotFound"
+      },
+      "domain_error_data": {
+        "$ref": "#/components/schemas/Fault"
+      }
+    },
+    "schema_dialect": "http://json-schema.org/draft-07/schema#",
+    "scope": "The machine-readable structural contract complements model validation and executable sequence/business-rule tests. It is not a complete encoding of graph reachability or cross-field business rules.",
+    "error_contracts": {
+      "ParseError": {
+        "description": "Malformed JSON or a message exceeding the 64 MiB input limit. Response ID is null."
+      },
+      "InvalidRequest": {
+        "description": "Invalid envelope, version, method type, ID, or a batch. Valid IDs are echoed; missing/invalid IDs become null."
+      },
+      "MethodNotFound": {
+        "description": "Unknown method name; actual message includes the name. Includes structured Testwalker fault data.",
+        "data_schema": {
+          "$ref": "#/components/schemas/Fault"
+        }
+      },
+      "InvalidParams": {
+        "description": "The params member is scalar or null. This profile documents named parameters. Method-specific parameter/option failures use -32001."
+      },
+      "DomainError": {
+        "description": "Actual message describes invalid models/options, unavailable resources, provider uncertainty, cancellation, callback failures or definite property defects. error.data contains a structured Fault. Execution reports may also encode FAIL/INCONCLUSIVE in a successful JSON-RPC result.",
+        "data_schema": {
+          "$ref": "#/components/schemas/Fault"
+        }
+      }
+    }
+  }
+}
