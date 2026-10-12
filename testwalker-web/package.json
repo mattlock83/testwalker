@@ -24,14 +24,12 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
     "check": "tsc --project tsconfig.check.json",
     "test": "node --import tsx --test tests/*.test.ts",
     "pretest": "npm run build"
   },
   "dependencies": {
-    "crawlee": "3.18.2",
-    "fast-xml-parser": "5.11.2",
     "playwright": "1.64.0",
     "tsx": "4.23.15"
   },

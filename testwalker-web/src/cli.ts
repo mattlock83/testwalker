@@ -5,7 +5,6 @@ import { realpathSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "./server.js";
-import { discoverUrl, discoverSitemap } from "./discovery.js";
 import { loadBrowserSettings, DEFAULT_THRESHOLD, httpUrl } from "./config.js";
 import type { Json } from "./types.js";
 
@@ -18,20 +17,10 @@ export function argumentsFor(argv: string[]): {
   const command = ["--help", "-h"].includes(first) ? "help" : first,
     values: Json = {},
     native: string[] = [];
-  const flags = new Set([
-    "headed",
-    "debug",
-    "plan",
-    "no-submit-forms",
-    "click-buttons",
-    "probe-empty-forms",
-    "no-screenshots",
-    "no-network",
-  ]);
+  const flags = new Set(["headed", "debug", "plan"]);
   const fields = new Set([
     "directory",
     "url",
-    "sitemap",
     "config",
     "browser-config",
     "app",
@@ -44,16 +33,7 @@ export function argumentsFor(argv: string[]): {
     "threshold",
     "cdp-url",
     "strategy-provider",
-    "depth",
-    "max-pages",
     "max-actions",
-    "max-state-variants",
-    "timeout-ms",
-    "settle-ms",
-    "values",
-    "max-json-bytes",
-    "max-network-requests",
-    "exclude-buttons",
   ]);
   while (argv.length) {
     const arg = argv.shift()!,
@@ -108,15 +88,11 @@ testwalker-web demo --directory DEMO [--config RUN_JSON] [--app APP.ts] [--hooks
 testwalker-web run --model MODEL --url URL --config RUN_JSON [--hooks HOOKS.ts]
 testwalker-web plan --model MODEL [--config RUN_JSON]
 testwalker-web serve --directory SITE [--app APP.ts] [--port 4173]
-testwalker-web discover-url --url URL --output MODEL.json [--depth 1] [--values VALUES.json] [--hooks HOOKS.ts]
-testwalker-web discover-sitemap --sitemap SITEMAP.xml --output MODEL.json
 
 Native execution: --framework EXECUTABLE, --browser-config BROWSER.json, --max-calls N,
 --threshold N (default 0.80), --strategy-provider INPUTS.ts, --output DIRECTORY.
 Graph/Hegel/replay flags pass to Rust, e.g. --max-input-attempts 2 --generator new_york_street_sweeper.
-Discovery: --click-buttons --probe-empty-forms --max-pages N --max-actions N --max-state-variants N (default 4)
---settle-ms N --timeout-ms N --no-submit-forms --no-screenshots --no-network.
-Discovery never calls Jev. All tests, verdicts, HTML/JSON/JUnit and replay are owned by Rust.
+All tests, verdicts, HTML/JSON/JUnit and replay are owned by Rust.
 `;
 export async function main(argv = process.argv.slice(2)): Promise<number> {
   const { command, values: v, native } = argumentsFor([...argv]);
@@ -138,41 +114,6 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       process.on("SIGTERM", stop);
     });
     await server.close();
-    return 0;
-  }
-  if (command.startsWith("discover-")) {
-    if (!["discover-url", "discover-sitemap"].includes(command) || !v.output)
-      throw new Error("Supply discovery mode and --output MODEL.json");
-    const options = {
-      output: v.output,
-      headed: Boolean(v.headed),
-      depth: Number(v.depth ?? 1),
-      maxPages: Number(v["max-pages"] ?? 50),
-      maxActions: Number(v["max-actions"] ?? 200),
-      maxStateVariants: Number(v["max-state-variants"] ?? 4),
-      timeoutMs: Number(v["timeout-ms"] ?? 10000),
-      settleMs: Number(v["settle-ms"] ?? 300),
-      maxJsonBytes: Number(v["max-json-bytes"] ?? 1048576),
-      maxNetworkRequests: Number(v["max-network-requests"] ?? 1000),
-      submitForms: !v["no-submit-forms"],
-      clickButtons: Boolean(v["click-buttons"]),
-      excludeButtons: v["exclude-buttons"]
-        ?.split(",")
-        .map((label: string) => label.trim()),
-      probeEmptyForms: Boolean(v["probe-empty-forms"]),
-      screenshots: !v["no-screenshots"],
-      network: !v["no-network"],
-      browser: await loadBrowserSettings(v["browser-config"]),
-      hooks: v.hooks,
-      values: v.values
-        ? JSON.parse(await readFile(v.values, "utf8"))
-        : undefined,
-    };
-    const result =
-      command === "discover-url"
-        ? await discoverUrl(httpUrl(v.url), options)
-        : await discoverSitemap(v.sitemap, options);
-    console.log(`Draft: ${result.output}\nInventory: ${result.inventory_path}`);
     return 0;
   }
   if (!["run", "demo", "plan"].includes(command))

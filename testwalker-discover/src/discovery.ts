@@ -20,8 +20,16 @@ import { randomUUID } from "node:crypto";
 import { join, dirname, basename, resolve } from "node:path";
 import { chromium, type Page, type ElementHandle } from "playwright";
 import { httpUrl, type BrowserSettings } from "./config.js";
-import { loadExtension } from "./extensions.js";
+import { loadHooks } from "./hooks.js";
 import { VisitEvidence } from "./discovery-evidence.js";
+import { writeDiscoveryReport } from "./report.js";
+import { stateDescriptions } from "./state-description.js";
+import {
+  studioName,
+  studioLayout,
+  discoveryPaths,
+  entryAliases,
+} from "./model-export.js";
 import { SNAPSHOT, BUTTONS, SELECTS } from "./discovery-snapshot.js";
 import {
   DiscoveryState,
@@ -29,7 +37,7 @@ import {
   stateFamily,
   discoveryHash as hash,
 } from "./discovery-state.js";
-import { Inconclusive, message, type Json, type Model } from "./types.js";
+import { DiscoveryError, message, type Json, type Model } from "./types.js";
 
 export interface DiscoveryOptions {
   output: string;
@@ -100,13 +108,25 @@ export function buildModel(
   transitions: Json[],
   review: string[],
 ): Model {
-  const vertices = Object.entries(pages).map(([id, page], index) => {
-    const label = prose(
+  const aliases = entryAliases(pages, transitions);
+  if (Object.keys(aliases).length) {
+    const note =
+      "The returned fragment route has an identical full UI snapshot to the entry URL; both are represented by one model state. Raw URLs and visits remain in the discovery inventory.";
+    if (!review.includes(note)) review.push(note);
+    pages = Object.fromEntries(
+      Object.entries(pages).filter(([id]) => !aliases[id]),
+    );
+  }
+  const labelFor = (page: Json) =>
+    prose(
       page.page_label ||
         page.headings[0] ||
         page.title ||
         new URL(page.url).pathname,
     );
+  const distinctions = stateDescriptions(pages, labelFor);
+  const vertices = Object.entries(pages).map(([id, page], index) => {
+    const label = labelFor(page);
     const rules = [`The visitor sees ${label}.`];
     for (const form of page.forms) {
       const fields = form.fields.filter(
@@ -157,10 +177,11 @@ export function buildModel(
       : "";
     return {
       id,
-      name: `Page ${index + 1}: ${label}${selectionLabel}`.slice(0, 300),
+      name: studioName("v", index, `${label}${selectionLabel}`),
       properties: {
         business: {
-          description: `The visitor is viewing ${label}.`,
+          description:
+            `The visitor is viewing ${label}${selectionLabel}. ${distinctions[id].map(prose).join(" ")}`.trim(),
           rules: rules.slice(0, 30),
         },
       },
@@ -170,7 +191,10 @@ export function buildModel(
   const edges: Json[] = [];
   for (const transition of transitions) {
     const intent = prose(transition.intent);
-    const key = hash([transition.source, transition.target, intent]);
+    const source = aliases[transition.source] ?? transition.source;
+    const target = aliases[transition.target] ?? transition.target;
+    const key = hash([source, target, intent]);
+    transition.edge_id = "journey_" + key;
     if (seen.has(key)) continue;
     seen.add(key);
     if (edges.length >= 500) {
@@ -179,15 +203,15 @@ export function buildModel(
       );
       break;
     }
-    transition.edge_id = "journey_" + key;
     edges.push({
       id: transition.edge_id,
-      name: `Journey ${edges.length + 1}: ${intent.slice(0, 150)}`,
-      sourceVertexId: transition.source,
-      targetVertexId: transition.target,
+      name: studioName("e", edges.length, intent),
+      sourceVertexId: source,
+      targetVertexId: target,
       properties: { business: { intent } },
     });
   }
+  studioLayout(vertices, edges);
   const start = vertices[0].id;
   const entry = new URL(Object.values(pages)[0].url);
   const reachable = new Set<string>();
@@ -212,11 +236,25 @@ export function buildModel(
         `State ${vertex.id} has no outgoing journeys; review termination.`,
       );
   }
+  const canReturn = new Set<string>([start]);
+  const returning = [start];
+  for (let cursor = 0; cursor < returning.length; cursor++)
+    for (const edge of edges.filter(
+      (edge) => edge.targetVertexId === returning[cursor],
+    ))
+      if (!canReturn.has(edge.sourceVertexId)) {
+        canReturn.add(edge.sourceVertexId);
+        returning.push(edge.sourceVertexId);
+      }
+  if (canReturn.size !== vertices.length || reachable.size !== vertices.length)
+    review.push(
+      "The observed graph is not strongly connected: some states cannot return to the entry. New York Street Sweeper cannot traverse it; review the model before requesting full single-walk edge coverage.",
+    );
   return {
     models: [
       {
         id: "discovered_site",
-        name: "Discovered site — review required",
+        name: "Discovered_site_review_required",
         startElementId: start,
         generator: "quick_random(edge_coverage(100))",
         properties: {
@@ -340,7 +378,7 @@ function fieldValue(field: Json): unknown {
     .padEnd(Number(field.minLength ?? 0), "a")
     .slice(0, Number(field.maxLength ?? 100));
 }
-class CoveredControl extends Inconclusive {}
+class CoveredControl extends DiscoveryError {}
 
 async function clickControl(element: ElementHandle): Promise<void> {
   // A native trial performs scrolling/actionability checks without dispatching a
@@ -373,12 +411,12 @@ async function submit(
 ): Promise<Json> {
   const snapshot = await state.snapshot(step.source);
   if (identity(snapshot) !== step.source)
-    throw new Inconclusive(
+    throw new DiscoveryError(
       "Discovery replay source changed; form was not submitted",
     );
   const form = snapshot.forms[step.form];
   if (!form || !allows(form.action))
-    throw new Inconclusive("Form action is outside discovery scope");
+    throw new DiscoveryError("Form action is outside discovery scope");
   const context: DiscoveryContext = {
     page,
     url: page.url(),
@@ -390,7 +428,7 @@ async function submit(
   };
   await hooks.before_submit?.(context);
   if (context.skip)
-    throw new Inconclusive("Form submission skipped by discovery hook");
+    throw new DiscoveryError("Form submission skipped by discovery hook");
   if (context.handled) {
     await hooks.after_submit?.(context);
     return context.values;
@@ -406,14 +444,14 @@ async function submit(
     );
     try {
       const input = handle.asElement();
-      if (!input) throw new Inconclusive("Form control disappeared");
+      if (!input) throw new DiscoveryError("Form control disappeared");
       if (field.tag === "select")
         await input.selectOption(
           Array.isArray(value) ? value.map(String) : String(value),
         );
       else if (field.type === "checkbox") {
         if (typeof value !== "boolean")
-          throw new Inconclusive("Checkbox values must be booleans");
+          throw new DiscoveryError("Checkbox values must be booleans");
         await input.setChecked(value);
       } else if (field.type === "radio") {
         if (String(value) === field.value) await input.check();
@@ -430,18 +468,18 @@ async function submit(
       ["submit", "image"].includes(field.type),
   );
   if (!submitField)
-    throw new Inconclusive(
+    throw new DiscoveryError(
       "Form has no observable submit control; provide a discovery hook",
     );
   if (submitField.action && !allows(submitField.action))
-    throw new Inconclusive("Submit control is outside scope");
+    throw new DiscoveryError("Submit control is outside scope");
   const submitHandle = await page.evaluateHandle(
     ({ form, index }) => document.forms[form].elements[index],
     { form: step.form, index: submitField.index },
   );
   try {
     const submitter = submitHandle.asElement();
-    if (!submitter) throw new Inconclusive("Submit control disappeared");
+    if (!submitter) throw new DiscoveryError("Submit control disappeared");
     await clickControl(submitter);
   } finally {
     await submitHandle.dispose();
@@ -464,7 +502,7 @@ async function replayStep(
   }
   const snapshot = await state.snapshot(step.source);
   if (identity(snapshot) !== step.source)
-    throw new Inconclusive(
+    throw new DiscoveryError(
       "Discovery replay source changed; action was not performed",
     );
   if (step.kind === "link") {
@@ -475,7 +513,7 @@ async function replayStep(
       link.url !== step.url ||
       !allows(link.url)
     )
-      throw new Inconclusive("Discovery link changed or left scope");
+      throw new DiscoveryError("Discovery link changed or left scope");
     if (!link.actionable)
       throw new CoveredControl("Link is covered; action was not performed", {
         reason: "covered control",
@@ -486,7 +524,7 @@ async function replayStep(
     );
     try {
       const element = handle.asElement();
-      if (!element) throw new Inconclusive("Discovery link disappeared");
+      if (!element) throw new DiscoveryError("Discovery link disappeared");
       await clickControl(element);
     } finally {
       await handle.dispose();
@@ -504,13 +542,13 @@ async function replayStep(
         (option: Json) => option.value === step.value && !option.disabled,
       )
     )
-      throw new Inconclusive("Discovery selection changed or is unavailable");
+      throw new DiscoveryError("Discovery selection changed or is unavailable");
     const handle = await page.evaluateHandle<HTMLSelectElement>(
       `(${SELECTS})()[${step.index}]`,
     );
     try {
       const element = handle.asElement();
-      if (!element) throw new Inconclusive("Discovery select disappeared");
+      if (!element) throw new DiscoveryError("Discovery select disappeared");
       await element.selectOption(step.value);
     } finally {
       await handle.dispose();
@@ -525,7 +563,7 @@ async function replayStep(
       button.disabled ||
       button.submit
     )
-      throw new Inconclusive("Discovery control changed or is unavailable");
+      throw new DiscoveryError("Discovery control changed or is unavailable");
     if (!button.actionable)
       throw new CoveredControl("Control is covered; action was not performed", {
         reason: "covered control",
@@ -535,7 +573,7 @@ async function replayStep(
     );
     try {
       const element = handle.asElement();
-      if (!element) throw new Inconclusive("Discovery control disappeared");
+      if (!element) throw new DiscoveryError("Discovery control disappeared");
       await clickControl(element);
     } finally {
       await handle.dispose();
@@ -564,7 +602,7 @@ export async function discoverUrls(
   options: DiscoveryOptions,
   sitemap = false,
 ): Promise<Json> {
-  if (options.browser?.cdp_url)
+  if (options.browser && "cdp_url" in options.browser)
     throw new Error("Crawlee discovery launches its own browser; omit cdp_url");
   if (options.values !== undefined) {
     const overrides = options.values as Json;
@@ -644,11 +682,9 @@ export async function discoverUrls(
       return false;
     }
   };
-  const output = resolve(options.output),
-    inventoryPath = output.replace(/\.json$/, "") + ".discovery.json";
-  const artifactRoot = output.replace(/\.json$/, "") + ".discovery";
-  if (/\.discovery(?:\.json)?$/.test(output))
-    throw new Error("Choose a model output filename");
+  const { output, inventoryPath, artifactRoot } = discoveryPaths(
+    options.output,
+  );
   for (const path of [output, inventoryPath, artifactRoot]) {
     try {
       await access(path);
@@ -685,9 +721,7 @@ export async function discoverUrls(
       "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
     ],
   };
-  const hooks = options.hooks
-    ? (await loadExtension(options.hooks)).module
-    : {};
+  const hooks = options.hooks ? await loadHooks(options.hooks) : {};
   for (const event of [
     "before_visit",
     "after_visit",
@@ -891,7 +925,7 @@ export async function discoverUrls(
             await replayStep(page, step, allows, hooks, scratch, state);
           }
           if (!allows(page.url()))
-            throw new Inconclusive("Page left discovery scope");
+            throw new DiscoveryError("Page left discovery scope");
           const snapshot = await state.snapshot();
           const id = identity(snapshot);
           snapshot.url = canonical(snapshot.url);
@@ -1166,7 +1200,7 @@ export async function discoverUrls(
             return;
           }
           capture.record.error = message(error);
-          if (error instanceof Inconclusive)
+          if (error instanceof DiscoveryError)
             capture.record.diagnostic = error.result;
           throw error;
         } finally {
@@ -1226,7 +1260,7 @@ export async function discoverUrls(
       })),
     );
     if (!Object.keys(inventory.pages).length)
-      throw new Inconclusive("No pages could be inspected", {
+      throw new DiscoveryError("No pages could be inspected", {
         failed: inventory.failed,
         blocked: inventory.blocked,
       });
@@ -1252,6 +1286,16 @@ export async function discoverUrls(
       inventory.review,
     );
     inventory.artifact_root = basename(artifactRoot);
+    const reportPath = join(artifactRoot, "index.html");
+    await writeDiscoveryReport(
+      model,
+      [{ inventory, path: inventoryPath, artifactDirectory: artifactStage }],
+      {
+        output: join(artifactStage, "index.html"),
+        baseDirectory: artifactRoot,
+        modelPath: output,
+      },
+    );
     await mkdir(dirname(output), { recursive: true });
     await rename(artifactStage, artifactRoot);
     await writeFile(output, JSON.stringify(model, null, 2) + "\n", {
@@ -1260,7 +1304,13 @@ export async function discoverUrls(
     await writeFile(inventoryPath, JSON.stringify(inventory, null, 2) + "\n", {
       flag: "wx",
     });
-    return { model, inventory, output, inventory_path: inventoryPath };
+    return {
+      model,
+      inventory,
+      output,
+      inventory_path: inventoryPath,
+      report_path: reportPath,
+    };
   } finally {
     try {
       await crawler.teardown();

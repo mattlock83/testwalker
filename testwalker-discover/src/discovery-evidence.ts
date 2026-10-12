@@ -13,6 +13,7 @@ export function jsonBody(
   contentType: string,
   limit: number,
 ): Json {
+  if (body?.length === 0) return { status: "no_body" };
   if (!isJson(contentType)) return { status: "not_json" };
   if (!body) return { status: "unavailable" };
   if (body.length > limit) return { status: "too_large", bytes: body.length };
@@ -50,25 +51,29 @@ export class VisitEvidence {
       this.network.omitted_requests++;
       return;
     }
+    const payload = request.postDataBuffer();
     const entry = {
       id: this.requests.size + 1,
       url: request.url(),
       method: request.method(),
+      request_content_type: request.headers()["content-type"] ?? "",
       resource_type: request.resourceType(),
       status: "pending",
-      request_body: jsonBody(
-        request.postDataBuffer(),
-        request.headers()["content-type"] ?? "",
-        this.options.maxJsonBytes ?? 1048576,
-      ),
+      request_body:
+        payload === null
+          ? { status: "no_body" }
+          : jsonBody(
+              payload,
+              request.headers()["content-type"] ?? "",
+              this.options.maxJsonBytes ?? 1048576,
+            ),
     };
     this.requests.set(request, entry);
     this.network.requests.push(entry);
     return entry;
   }
   private onRequest = (request: Request): void => {
-    if (isJson(request.headers()["content-type"] ?? ""))
-      this.entryFor(request);
+    if (isJson(request.headers()["content-type"] ?? "")) this.entryFor(request);
   };
   private onResponse = (response: Response): void => {
     const contentType = response.headers()["content-type"] ?? "";
@@ -89,12 +94,11 @@ export class VisitEvidence {
         try {
           const limit = this.options.maxJsonBytes ?? 1048576;
           const length = Number(response.headers()["content-length"]);
-          body =
-            !isJson(contentType)
-              ? { status: "not_json" }
-              : length > limit
-                ? { status: "too_large", bytes: length }
-                : jsonBody(await response.body(), contentType, limit);
+          body = !isJson(contentType)
+            ? { status: "not_json" }
+            : length > limit
+              ? { status: "too_large", bytes: length }
+              : jsonBody(await response.body(), contentType, limit);
         } catch (error) {
           body = { status: "unavailable", error: message(error) };
         }

@@ -1,6 +1,6 @@
 # Testwalker web adapter
 
-A TypeScript/JavaScript client for the Rust Testwalker framework. It uses Playwright for browser interactions, Jev to interpret observed controls and business evidence, and JavaScript Crawlee for discovery. The browser executor is part of this package; PlayJev, Python, Browser Use and an MCP server are not required.
+A TypeScript/JavaScript client for the Rust Testwalker framework. It uses Playwright for browser interactions, Jev to interpret observed controls and business evidence. The browser executor is part of this package; PlayJev, Python, Browser Use and an MCP server are not required.
 
 Rust still owns GraphWalker exploration, Hegel generation and shrinking, lifecycle scheduling, Jev credentials/call budgets, verdict policy, replay, and HTML/JSON/JUnit reports. The adapter implements the executable [JSON-RPC contract](../core/docs/protocol.md). It has no Rust source/build dependency and ships no demo applications.
 
@@ -38,7 +38,7 @@ npx --no-install testwalker-web run --model model.json \
 
 The configuration is the framework's [native run JSON](../core/docs/cli.md#run-configuration). Provider settings stay in Rust; the launcher sends them through stdin. Existing `demos/*/run.local.json` files remain usable. Defaults include confidence **0.80** and focused Hegel input checks. Graph, property and replay flags pass directly to Rust. Use `--plan` to inspect the selected inventory without a key or browser.
 
-The CLI commands are `run`, `demo`, `plan`, `serve`, `discover-url`, and `discover-sitemap`. `--directory` identifies an application folder containing `site/`, `model.json` and the run configuration. `--app` explicitly loads a JavaScript/TypeScript backend exporting `create_server(directory)`. `--hooks` explicitly loads application lifecycle functions; they are never imported from the model.
+The CLI commands are `run`, `demo`, `plan`, and `serve`. `--directory` identifies an application folder containing `site/`, `model.json` and the run configuration. `--app` explicitly loads a JavaScript/TypeScript backend exporting `create_server(directory)`. `--hooks` explicitly loads application lifecycle functions; they are never imported from the model.
 
 ## Browser configuration
 
@@ -60,7 +60,7 @@ Use `--browser-config browser.json`. Demo folders supply one:
 
 `launch` and `context` accept Playwright Chromium launch/context options. Relative `launch.executablePath` is resolved against the configuration file. `--headed` overrides headless startup. The executor currently supports Chromium; Firefox/WebKit are not supported. This adapter uses fresh nonpersistent browser contexts; persistent-profile extensions require a separate integration.
 
-Execution can attach to externally managed Chromium using `--cdp-url http://127.0.0.1:9222`. It creates its own context and does not close other tabs. Discovery launches its own browser and does not support CDP attachment.
+Execution can attach to externally managed Chromium using `--cdp-url http://127.0.0.1:9222`. It creates its own context and does not close other tabs.
 
 Before execution observations, the adapter waits for document/XHR/fetch requests to finish and for relevant DOM activity to remain quiet for `settle_ms` (default 150 ms), within `settle_timeout_ms` (default 5 seconds). A continuous mutation observer tracks the last change, so repeated reads of an already settled page do not restart the quiet interval. This prevents assertions against an unfinished asynchronous save. A timeout is inconclusive. Set `settle_ms` to 0 to disable the settling wait, for example on a site with continuous background requests. Rendered text, controls and validation evidence are captured together. A Playwright accessibility snapshot for each visible frame preserves static relationships such as definition-list labels and values. Freshness checks reject page changes during capture. These observations provide evidence for assertions; they do not perform an accessibility audit.
 
@@ -92,7 +92,7 @@ Reports include a `performance` trace entry with counts and elapsed milliseconds
 
 Global audits distinguish newly submitted inputs from values retained during navigation. An uncertain batch of observations can be checked once as individual scenarios. The report retains the original answer and each focused answer; any contradiction or remaining uncertainty still prevents a pass. Absent evidence never counts as support.
 
-See [testing and triage](docs/testing.md), [JS/TS hooks](docs/hooks.md), [discovery](docs/discovery.md), and [self-contained demos](../demos/README.md).
+See [testing and triage](docs/testing.md), [JS/TS hooks](docs/hooks.md), [standalone discovery](../testwalker-discover/README.md), and [self-contained demos](../demos/README.md).
 
 ## Development
 
@@ -105,4 +105,4 @@ npm test
 TESTWALKER_BROWSER_TESTS=1 npm test
 ```
 
-The workspace links `@testwalker/web` locally. Its public exports include `HookContext`, `Hooks`, `Defect`, `Inconclusive`, `CoreClient`, `JsonRpcPeer`, `serve`, `staticServer`, `observe`, `discoverUrl` and `discoverSitemap`. User extensions may be `.js`, `.mjs`, or `.ts`; TypeScript extensions are loaded with the bundled tsx runtime. Keep stdout reserved for JSON-RPC when implementing an adapter; this entry point redirects console output to stderr.
+The workspace links `@testwalker/web` locally. Its public exports include `HookContext`, `Hooks`, `Defect`, `Inconclusive`, `CoreClient`, `JsonRpcPeer`, `serve`, `staticServer`, `observe`. Discovery lives in the independent peer package [@testwalker/discover](../testwalker-discover/README.md). User extensions may be `.js`, `.mjs`, or `.ts`; TypeScript extensions are loaded with the bundled tsx runtime. Keep stdout reserved for JSON-RPC when implementing an adapter; this entry point redirects console output to stderr.

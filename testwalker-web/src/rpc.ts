@@ -160,7 +160,7 @@ export class JsonRpcPeer extends EventEmitter implements Rpc {
   }
 }
 
-/** Independent worker client for discovery, planning and tests; never finds source or runs Cargo. */
+/** Independent worker client for planning and tests; never finds source or runs Cargo. */
 export class CoreClient implements Rpc {
   readonly child: ChildProcessWithoutNullStreams;
   readonly peer: JsonRpcPeer;

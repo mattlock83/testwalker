@@ -3,7 +3,7 @@
     {
       "id": "discovered_site",
       "name": "Discovered site — review required",
-      "startElementId": "page_564f48f9912a04d7",
+      "startElementId": "page_663ac77ba5f778b7",
       "generator": "quick_random(edge_coverage(100))",
       "properties": {
         "business": {
@@ -18,7 +18,7 @@
       },
       "vertices": [
         {
-          "id": "page_564f48f9912a04d7",
+          "id": "page_663ac77ba5f778b7",
           "name": "Page 1: Swag Labs",
           "properties": {
             "business": {
@@ -32,20 +32,21 @@
           }
         },
         {
-          "id": "page_9a79440c50b56d38",
-          "name": "Page 2: Swag Labs",
+          "id": "page_96dddff83e66c5b4",
+          "name": "Page 2: Products — Sort products: Name (A to Z)",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Products.",
               "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, empty, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, empty, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
               ]
             }
           }
         },
         {
-          "id": "page_23f879a746fa5799",
+          "id": "page_819d74e96ac1164c",
           "name": "Page 3: Swag Labs",
           "properties": {
             "business": {
@@ -59,104 +60,637 @@
           }
         },
         {
-          "id": "page_d0dcf193c77c5e8a",
-          "name": "Page 4: Swag Labs",
+          "id": "page_5cc2997ce4e5f2c5",
+          "name": "Page 4: Products — Sort products: Name (Z to A)",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Products.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, empty, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_f4b882a5cd95552e",
+          "name": "Page 5: Products — Sort products: Price (low to high)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, empty, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart",
+                "The Sort products selection is Price (low to high)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_7f6a9f525db5ff9f",
+          "name": "Page 6: Products — Sort products: Price (high to low)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, empty, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart",
+                "The Sort products selection is Price (high to low)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_51267184a96fa24f",
+          "name": "Page 7: Sauce Labs Backpack",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Backpack.",
+              "rules": [
+                "The visitor sees Sauce Labs Backpack.",
                 "The page offers these controls: Open Menu, Cart, empty, Back to products, Add to cart"
               ]
             }
           }
         },
         {
-          "id": "page_6e6a163d666bb442",
-          "name": "Page 5: Swag Labs",
+          "id": "page_f063119d2a30f227",
+          "name": "Page 8: Sauce Labs Bike Light",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Sauce Labs Bike Light.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Sauce Labs Bike Light.",
                 "The page offers these controls: Open Menu, Cart, empty, Back to products, Add to cart"
               ]
             }
           }
         },
         {
-          "id": "page_c47eae3fad9ff7b6",
-          "name": "Page 6: Swag Labs",
+          "id": "page_4f13ea92856f5185",
+          "name": "Page 9: Sauce Labs Bolt T-Shirt",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Sauce Labs Bolt T-Shirt.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Sauce Labs Bolt T-Shirt.",
                 "The page offers these controls: Open Menu, Cart, empty, Back to products, Add to cart"
               ]
             }
           }
         },
         {
-          "id": "page_70a670483e1304ba",
-          "name": "Page 7: Swag Labs",
+          "id": "page_2de6c9a2e72342b2",
+          "name": "Page 10: Sauce Labs Fleece Jacket",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Sauce Labs Fleece Jacket.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Sauce Labs Fleece Jacket.",
                 "The page offers these controls: Open Menu, Cart, empty, Back to products, Add to cart"
               ]
             }
           }
         },
         {
-          "id": "page_17c5f4afad6d2e45",
-          "name": "Page 8: Swag Labs",
+          "id": "page_baad6a446e0ff3e1",
+          "name": "Page 11: Sauce Labs Onesie",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Sauce Labs Onesie.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Sauce Labs Onesie.",
                 "The page offers these controls: Open Menu, Cart, empty, Back to products, Add to cart"
               ]
             }
           }
         },
         {
-          "id": "page_8a1ed42f7c46f652",
-          "name": "Page 9: Swag Labs",
+          "id": "page_179476dda9f246f0",
+          "name": "Page 12: Test.allTheThings() T-Shirt (Red)",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Test.allTheThings() T-Shirt (Red).",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Test.allTheThings() T-Shirt (Red).",
                 "The page offers these controls: Open Menu, Cart, empty, Back to products, Add to cart"
               ]
             }
           }
         },
         {
-          "id": "page_c6fcd041708fd886",
-          "name": "Page 10: Swag Labs",
+          "id": "page_232d4f83a5ce0131",
+          "name": "Page 13: Products — Sort products: Name (A to Z)",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Products.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_3bf63b013b04e6d5",
+          "name": "Page 14: Your Cart",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Your Cart.",
+              "rules": [
+                "The visitor sees Your Cart.",
                 "The page offers these controls: Open Menu, Cart, empty, Continue Shopping, Checkout"
               ]
             }
           }
         },
         {
-          "id": "page_101179ec5167e3c8",
-          "name": "Page 11: Swag Labs",
+          "id": "page_3f21315e843b97a4",
+          "name": "Page 15: Products — Sort products: Name (A to Z)",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Products.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_78c4fc43142f6b68",
+          "name": "Page 16: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Remove, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_342fe8fafa4739c8",
+          "name": "Page 17: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Remove, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_533e933377bd24df",
+          "name": "Page 18: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Remove, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_0d69e05de288df13",
+          "name": "Page 19: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Remove, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_dc75b9d8e02c48b2",
+          "name": "Page 20: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Remove",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_072e9bfc9ad12994",
+          "name": "Page 21: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_1be6f572f31e45c1",
+          "name": "Page 22: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Remove, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_6304e0357cfb2ab1",
+          "name": "Page 23: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Remove, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_72fb0f85d1be4914",
+          "name": "Page 24: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Remove, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_b8722af2feca9d0e",
+          "name": "Page 25: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_5094a037f33f428c",
+          "name": "Page 26: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Remove, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_678fade87c33d886",
+          "name": "Page 27: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_fa949371483f0e56",
+          "name": "Page 28: Sauce Labs Backpack",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Backpack.",
+              "rules": [
+                "The visitor sees Sauce Labs Backpack.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_3359234e10dd8522",
+          "name": "Page 29: Sauce Labs Backpack",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Backpack.",
+              "rules": [
+                "The visitor sees Sauce Labs Backpack.",
+                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_231253bf14dadbca",
+          "name": "Page 30: Sauce Labs Bike Light",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Bike Light.",
+              "rules": [
+                "The visitor sees Sauce Labs Bike Light.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_13e644d3c8252d8a",
+          "name": "Page 31: Sauce Labs Bike Light",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Bike Light.",
+              "rules": [
+                "The visitor sees Sauce Labs Bike Light.",
+                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_d8edd339cde11e14",
+          "name": "Page 32: Sauce Labs Bolt T-Shirt",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Bolt T-Shirt.",
+              "rules": [
+                "The visitor sees Sauce Labs Bolt T-Shirt.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_714f36550cc29248",
+          "name": "Page 33: Sauce Labs Bolt T-Shirt",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Bolt T-Shirt.",
+              "rules": [
+                "The visitor sees Sauce Labs Bolt T-Shirt.",
+                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_72b00c8b1a1a553c",
+          "name": "Page 34: Sauce Labs Fleece Jacket",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Fleece Jacket.",
+              "rules": [
+                "The visitor sees Sauce Labs Fleece Jacket.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_bf29f4f38a125556",
+          "name": "Page 35: Sauce Labs Fleece Jacket",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Fleece Jacket.",
+              "rules": [
+                "The visitor sees Sauce Labs Fleece Jacket.",
+                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_53d802e570f9d4ac",
+          "name": "Page 36: Sauce Labs Onesie",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Onesie.",
+              "rules": [
+                "The visitor sees Sauce Labs Onesie.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_c781b9bd05feac9c",
+          "name": "Page 37: Sauce Labs Onesie",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Onesie.",
+              "rules": [
+                "The visitor sees Sauce Labs Onesie.",
+                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_df2de0dee2bc69de",
+          "name": "Page 38: Test.allTheThings() T-Shirt (Red)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Test.allTheThings() T-Shirt (Red).",
+              "rules": [
+                "The visitor sees Test.allTheThings() T-Shirt (Red).",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_342403c23a58cec0",
+          "name": "Page 39: Test.allTheThings() T-Shirt (Red)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Test.allTheThings() T-Shirt (Red).",
+              "rules": [
+                "The visitor sees Test.allTheThings() T-Shirt (Red).",
+                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_e3ac55fcf51f06ad",
+          "name": "Page 40: Products — Sort products: Price (low to high)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart",
+                "The Sort products selection is Price (low to high)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_fc41618cc26f509e",
+          "name": "Page 41: Products — Sort products: Price (high to low)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart",
+                "The Sort products selection is Price (high to low)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_1d7b447dfbf4ce2b",
+          "name": "Page 42: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Lazy Load, Spinner, Slider, Logout, Reset App State, Close Menu, Cart, empty, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_5a172a08437f8faf",
+          "name": "Page 43: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_7b2d1808d80e76fe",
+          "name": "Page 44: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Remove, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_33d78af6faef1c7b",
+          "name": "Page 45: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Remove, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_1fb9e49cd9f9ef22",
+          "name": "Page 46: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Remove, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_a6330a2029e64af3",
+          "name": "Page 47: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Remove, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_d36c65f97ae05391",
+          "name": "Page 48: Products — Sort products: Name (A to Z)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Remove",
+                "The Sort products selection is Name (A to Z)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_b4dc018e66f02dba",
+          "name": "Page 49: Your Cart",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Your Cart.",
+              "rules": [
+                "The visitor sees Your Cart.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, empty, Checkout"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_0a859a6d311ad7a0",
+          "name": "Page 50: Checkout: Your Information",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Checkout: Your Information.",
+              "rules": [
+                "The visitor sees Checkout: Your Information.",
                 "The page offers a form with fields: First Name, Last Name, Zip/Postal Code",
                 "The page offers these controls: Open Menu, Cart, empty, Cancel, Continue"
               ]
@@ -164,26 +698,163 @@
           }
         },
         {
-          "id": "page_f8369b9f77f1e0f1",
-          "name": "Page 12: Swag Labs",
+          "id": "page_89321f211c7976a3",
+          "name": "Page 51: Products — Sort products: Name (Z to A)",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Products.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Lazy Load, Spinner, Slider, Logout, Reset App State, Close Menu, Cart, empty, View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_e4dfdb7dfaafbff5",
+          "name": "Page 52: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Remove, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_f6ea92af76ae0556",
+          "name": "Page 53: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Remove, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_dabc74ecfd3e8042",
+          "name": "Page 54: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Remove, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_f5e90cedaab3e34f",
+          "name": "Page 55: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_0b2564450466d7f9",
+          "name": "Page 56: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Remove, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_b6a2bb59def87892",
+          "name": "Page 57: Products — Sort products: Name (Z to A)",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Products.",
+              "rules": [
+                "The visitor sees Products.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove",
+                "The Sort products selection is Name (Z to A)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_fa3ac1d1ee7dfdb7",
+          "name": "Page 58: Sauce Labs Backpack",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Backpack.",
+              "rules": [
+                "The visitor sees Sauce Labs Backpack.",
+                "The page offers these controls: All Items, Dynamic Catalog, Lazy Load, Spinner, Slider, Logout, Reset App State, Close Menu, Cart, empty, Add to cart"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_aff278c2c1af27a8",
+          "name": "Page 59: Sauce Labs Backpack",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Sauce Labs Backpack.",
+              "rules": [
+                "The visitor sees Sauce Labs Backpack.",
+                "The page offers these controls: All Items, Dynamic Catalog, Logout, Reset App State, Close Menu, Cart, 1 items, Remove"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_5d2576cee8cab0b5",
+          "name": "Page 60: Your Cart",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Your Cart.",
+              "rules": [
+                "The visitor sees Your Cart.",
+                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, Remove, Continue Shopping, Checkout"
+              ]
+            }
+          }
+        },
+        {
+          "id": "page_262124aa34552389",
+          "name": "Page 61: Checkout: Overview",
+          "properties": {
+            "business": {
+              "description": "The visitor is viewing Checkout: Overview.",
+              "rules": [
+                "The visitor sees Checkout: Overview.",
                 "The page offers these controls: Open Menu, Cart, empty, Cancel, Finish"
               ]
             }
           }
         },
         {
-          "id": "page_c36152ad11c9e857",
-          "name": "Page 13: Swag Labs",
+          "id": "page_c45511ec681e3555",
+          "name": "Page 62: Checkout: Your Information",
           "properties": {
             "business": {
-              "description": "The visitor is viewing Swag Labs.",
+              "description": "The visitor is viewing Checkout: Your Information.",
               "rules": [
-                "The visitor sees Swag Labs.",
+                "The visitor sees Checkout: Your Information.",
                 "The page offers a form with fields: First Name, Last Name, Zip/Postal Code",
                 "The page offers these controls: Open Menu, Cart, empty, Dismiss error, Cancel, Continue"
               ]
@@ -191,8 +862,8 @@
           }
         },
         {
-          "id": "page_17eee3600adc8d92",
-          "name": "Page 14: Thank you for your order!",
+          "id": "page_d6b51f7c7cafcbd3",
+          "name": "Page 63: Thank you for your order!",
           "properties": {
             "business": {
               "description": "The visitor is viewing Thank you for your order!.",
@@ -202,352 +873,14 @@
               ]
             }
           }
-        },
-        {
-          "id": "page_5752db5dfa3d6452",
-          "name": "Page 15: Thank you for your order!",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Thank you for your order!.",
-              "rules": [
-                "The visitor sees Thank you for your order!.",
-                "The page offers these controls: Open Menu, Cart, empty, Back Home, Generating..."
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_07ec6de69cbfd399",
-          "name": "Page 16: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_deb88cb10dc77583",
-          "name": "Page 17: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Remove, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_63f3f5b235442a88",
-          "name": "Page 18: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Remove, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_0aff0a16521036da",
-          "name": "Page 19: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Remove, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_f400d11f81abbaf3",
-          "name": "Page 20: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Remove, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_3478168d5774917a",
-          "name": "Page 21: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Add to cart, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_8073357e7bd3d887",
-          "name": "Page 22: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_319b8ba726dcad85",
-          "name": "Page 23: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_a8ab75b322f26df7",
-          "name": "Page 24: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_3d52bdf807cdcb0d",
-          "name": "Page 25: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_8dfcd448a84dd623",
-          "name": "Page 26: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_e1a3785d6054079b",
-          "name": "Page 27: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_5dbc5c2bd6f096d6",
-          "name": "Page 28: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_5f9079a138660904",
-          "name": "Page 29: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_0eef09824aeb0f6c",
-          "name": "Page 30: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_e55ec31ba343df1e",
-          "name": "Page 31: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_cc5af7b850d90780",
-          "name": "Page 32: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_4effd20e0da99cbc",
-          "name": "Page 33: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Backpack, Remove, Continue Shopping, Checkout"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_242302636264361b",
-          "name": "Page 34: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 2 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Remove, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_84a370431218d9d1",
-          "name": "Page 35: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 2 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Remove, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_8017e18606152f57",
-          "name": "Page 36: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 2 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Remove, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_f32da5dda5a8bc8f",
-          "name": "Page 37: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 2 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Remove, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_2bc2506fdc20c424",
-          "name": "Page 38: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 2 items, View details for Sauce Labs Backpack, View details for Sauce Labs Backpack, Remove, View details for Sauce Labs Bike Light, View details for Sauce Labs Bike Light, Add to cart, View details for Sauce Labs Bolt T-Shirt, View details for Sauce Labs Bolt T-Shirt, Add to cart, View details for Sauce Labs Fleece Jacket, View details for Sauce Labs Fleece Jacket, Add to cart, View details for Sauce Labs Onesie, View details for Sauce Labs Onesie, Add to cart, View details for Test.allTheThings() T-Shirt (Red), View details for Test.allTheThings() T-Shirt (Red), Remove"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_f0c2774ee6e9748f",
-          "name": "Page 39: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, Back to products, Add to cart"
-              ]
-            }
-          }
-        },
-        {
-          "id": "page_5b25ff61d6249b44",
-          "name": "Page 40: Swag Labs",
-          "properties": {
-            "business": {
-              "description": "The visitor is viewing Swag Labs.",
-              "rules": [
-                "The visitor sees Swag Labs.",
-                "The page offers these controls: Open Menu, Cart, 1 items, View details for Sauce Labs Bike Light, Remove, Continue Shopping, Checkout"
-              ]
-            }
-          }
         }
       ],
       "edges": [
         {
-          "id": "journey_dd29b83906f78312",
+          "id": "journey_16811d020c540639",
           "name": "Journey 1: Submit Login with these form details: Username: \"standard_user\".",
-          "sourceVertexId": "page_564f48f9912a04d7",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "sourceVertexId": "page_663ac77ba5f778b7",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Submit Login with these form details: Username: \"standard_user\"."
@@ -555,10 +888,10 @@
           }
         },
         {
-          "id": "journey_4eb296e9e630e249",
+          "id": "journey_6f0eb5b9bb6d098a",
           "name": "Journey 2: Submit Login with all editable text fields empty.",
-          "sourceVertexId": "page_564f48f9912a04d7",
-          "targetVertexId": "page_23f879a746fa5799",
+          "sourceVertexId": "page_663ac77ba5f778b7",
+          "targetVertexId": "page_819d74e96ac1164c",
           "properties": {
             "business": {
               "intent": "Submit Login with all editable text fields empty."
@@ -566,10 +899,43 @@
           }
         },
         {
-          "id": "journey_e70623c015650e21",
-          "name": "Journey 3: Follow View details for Sauce Labs Backpack.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_d0dcf193c77c5e8a",
+          "id": "journey_7154ea73990c0a8d",
+          "name": "Journey 3: Select Name (Z to A) for Sort products.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_5cc2997ce4e5f2c5",
+          "properties": {
+            "business": {
+              "intent": "Select Name (Z to A) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_fec4348ebcd711c8",
+          "name": "Journey 4: Select Price (low to high) for Sort products.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_f4b882a5cd95552e",
+          "properties": {
+            "business": {
+              "intent": "Select Price (low to high) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_c94eba0cf1c18821",
+          "name": "Journey 5: Select Price (high to low) for Sort products.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_7f6a9f525db5ff9f",
+          "properties": {
+            "business": {
+              "intent": "Select Price (high to low) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_cae90050703402fa",
+          "name": "Journey 6: Follow View details for Sauce Labs Backpack.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_51267184a96fa24f",
           "properties": {
             "business": {
               "intent": "Follow View details for Sauce Labs Backpack."
@@ -577,10 +943,10 @@
           }
         },
         {
-          "id": "journey_b03d331f2992f2a0",
-          "name": "Journey 4: Follow View details for Sauce Labs Bike Light.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_6e6a163d666bb442",
+          "id": "journey_c5eb277bc931a14e",
+          "name": "Journey 7: Follow View details for Sauce Labs Bike Light.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_f063119d2a30f227",
           "properties": {
             "business": {
               "intent": "Follow View details for Sauce Labs Bike Light."
@@ -588,10 +954,10 @@
           }
         },
         {
-          "id": "journey_8152c00b202b3203",
-          "name": "Journey 5: Follow View details for Sauce Labs Bolt T-Shirt.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_c47eae3fad9ff7b6",
+          "id": "journey_6c101e1199a558b0",
+          "name": "Journey 8: Follow View details for Sauce Labs Bolt T-Shirt.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_4f13ea92856f5185",
           "properties": {
             "business": {
               "intent": "Follow View details for Sauce Labs Bolt T-Shirt."
@@ -599,10 +965,10 @@
           }
         },
         {
-          "id": "journey_4af36a9a93f39b4b",
-          "name": "Journey 6: Follow View details for Sauce Labs Fleece Jacket.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_70a670483e1304ba",
+          "id": "journey_4f2aa0002988b076",
+          "name": "Journey 9: Follow View details for Sauce Labs Fleece Jacket.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_2de6c9a2e72342b2",
           "properties": {
             "business": {
               "intent": "Follow View details for Sauce Labs Fleece Jacket."
@@ -610,10 +976,10 @@
           }
         },
         {
-          "id": "journey_dec0254c3b650c5a",
-          "name": "Journey 7: Follow View details for Sauce Labs Onesie.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_17c5f4afad6d2e45",
+          "id": "journey_f9f866e37ffa7e52",
+          "name": "Journey 10: Follow View details for Sauce Labs Onesie.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_baad6a446e0ff3e1",
           "properties": {
             "business": {
               "intent": "Follow View details for Sauce Labs Onesie."
@@ -621,10 +987,10 @@
           }
         },
         {
-          "id": "journey_96c75a558e9b4884",
-          "name": "Journey 8: Follow View details for Test.allTheThings() T-Shirt (Red).",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_8a1ed42f7c46f652",
+          "id": "journey_e77d2020fe591a8e",
+          "name": "Journey 11: Follow View details for Test.allTheThings() T-Shirt (Red).",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_179476dda9f246f0",
           "properties": {
             "business": {
               "intent": "Follow View details for Test.allTheThings() T-Shirt (Red)."
@@ -632,10 +998,21 @@
           }
         },
         {
-          "id": "journey_6afff877d507476d",
-          "name": "Journey 9: Choose Cart, empty.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_add454bcecd101e7",
+          "name": "Journey 12: Choose Open Menu.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_232d4f83a5ce0131",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_d172e144f86d1ee9",
+          "name": "Journey 13: Choose Cart, empty.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -643,87 +1020,76 @@
           }
         },
         {
-          "id": "journey_2bdd6641cfa00919",
-          "name": "Journey 10: Choose View details for Sauce Labs Backpack.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_d0dcf193c77c5e8a",
+          "id": "journey_6a2f85a0e729c14a",
+          "name": "Journey 14: Choose Add to cart.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_3f21315e843b97a4",
           "properties": {
             "business": {
-              "intent": "Choose View details for Sauce Labs Backpack."
+              "intent": "Choose Add to cart."
             }
           }
         },
         {
-          "id": "journey_81edbcbf5bced33a",
-          "name": "Journey 11: Choose View details for Sauce Labs Bike Light.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_6e6a163d666bb442",
+          "id": "journey_7999a7662da739ce",
+          "name": "Journey 15: Choose Add to cart.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_78c4fc43142f6b68",
           "properties": {
             "business": {
-              "intent": "Choose View details for Sauce Labs Bike Light."
+              "intent": "Choose Add to cart."
             }
           }
         },
         {
-          "id": "journey_76511d1e44369ffc",
-          "name": "Journey 12: Choose View details for Sauce Labs Bolt T-Shirt.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_c47eae3fad9ff7b6",
+          "id": "journey_b57bf4b96c845e1e",
+          "name": "Journey 16: Choose Add to cart.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_342fe8fafa4739c8",
           "properties": {
             "business": {
-              "intent": "Choose View details for Sauce Labs Bolt T-Shirt."
+              "intent": "Choose Add to cart."
             }
           }
         },
         {
-          "id": "journey_a90d1c29ea8a4372",
-          "name": "Journey 13: Choose View details for Sauce Labs Fleece Jacket.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_70a670483e1304ba",
+          "id": "journey_247c121ed76593aa",
+          "name": "Journey 17: Choose Add to cart.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_533e933377bd24df",
           "properties": {
             "business": {
-              "intent": "Choose View details for Sauce Labs Fleece Jacket."
+              "intent": "Choose Add to cart."
             }
           }
         },
         {
-          "id": "journey_808e01bd16780a75",
-          "name": "Journey 14: Choose View details for Sauce Labs Onesie.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_17c5f4afad6d2e45",
+          "id": "journey_79b7c7b88a0f5c4a",
+          "name": "Journey 18: Choose Add to cart.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_0d69e05de288df13",
           "properties": {
             "business": {
-              "intent": "Choose View details for Sauce Labs Onesie."
+              "intent": "Choose Add to cart."
             }
           }
         },
         {
-          "id": "journey_a59081563354d424",
-          "name": "Journey 15: Choose View details for Test.allTheThings() T-Shirt (Red).",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_8a1ed42f7c46f652",
+          "id": "journey_3f7fb99c57d08b28",
+          "name": "Journey 19: Choose Add to cart.",
+          "sourceVertexId": "page_96dddff83e66c5b4",
+          "targetVertexId": "page_dc75b9d8e02c48b2",
           "properties": {
             "business": {
-              "intent": "Choose View details for Test.allTheThings() T-Shirt (Red)."
+              "intent": "Choose Add to cart."
             }
           }
         },
         {
-          "id": "journey_42b71ffa3365b43e",
-          "name": "Journey 16: Choose Dismiss error.",
-          "sourceVertexId": "page_23f879a746fa5799",
-          "targetVertexId": "page_564f48f9912a04d7",
-          "properties": {
-            "business": {
-              "intent": "Choose Dismiss error."
-            }
-          }
-        },
-        {
-          "id": "journey_71aca35d0eaf827e",
-          "name": "Journey 17: Submit Login with these form details: Username: \"standard_user\".",
-          "sourceVertexId": "page_23f879a746fa5799",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_1f0d1d852868296a",
+          "name": "Journey 20: Submit Login with these form details: Username: \"standard_user\".",
+          "sourceVertexId": "page_819d74e96ac1164c",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Submit Login with these form details: Username: \"standard_user\"."
@@ -731,10 +1097,10 @@
           }
         },
         {
-          "id": "journey_29001f22913fe697",
-          "name": "Journey 18: Submit Login with all editable text fields empty.",
-          "sourceVertexId": "page_23f879a746fa5799",
-          "targetVertexId": "page_23f879a746fa5799",
+          "id": "journey_579c2119551c0743",
+          "name": "Journey 21: Submit Login with all editable text fields empty.",
+          "sourceVertexId": "page_819d74e96ac1164c",
+          "targetVertexId": "page_819d74e96ac1164c",
           "properties": {
             "business": {
               "intent": "Submit Login with all editable text fields empty."
@@ -742,10 +1108,131 @@
           }
         },
         {
-          "id": "journey_05f35723cf9ec645",
-          "name": "Journey 19: Choose Cart, empty.",
-          "sourceVertexId": "page_d0dcf193c77c5e8a",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_0ae0c60a719499cf",
+          "name": "Journey 22: Choose Dismiss error.",
+          "sourceVertexId": "page_819d74e96ac1164c",
+          "targetVertexId": "page_663ac77ba5f778b7",
+          "properties": {
+            "business": {
+              "intent": "Choose Dismiss error."
+            }
+          }
+        },
+        {
+          "id": "journey_5bf82e1ff9eb97e6",
+          "name": "Journey 23: Select Name (A to Z) for Sort products.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_96dddff83e66c5b4",
+          "properties": {
+            "business": {
+              "intent": "Select Name (A to Z) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_92e35798717e0129",
+          "name": "Journey 24: Select Price (low to high) for Sort products.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_f4b882a5cd95552e",
+          "properties": {
+            "business": {
+              "intent": "Select Price (low to high) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_2c4eefe254201dad",
+          "name": "Journey 25: Select Price (high to low) for Sort products.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_7f6a9f525db5ff9f",
+          "properties": {
+            "business": {
+              "intent": "Select Price (high to low) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_9f90e4fc6c9a8328",
+          "name": "Journey 26: Follow View details for Test.allTheThings() T-Shirt (Red).",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_179476dda9f246f0",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Test.allTheThings() T-Shirt (Red)."
+            }
+          }
+        },
+        {
+          "id": "journey_ae2b87f454ca741c",
+          "name": "Journey 27: Follow View details for Sauce Labs Onesie.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_baad6a446e0ff3e1",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Onesie."
+            }
+          }
+        },
+        {
+          "id": "journey_3b3bd2936384998b",
+          "name": "Journey 28: Follow View details for Sauce Labs Fleece Jacket.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_2de6c9a2e72342b2",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Fleece Jacket."
+            }
+          }
+        },
+        {
+          "id": "journey_7562c8694270d806",
+          "name": "Journey 29: Follow View details for Sauce Labs Bolt T-Shirt.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_4f13ea92856f5185",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Bolt T-Shirt."
+            }
+          }
+        },
+        {
+          "id": "journey_17ca15ea58258adc",
+          "name": "Journey 30: Follow View details for Sauce Labs Bike Light.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_f063119d2a30f227",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Bike Light."
+            }
+          }
+        },
+        {
+          "id": "journey_23314e6a0cf3699c",
+          "name": "Journey 31: Follow View details for Sauce Labs Backpack.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_51267184a96fa24f",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Backpack."
+            }
+          }
+        },
+        {
+          "id": "journey_4d60f96977adb3bb",
+          "name": "Journey 32: Choose Open Menu.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_072e9bfc9ad12994",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_d8492352daead218",
+          "name": "Journey 33: Choose Cart, empty.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -753,10 +1240,98 @@
           }
         },
         {
-          "id": "journey_0510815b64870b20",
-          "name": "Journey 20: Choose Back to products.",
-          "sourceVertexId": "page_d0dcf193c77c5e8a",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_22e40fe73d15079b",
+          "name": "Journey 34: Choose Add to cart.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_1be6f572f31e45c1",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_bd997fccac33a867",
+          "name": "Journey 35: Choose Add to cart.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_6304e0357cfb2ab1",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_2776b7abcb9ff069",
+          "name": "Journey 36: Choose Add to cart.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_72fb0f85d1be4914",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_af73f9aa599ca4c9",
+          "name": "Journey 37: Choose Add to cart.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_b8722af2feca9d0e",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_40eaef0aa3f545f6",
+          "name": "Journey 38: Choose Add to cart.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_5094a037f33f428c",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_1b869ca36e46a9ff",
+          "name": "Journey 39: Choose Add to cart.",
+          "sourceVertexId": "page_5cc2997ce4e5f2c5",
+          "targetVertexId": "page_678fade87c33d886",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_687cb424bb48e9e5",
+          "name": "Journey 40: Choose Open Menu.",
+          "sourceVertexId": "page_51267184a96fa24f",
+          "targetVertexId": "page_fa949371483f0e56",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_2746f6670fb78b7d",
+          "name": "Journey 41: Choose Cart, empty.",
+          "sourceVertexId": "page_51267184a96fa24f",
+          "targetVertexId": "page_3bf63b013b04e6d5",
+          "properties": {
+            "business": {
+              "intent": "Choose Cart, empty."
+            }
+          }
+        },
+        {
+          "id": "journey_e8b5cff9cf4caa85",
+          "name": "Journey 42: Choose Back to products.",
+          "sourceVertexId": "page_51267184a96fa24f",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back to products."
@@ -764,10 +1339,32 @@
           }
         },
         {
-          "id": "journey_308b25fa2fd4ac02",
-          "name": "Journey 21: Choose Cart, empty.",
-          "sourceVertexId": "page_6e6a163d666bb442",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_1ad5e40a2f1dcf27",
+          "name": "Journey 43: Choose Add to cart.",
+          "sourceVertexId": "page_51267184a96fa24f",
+          "targetVertexId": "page_3359234e10dd8522",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_45d9b3831c2e55ce",
+          "name": "Journey 44: Choose Open Menu.",
+          "sourceVertexId": "page_f063119d2a30f227",
+          "targetVertexId": "page_231253bf14dadbca",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_84b97bbe1d68283f",
+          "name": "Journey 45: Choose Cart, empty.",
+          "sourceVertexId": "page_f063119d2a30f227",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -775,10 +1372,10 @@
           }
         },
         {
-          "id": "journey_da80b0ad23c9e2a4",
-          "name": "Journey 22: Choose Back to products.",
-          "sourceVertexId": "page_6e6a163d666bb442",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_d7d8baedac066a98",
+          "name": "Journey 46: Choose Back to products.",
+          "sourceVertexId": "page_f063119d2a30f227",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back to products."
@@ -786,10 +1383,32 @@
           }
         },
         {
-          "id": "journey_a2b629bab064044e",
-          "name": "Journey 23: Choose Cart, empty.",
-          "sourceVertexId": "page_c47eae3fad9ff7b6",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_e12192e270c96f1e",
+          "name": "Journey 47: Choose Add to cart.",
+          "sourceVertexId": "page_f063119d2a30f227",
+          "targetVertexId": "page_13e644d3c8252d8a",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_d265b3d7b25f5453",
+          "name": "Journey 48: Choose Open Menu.",
+          "sourceVertexId": "page_4f13ea92856f5185",
+          "targetVertexId": "page_d8edd339cde11e14",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_0ab6ebbf56a19796",
+          "name": "Journey 49: Choose Cart, empty.",
+          "sourceVertexId": "page_4f13ea92856f5185",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -797,10 +1416,10 @@
           }
         },
         {
-          "id": "journey_3d24e3c48ed118ef",
-          "name": "Journey 24: Choose Back to products.",
-          "sourceVertexId": "page_c47eae3fad9ff7b6",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_1a997f507ed81a5d",
+          "name": "Journey 50: Choose Back to products.",
+          "sourceVertexId": "page_4f13ea92856f5185",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back to products."
@@ -808,10 +1427,32 @@
           }
         },
         {
-          "id": "journey_8828fcf2196f762d",
-          "name": "Journey 25: Choose Cart, empty.",
-          "sourceVertexId": "page_70a670483e1304ba",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_08d5436f1db6cf21",
+          "name": "Journey 51: Choose Add to cart.",
+          "sourceVertexId": "page_4f13ea92856f5185",
+          "targetVertexId": "page_714f36550cc29248",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_bf269c431538fbcc",
+          "name": "Journey 52: Choose Open Menu.",
+          "sourceVertexId": "page_2de6c9a2e72342b2",
+          "targetVertexId": "page_72b00c8b1a1a553c",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_9da25c1bd26870bc",
+          "name": "Journey 53: Choose Cart, empty.",
+          "sourceVertexId": "page_2de6c9a2e72342b2",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -819,10 +1460,10 @@
           }
         },
         {
-          "id": "journey_92cb739decac4b0c",
-          "name": "Journey 26: Choose Back to products.",
-          "sourceVertexId": "page_70a670483e1304ba",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_4d1504fe9983eaaf",
+          "name": "Journey 54: Choose Back to products.",
+          "sourceVertexId": "page_2de6c9a2e72342b2",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back to products."
@@ -830,10 +1471,32 @@
           }
         },
         {
-          "id": "journey_d20e0298c9c20369",
-          "name": "Journey 27: Choose Cart, empty.",
-          "sourceVertexId": "page_17c5f4afad6d2e45",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_fe0998b6204a18e9",
+          "name": "Journey 55: Choose Add to cart.",
+          "sourceVertexId": "page_2de6c9a2e72342b2",
+          "targetVertexId": "page_bf29f4f38a125556",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_9abe1d0573f1aa59",
+          "name": "Journey 56: Choose Open Menu.",
+          "sourceVertexId": "page_baad6a446e0ff3e1",
+          "targetVertexId": "page_53d802e570f9d4ac",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_7d441379d75044b1",
+          "name": "Journey 57: Choose Cart, empty.",
+          "sourceVertexId": "page_baad6a446e0ff3e1",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -841,10 +1504,10 @@
           }
         },
         {
-          "id": "journey_b84371197aa50a1b",
-          "name": "Journey 28: Choose Back to products.",
-          "sourceVertexId": "page_17c5f4afad6d2e45",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_9008de4fc5419fc9",
+          "name": "Journey 58: Choose Back to products.",
+          "sourceVertexId": "page_baad6a446e0ff3e1",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back to products."
@@ -852,10 +1515,32 @@
           }
         },
         {
-          "id": "journey_9384a06067033b04",
-          "name": "Journey 29: Choose Cart, empty.",
-          "sourceVertexId": "page_8a1ed42f7c46f652",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_ed83bf786e86d2b8",
+          "name": "Journey 59: Choose Add to cart.",
+          "sourceVertexId": "page_baad6a446e0ff3e1",
+          "targetVertexId": "page_c781b9bd05feac9c",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_3293c3493dc20d9c",
+          "name": "Journey 60: Choose Open Menu.",
+          "sourceVertexId": "page_179476dda9f246f0",
+          "targetVertexId": "page_df2de0dee2bc69de",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_e42dd9ced2294b36",
+          "name": "Journey 61: Choose Cart, empty.",
+          "sourceVertexId": "page_179476dda9f246f0",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -863,10 +1548,10 @@
           }
         },
         {
-          "id": "journey_8538527fa157c32f",
-          "name": "Journey 30: Choose Back to products.",
-          "sourceVertexId": "page_8a1ed42f7c46f652",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_f4e9c11324c068d5",
+          "name": "Journey 62: Choose Back to products.",
+          "sourceVertexId": "page_179476dda9f246f0",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back to products."
@@ -874,10 +1559,175 @@
           }
         },
         {
-          "id": "journey_8b245278ff58a7f2",
-          "name": "Journey 31: Choose Cart, empty.",
-          "sourceVertexId": "page_c6fcd041708fd886",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_17716cc4986214a3",
+          "name": "Journey 63: Choose Add to cart.",
+          "sourceVertexId": "page_179476dda9f246f0",
+          "targetVertexId": "page_342403c23a58cec0",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_9e6a00fa7c3615d7",
+          "name": "Journey 64: Select Name (Z to A) for Sort products.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_072e9bfc9ad12994",
+          "properties": {
+            "business": {
+              "intent": "Select Name (Z to A) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_3a681cd798eaad05",
+          "name": "Journey 65: Select Price (low to high) for Sort products.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_e3ac55fcf51f06ad",
+          "properties": {
+            "business": {
+              "intent": "Select Price (low to high) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_d9b99d0643676dbb",
+          "name": "Journey 66: Select Price (high to low) for Sort products.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_fc41618cc26f509e",
+          "properties": {
+            "business": {
+              "intent": "Select Price (high to low) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_7d2fe3bec6241bdc",
+          "name": "Journey 67: Follow All Items.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_232d4f83a5ce0131",
+          "properties": {
+            "business": {
+              "intent": "Follow All Items."
+            }
+          }
+        },
+        {
+          "id": "journey_7d2559e858eb9d65",
+          "name": "Journey 68: Follow Dynamic Catalog.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_1d7b447dfbf4ce2b",
+          "properties": {
+            "business": {
+              "intent": "Follow Dynamic Catalog."
+            }
+          }
+        },
+        {
+          "id": "journey_8f9161f9c7bc8849",
+          "name": "Journey 69: Follow Logout.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_663ac77ba5f778b7",
+          "properties": {
+            "business": {
+              "intent": "Follow Logout."
+            }
+          }
+        },
+        {
+          "id": "journey_7794d5f46e92fec8",
+          "name": "Journey 70: Follow Reset App State.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_232d4f83a5ce0131",
+          "properties": {
+            "business": {
+              "intent": "Follow Reset App State."
+            }
+          }
+        },
+        {
+          "id": "journey_13009d8b40f7e8eb",
+          "name": "Journey 71: Follow View details for Sauce Labs Backpack.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_51267184a96fa24f",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Backpack."
+            }
+          }
+        },
+        {
+          "id": "journey_f40403483ba7ea48",
+          "name": "Journey 72: Follow View details for Sauce Labs Bike Light.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_f063119d2a30f227",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Bike Light."
+            }
+          }
+        },
+        {
+          "id": "journey_c5570e77eec339bb",
+          "name": "Journey 73: Follow View details for Sauce Labs Bolt T-Shirt.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_4f13ea92856f5185",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Bolt T-Shirt."
+            }
+          }
+        },
+        {
+          "id": "journey_d4ee3f0a7ddf7fab",
+          "name": "Journey 74: Follow View details for Sauce Labs Fleece Jacket.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_2de6c9a2e72342b2",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Fleece Jacket."
+            }
+          }
+        },
+        {
+          "id": "journey_a9b9c16a4adb124c",
+          "name": "Journey 75: Follow View details for Sauce Labs Onesie.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_baad6a446e0ff3e1",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Onesie."
+            }
+          }
+        },
+        {
+          "id": "journey_d6dfcd7dbfb89724",
+          "name": "Journey 76: Follow View details for Test.allTheThings() T-Shirt (Red).",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_179476dda9f246f0",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Test.allTheThings() T-Shirt (Red)."
+            }
+          }
+        },
+        {
+          "id": "journey_4ff68c94862f4bad",
+          "name": "Journey 77: Choose Close Menu.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_96dddff83e66c5b4",
+          "properties": {
+            "business": {
+              "intent": "Choose Close Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_32a17ed3b08a4fd4",
+          "name": "Journey 78: Choose Cart, empty.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -885,10 +1735,98 @@
           }
         },
         {
-          "id": "journey_55d3c026e6b1a6a3",
-          "name": "Journey 32: Choose Continue Shopping.",
-          "sourceVertexId": "page_c6fcd041708fd886",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_bd78b79148f72edf",
+          "name": "Journey 79: Choose Add to cart.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_5a172a08437f8faf",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_8e3a32dffc61d764",
+          "name": "Journey 80: Choose Add to cart.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_7b2d1808d80e76fe",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_e06d32fbc369ddc5",
+          "name": "Journey 81: Choose Add to cart.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_33d78af6faef1c7b",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_59ed59c35ea0cdb8",
+          "name": "Journey 82: Choose Add to cart.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_1fb9e49cd9f9ef22",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_4edcab539e3b85fa",
+          "name": "Journey 83: Choose Add to cart.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_a6330a2029e64af3",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_0ee6ebb3329ea9e9",
+          "name": "Journey 84: Choose Add to cart.",
+          "sourceVertexId": "page_232d4f83a5ce0131",
+          "targetVertexId": "page_d36c65f97ae05391",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_d2beccbd6ee52ac7",
+          "name": "Journey 85: Choose Open Menu.",
+          "sourceVertexId": "page_3bf63b013b04e6d5",
+          "targetVertexId": "page_b4dc018e66f02dba",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_629b0fedaf7d1e03",
+          "name": "Journey 86: Choose Cart, empty.",
+          "sourceVertexId": "page_3bf63b013b04e6d5",
+          "targetVertexId": "page_3bf63b013b04e6d5",
+          "properties": {
+            "business": {
+              "intent": "Choose Cart, empty."
+            }
+          }
+        },
+        {
+          "id": "journey_530e9772db7f5054",
+          "name": "Journey 87: Choose Continue Shopping.",
+          "sourceVertexId": "page_3bf63b013b04e6d5",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Continue Shopping."
@@ -896,10 +1834,10 @@
           }
         },
         {
-          "id": "journey_aa246d8ba2f64c83",
-          "name": "Journey 33: Choose Checkout.",
-          "sourceVertexId": "page_c6fcd041708fd886",
-          "targetVertexId": "page_101179ec5167e3c8",
+          "id": "journey_0a2786cca97706ef",
+          "name": "Journey 88: Choose Checkout.",
+          "sourceVertexId": "page_3bf63b013b04e6d5",
+          "targetVertexId": "page_0a859a6d311ad7a0",
           "properties": {
             "business": {
               "intent": "Choose Checkout."
@@ -907,10 +1845,164 @@
           }
         },
         {
-          "id": "journey_75e835544dd46d07",
-          "name": "Journey 34: Choose Cart, empty.",
-          "sourceVertexId": "page_101179ec5167e3c8",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_26e563a5baeaed38",
+          "name": "Journey 89: Select Name (A to Z) for Sort products.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_232d4f83a5ce0131",
+          "properties": {
+            "business": {
+              "intent": "Select Name (A to Z) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_206ba7a754a1f045",
+          "name": "Journey 90: Select Price (low to high) for Sort products.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_e3ac55fcf51f06ad",
+          "properties": {
+            "business": {
+              "intent": "Select Price (low to high) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_ac904fab89792636",
+          "name": "Journey 91: Select Price (high to low) for Sort products.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_fc41618cc26f509e",
+          "properties": {
+            "business": {
+              "intent": "Select Price (high to low) for Sort products."
+            }
+          }
+        },
+        {
+          "id": "journey_aa0f005a38e042c1",
+          "name": "Journey 92: Follow All Items.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_072e9bfc9ad12994",
+          "properties": {
+            "business": {
+              "intent": "Follow All Items."
+            }
+          }
+        },
+        {
+          "id": "journey_3837abf28dc969d6",
+          "name": "Journey 93: Follow Dynamic Catalog.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_89321f211c7976a3",
+          "properties": {
+            "business": {
+              "intent": "Follow Dynamic Catalog."
+            }
+          }
+        },
+        {
+          "id": "journey_fea0630811baba37",
+          "name": "Journey 94: Follow Logout.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_663ac77ba5f778b7",
+          "properties": {
+            "business": {
+              "intent": "Follow Logout."
+            }
+          }
+        },
+        {
+          "id": "journey_8675ba686cd258b6",
+          "name": "Journey 95: Follow Reset App State.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_072e9bfc9ad12994",
+          "properties": {
+            "business": {
+              "intent": "Follow Reset App State."
+            }
+          }
+        },
+        {
+          "id": "journey_bb25e4f9245154e8",
+          "name": "Journey 96: Follow View details for Test.allTheThings() T-Shirt (Red).",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_179476dda9f246f0",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Test.allTheThings() T-Shirt (Red)."
+            }
+          }
+        },
+        {
+          "id": "journey_ab50f07fb8f43c85",
+          "name": "Journey 97: Follow View details for Sauce Labs Onesie.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_baad6a446e0ff3e1",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Onesie."
+            }
+          }
+        },
+        {
+          "id": "journey_4b76bc804a79dbb0",
+          "name": "Journey 98: Follow View details for Sauce Labs Fleece Jacket.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_2de6c9a2e72342b2",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Fleece Jacket."
+            }
+          }
+        },
+        {
+          "id": "journey_47e26f73bcceb818",
+          "name": "Journey 99: Follow View details for Sauce Labs Bolt T-Shirt.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_4f13ea92856f5185",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Bolt T-Shirt."
+            }
+          }
+        },
+        {
+          "id": "journey_4cf325e4b51c14ca",
+          "name": "Journey 100: Follow View details for Sauce Labs Bike Light.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_f063119d2a30f227",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Bike Light."
+            }
+          }
+        },
+        {
+          "id": "journey_7d95ad8a3e586eda",
+          "name": "Journey 101: Follow View details for Sauce Labs Backpack.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_51267184a96fa24f",
+          "properties": {
+            "business": {
+              "intent": "Follow View details for Sauce Labs Backpack."
+            }
+          }
+        },
+        {
+          "id": "journey_bc2e32460118ee68",
+          "name": "Journey 102: Choose Close Menu.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_5cc2997ce4e5f2c5",
+          "properties": {
+            "business": {
+              "intent": "Choose Close Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_ba623b116bdba0e4",
+          "name": "Journey 103: Choose Cart, empty.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -918,10 +2010,175 @@
           }
         },
         {
-          "id": "journey_d34d0ef86e3e077f",
-          "name": "Journey 35: Submit Cancel with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
-          "sourceVertexId": "page_101179ec5167e3c8",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_20401cb0098115ef",
+          "name": "Journey 104: Choose Add to cart.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_e4dfdb7dfaafbff5",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_8f55874697bc4156",
+          "name": "Journey 105: Choose Add to cart.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_f6ea92af76ae0556",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_dcbae7f83c98b438",
+          "name": "Journey 106: Choose Add to cart.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_dabc74ecfd3e8042",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_22d894e1f06162d0",
+          "name": "Journey 107: Choose Add to cart.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_f5e90cedaab3e34f",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_58e13edffacf0d5e",
+          "name": "Journey 108: Choose Add to cart.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_0b2564450466d7f9",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_8977b62155ad71f6",
+          "name": "Journey 109: Choose Add to cart.",
+          "sourceVertexId": "page_072e9bfc9ad12994",
+          "targetVertexId": "page_b6a2bb59def87892",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_0bac556129ddf91b",
+          "name": "Journey 110: Follow All Items.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_96dddff83e66c5b4",
+          "properties": {
+            "business": {
+              "intent": "Follow All Items."
+            }
+          }
+        },
+        {
+          "id": "journey_166a56f873f0b19d",
+          "name": "Journey 111: Follow Dynamic Catalog.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_fa3ac1d1ee7dfdb7",
+          "properties": {
+            "business": {
+              "intent": "Follow Dynamic Catalog."
+            }
+          }
+        },
+        {
+          "id": "journey_90e2099c289bfdb7",
+          "name": "Journey 112: Follow Logout.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_663ac77ba5f778b7",
+          "properties": {
+            "business": {
+              "intent": "Follow Logout."
+            }
+          }
+        },
+        {
+          "id": "journey_b985c0e921a3431f",
+          "name": "Journey 113: Follow Reset App State.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_fa949371483f0e56",
+          "properties": {
+            "business": {
+              "intent": "Follow Reset App State."
+            }
+          }
+        },
+        {
+          "id": "journey_bbae49a78db31045",
+          "name": "Journey 114: Choose Close Menu.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_51267184a96fa24f",
+          "properties": {
+            "business": {
+              "intent": "Choose Close Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_e72ff05a737a8015",
+          "name": "Journey 115: Choose Cart, empty.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_3bf63b013b04e6d5",
+          "properties": {
+            "business": {
+              "intent": "Choose Cart, empty."
+            }
+          }
+        },
+        {
+          "id": "journey_04edf58e3f93ff45",
+          "name": "Journey 116: Choose Add to cart.",
+          "sourceVertexId": "page_fa949371483f0e56",
+          "targetVertexId": "page_aff278c2c1af27a8",
+          "properties": {
+            "business": {
+              "intent": "Choose Add to cart."
+            }
+          }
+        },
+        {
+          "id": "journey_77f71da900f0ab26",
+          "name": "Journey 117: Choose Open Menu.",
+          "sourceVertexId": "page_3359234e10dd8522",
+          "targetVertexId": "page_aff278c2c1af27a8",
+          "properties": {
+            "business": {
+              "intent": "Choose Open Menu."
+            }
+          }
+        },
+        {
+          "id": "journey_35e04709531bcf52",
+          "name": "Journey 118: Choose Cart, 1 items.",
+          "sourceVertexId": "page_3359234e10dd8522",
+          "targetVertexId": "page_5d2576cee8cab0b5",
+          "properties": {
+            "business": {
+              "intent": "Choose Cart, 1 items."
+            }
+          }
+        },
+        {
+          "id": "journey_fd42762a635cf39c",
+          "name": "Journey 119: Submit Cancel with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
+          "sourceVertexId": "page_0a859a6d311ad7a0",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Submit Cancel with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\"."
@@ -929,10 +2186,10 @@
           }
         },
         {
-          "id": "journey_72b0c89b248119d9",
-          "name": "Journey 36: Submit Cancel with all editable text fields empty.",
-          "sourceVertexId": "page_101179ec5167e3c8",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_a0527dc62e5f4111",
+          "name": "Journey 120: Submit Cancel with all editable text fields empty.",
+          "sourceVertexId": "page_0a859a6d311ad7a0",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Submit Cancel with all editable text fields empty."
@@ -940,10 +2197,10 @@
           }
         },
         {
-          "id": "journey_ef7dcb3b7babb7c6",
-          "name": "Journey 37: Submit Continue with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
-          "sourceVertexId": "page_101179ec5167e3c8",
-          "targetVertexId": "page_f8369b9f77f1e0f1",
+          "id": "journey_7869ae3272428cc5",
+          "name": "Journey 121: Submit Continue with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
+          "sourceVertexId": "page_0a859a6d311ad7a0",
+          "targetVertexId": "page_262124aa34552389",
           "properties": {
             "business": {
               "intent": "Submit Continue with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\"."
@@ -951,10 +2208,10 @@
           }
         },
         {
-          "id": "journey_ca126e74e5198a75",
-          "name": "Journey 38: Submit Continue with all editable text fields empty.",
-          "sourceVertexId": "page_101179ec5167e3c8",
-          "targetVertexId": "page_c36152ad11c9e857",
+          "id": "journey_ed1a083de20a27f7",
+          "name": "Journey 122: Submit Continue with all editable text fields empty.",
+          "sourceVertexId": "page_0a859a6d311ad7a0",
+          "targetVertexId": "page_c45511ec681e3555",
           "properties": {
             "business": {
               "intent": "Submit Continue with all editable text fields empty."
@@ -962,10 +2219,10 @@
           }
         },
         {
-          "id": "journey_b4c952fa6130e851",
-          "name": "Journey 39: Choose Cart, empty.",
-          "sourceVertexId": "page_f8369b9f77f1e0f1",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_31f8453cb69ad305",
+          "name": "Journey 123: Choose Cart, empty.",
+          "sourceVertexId": "page_0a859a6d311ad7a0",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -973,10 +2230,21 @@
           }
         },
         {
-          "id": "journey_4a2e387d6147e7c5",
-          "name": "Journey 40: Choose Cancel.",
-          "sourceVertexId": "page_f8369b9f77f1e0f1",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_c440904597a83245",
+          "name": "Journey 124: Choose Cart, empty.",
+          "sourceVertexId": "page_262124aa34552389",
+          "targetVertexId": "page_3bf63b013b04e6d5",
+          "properties": {
+            "business": {
+              "intent": "Choose Cart, empty."
+            }
+          }
+        },
+        {
+          "id": "journey_af1b7a0a07c7adbc",
+          "name": "Journey 125: Choose Cancel.",
+          "sourceVertexId": "page_262124aa34552389",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Cancel."
@@ -984,10 +2252,10 @@
           }
         },
         {
-          "id": "journey_758e6e9947538201",
-          "name": "Journey 41: Choose Finish.",
-          "sourceVertexId": "page_f8369b9f77f1e0f1",
-          "targetVertexId": "page_17eee3600adc8d92",
+          "id": "journey_738c354d27fd7709",
+          "name": "Journey 126: Choose Finish.",
+          "sourceVertexId": "page_262124aa34552389",
+          "targetVertexId": "page_d6b51f7c7cafcbd3",
           "properties": {
             "business": {
               "intent": "Choose Finish."
@@ -995,32 +2263,10 @@
           }
         },
         {
-          "id": "journey_6877250a9e229138",
-          "name": "Journey 42: Choose Cart, empty.",
-          "sourceVertexId": "page_c36152ad11c9e857",
-          "targetVertexId": "page_c6fcd041708fd886",
-          "properties": {
-            "business": {
-              "intent": "Choose Cart, empty."
-            }
-          }
-        },
-        {
-          "id": "journey_f69ad4edd365f2f1",
-          "name": "Journey 43: Choose Dismiss error.",
-          "sourceVertexId": "page_c36152ad11c9e857",
-          "targetVertexId": "page_101179ec5167e3c8",
-          "properties": {
-            "business": {
-              "intent": "Choose Dismiss error."
-            }
-          }
-        },
-        {
-          "id": "journey_4034e70872609d6e",
-          "name": "Journey 44: Submit Cancel with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
-          "sourceVertexId": "page_c36152ad11c9e857",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_c7ff1b539212d589",
+          "name": "Journey 127: Submit Cancel with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
+          "sourceVertexId": "page_c45511ec681e3555",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Submit Cancel with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\"."
@@ -1028,10 +2274,10 @@
           }
         },
         {
-          "id": "journey_cc8f1aad20aba3c7",
-          "name": "Journey 45: Submit Cancel with all editable text fields empty.",
-          "sourceVertexId": "page_c36152ad11c9e857",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_043661cf81b32a45",
+          "name": "Journey 128: Submit Cancel with all editable text fields empty.",
+          "sourceVertexId": "page_c45511ec681e3555",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Submit Cancel with all editable text fields empty."
@@ -1039,10 +2285,10 @@
           }
         },
         {
-          "id": "journey_e5711bd42f19cd5e",
-          "name": "Journey 46: Submit Continue with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
-          "sourceVertexId": "page_c36152ad11c9e857",
-          "targetVertexId": "page_f8369b9f77f1e0f1",
+          "id": "journey_114b813f7fdce5ba",
+          "name": "Journey 129: Submit Continue with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\".",
+          "sourceVertexId": "page_c45511ec681e3555",
+          "targetVertexId": "page_262124aa34552389",
           "properties": {
             "business": {
               "intent": "Submit Continue with these form details: First Name: \"Alex\"; Last Name: \"Tester\"; Zip/Postal Code: \"3000\"."
@@ -1050,10 +2296,10 @@
           }
         },
         {
-          "id": "journey_e31c67e6182a4e78",
-          "name": "Journey 47: Submit Continue with all editable text fields empty.",
-          "sourceVertexId": "page_c36152ad11c9e857",
-          "targetVertexId": "page_c36152ad11c9e857",
+          "id": "journey_49485de3940f3c97",
+          "name": "Journey 130: Submit Continue with all editable text fields empty.",
+          "sourceVertexId": "page_c45511ec681e3555",
+          "targetVertexId": "page_c45511ec681e3555",
           "properties": {
             "business": {
               "intent": "Submit Continue with all editable text fields empty."
@@ -1061,10 +2307,10 @@
           }
         },
         {
-          "id": "journey_7d77d6e3fff3cac5",
-          "name": "Journey 48: Choose Cart, empty.",
-          "sourceVertexId": "page_17eee3600adc8d92",
-          "targetVertexId": "page_c6fcd041708fd886",
+          "id": "journey_b5dd69f393ebeb7f",
+          "name": "Journey 131: Choose Cart, empty.",
+          "sourceVertexId": "page_c45511ec681e3555",
+          "targetVertexId": "page_3bf63b013b04e6d5",
           "properties": {
             "business": {
               "intent": "Choose Cart, empty."
@@ -1072,10 +2318,32 @@
           }
         },
         {
-          "id": "journey_771f76ff9913d364",
-          "name": "Journey 49: Choose Back Home.",
-          "sourceVertexId": "page_17eee3600adc8d92",
-          "targetVertexId": "page_9a79440c50b56d38",
+          "id": "journey_72031c75735ca08f",
+          "name": "Journey 132: Choose Dismiss error.",
+          "sourceVertexId": "page_c45511ec681e3555",
+          "targetVertexId": "page_0a859a6d311ad7a0",
+          "properties": {
+            "business": {
+              "intent": "Choose Dismiss error."
+            }
+          }
+        },
+        {
+          "id": "journey_926a8b0223a2dba5",
+          "name": "Journey 133: Choose Cart, empty.",
+          "sourceVertexId": "page_d6b51f7c7cafcbd3",
+          "targetVertexId": "page_3bf63b013b04e6d5",
+          "properties": {
+            "business": {
+              "intent": "Choose Cart, empty."
+            }
+          }
+        },
+        {
+          "id": "journey_9842584b6767a55d",
+          "name": "Journey 134: Choose Back Home.",
+          "sourceVertexId": "page_d6b51f7c7cafcbd3",
+          "targetVertexId": "page_96dddff83e66c5b4",
           "properties": {
             "business": {
               "intent": "Choose Back Home."
@@ -1083,497 +2351,13 @@
           }
         },
         {
-          "id": "journey_af74661585d1beaf",
-          "name": "Journey 50: Choose Generate PDF order.",
-          "sourceVertexId": "page_17eee3600adc8d92",
-          "targetVertexId": "page_5752db5dfa3d6452",
+          "id": "journey_06a30fd3e51943c4",
+          "name": "Journey 135: Choose Generate PDF order.",
+          "sourceVertexId": "page_d6b51f7c7cafcbd3",
+          "targetVertexId": "page_d6b51f7c7cafcbd3",
           "properties": {
             "business": {
               "intent": "Choose Generate PDF order."
-            }
-          }
-        },
-        {
-          "id": "journey_fd4f993410fe8f2d",
-          "name": "Journey 51: Choose Back Home.",
-          "sourceVertexId": "page_5752db5dfa3d6452",
-          "targetVertexId": "page_9a79440c50b56d38",
-          "properties": {
-            "business": {
-              "intent": "Choose Back Home."
-            }
-          }
-        },
-        {
-          "id": "journey_fc4682c978b17bff",
-          "name": "Journey 52: Choose Add to cart.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_07ec6de69cbfd399",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_a2851a342625e880",
-          "name": "Journey 53: Choose Add to cart.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_deb88cb10dc77583",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_96023334d4f23b72",
-          "name": "Journey 54: Choose Add to cart.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_63f3f5b235442a88",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_5172bcbb37359714",
-          "name": "Journey 55: Choose Add to cart.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_0aff0a16521036da",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_9eb07e8f343c865d",
-          "name": "Journey 56: Choose Add to cart.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_f400d11f81abbaf3",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_0dc57e12f8214580",
-          "name": "Journey 57: Choose Add to cart.",
-          "sourceVertexId": "page_9a79440c50b56d38",
-          "targetVertexId": "page_3478168d5774917a",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_055af077f0d4e521",
-          "name": "Journey 58: Choose Add to cart.",
-          "sourceVertexId": "page_d0dcf193c77c5e8a",
-          "targetVertexId": "page_8073357e7bd3d887",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_a5fe37be7ac65e43",
-          "name": "Journey 59: Choose Add to cart.",
-          "sourceVertexId": "page_6e6a163d666bb442",
-          "targetVertexId": "page_319b8ba726dcad85",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_a00be51306667ff3",
-          "name": "Journey 60: Choose Add to cart.",
-          "sourceVertexId": "page_c47eae3fad9ff7b6",
-          "targetVertexId": "page_a8ab75b322f26df7",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_c4b7279e76d617d0",
-          "name": "Journey 61: Choose Add to cart.",
-          "sourceVertexId": "page_70a670483e1304ba",
-          "targetVertexId": "page_3d52bdf807cdcb0d",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_3cf22032326ecf4c",
-          "name": "Journey 62: Choose Add to cart.",
-          "sourceVertexId": "page_17c5f4afad6d2e45",
-          "targetVertexId": "page_8dfcd448a84dd623",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_76078c09ca2ce8df",
-          "name": "Journey 63: Choose Add to cart.",
-          "sourceVertexId": "page_8a1ed42f7c46f652",
-          "targetVertexId": "page_e1a3785d6054079b",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_5e15443a1161903c",
-          "name": "Journey 64: Follow View details for Sauce Labs Backpack.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_8073357e7bd3d887",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Backpack."
-            }
-          }
-        },
-        {
-          "id": "journey_4ca43cff2cf1186d",
-          "name": "Journey 65: Follow View details for Sauce Labs Bike Light.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_5dbc5c2bd6f096d6",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Bike Light."
-            }
-          }
-        },
-        {
-          "id": "journey_c93144c0d939e3f0",
-          "name": "Journey 66: Follow View details for Sauce Labs Bolt T-Shirt.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_5f9079a138660904",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Bolt T-Shirt."
-            }
-          }
-        },
-        {
-          "id": "journey_f0e15202675ff2b7",
-          "name": "Journey 67: Follow View details for Sauce Labs Fleece Jacket.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_0eef09824aeb0f6c",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Fleece Jacket."
-            }
-          }
-        },
-        {
-          "id": "journey_afd0c65430dda9fa",
-          "name": "Journey 68: Follow View details for Sauce Labs Onesie.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_e55ec31ba343df1e",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Onesie."
-            }
-          }
-        },
-        {
-          "id": "journey_2b6a2a98f70a133c",
-          "name": "Journey 69: Follow View details for Test.allTheThings() T-Shirt (Red).",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_cc5af7b850d90780",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Test.allTheThings() T-Shirt (Red)."
-            }
-          }
-        },
-        {
-          "id": "journey_0b03768d7cb4e468",
-          "name": "Journey 70: Choose Cart, 1 items.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_4effd20e0da99cbc",
-          "properties": {
-            "business": {
-              "intent": "Choose Cart, 1 items."
-            }
-          }
-        },
-        {
-          "id": "journey_fc27ab5bbb205b32",
-          "name": "Journey 71: Choose View details for Sauce Labs Backpack.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_8073357e7bd3d887",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Backpack."
-            }
-          }
-        },
-        {
-          "id": "journey_2e0abf80e08b0be0",
-          "name": "Journey 72: Choose Remove.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_9a79440c50b56d38",
-          "properties": {
-            "business": {
-              "intent": "Choose Remove."
-            }
-          }
-        },
-        {
-          "id": "journey_2ea4515e635f5785",
-          "name": "Journey 73: Choose View details for Sauce Labs Bike Light.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_5dbc5c2bd6f096d6",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Bike Light."
-            }
-          }
-        },
-        {
-          "id": "journey_173946fa9215436a",
-          "name": "Journey 74: Choose Add to cart.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_242302636264361b",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_7ad27a4d413089f7",
-          "name": "Journey 75: Choose View details for Sauce Labs Bolt T-Shirt.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_5f9079a138660904",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Bolt T-Shirt."
-            }
-          }
-        },
-        {
-          "id": "journey_3ee7673664b8aff8",
-          "name": "Journey 76: Choose Add to cart.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_84a370431218d9d1",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_669fe2686275d56f",
-          "name": "Journey 77: Choose View details for Sauce Labs Fleece Jacket.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_0eef09824aeb0f6c",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Fleece Jacket."
-            }
-          }
-        },
-        {
-          "id": "journey_570b1e9ea3cbbef6",
-          "name": "Journey 78: Choose Add to cart.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_8017e18606152f57",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_67cd5c549aefa652",
-          "name": "Journey 79: Choose View details for Sauce Labs Onesie.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_e55ec31ba343df1e",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Onesie."
-            }
-          }
-        },
-        {
-          "id": "journey_0013f28b4813a9c9",
-          "name": "Journey 80: Choose Add to cart.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_f32da5dda5a8bc8f",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_a827251e1014ba24",
-          "name": "Journey 81: Choose View details for Test.allTheThings() T-Shirt (Red).",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_cc5af7b850d90780",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Test.allTheThings() T-Shirt (Red)."
-            }
-          }
-        },
-        {
-          "id": "journey_ff60d0289f33e145",
-          "name": "Journey 82: Choose Add to cart.",
-          "sourceVertexId": "page_07ec6de69cbfd399",
-          "targetVertexId": "page_2bc2506fdc20c424",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_277f43bb524ae0ab",
-          "name": "Journey 83: Follow View details for Sauce Labs Backpack.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_f0c2774ee6e9748f",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Backpack."
-            }
-          }
-        },
-        {
-          "id": "journey_4c636cc8ebf2921d",
-          "name": "Journey 84: Follow View details for Sauce Labs Bike Light.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_319b8ba726dcad85",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Bike Light."
-            }
-          }
-        },
-        {
-          "id": "journey_0d55c4caf7b5df10",
-          "name": "Journey 85: Follow View details for Sauce Labs Bolt T-Shirt.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_5f9079a138660904",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Bolt T-Shirt."
-            }
-          }
-        },
-        {
-          "id": "journey_07ca325e56acb2ce",
-          "name": "Journey 86: Follow View details for Sauce Labs Fleece Jacket.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_0eef09824aeb0f6c",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Fleece Jacket."
-            }
-          }
-        },
-        {
-          "id": "journey_8068ff5c94e69ac8",
-          "name": "Journey 87: Follow View details for Sauce Labs Onesie.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_e55ec31ba343df1e",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Sauce Labs Onesie."
-            }
-          }
-        },
-        {
-          "id": "journey_98c23ff2b3e4ed60",
-          "name": "Journey 88: Follow View details for Test.allTheThings() T-Shirt (Red).",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_cc5af7b850d90780",
-          "properties": {
-            "business": {
-              "intent": "Follow View details for Test.allTheThings() T-Shirt (Red)."
-            }
-          }
-        },
-        {
-          "id": "journey_06784da74e1979cb",
-          "name": "Journey 89: Choose Cart, 1 items.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_5b25ff61d6249b44",
-          "properties": {
-            "business": {
-              "intent": "Choose Cart, 1 items."
-            }
-          }
-        },
-        {
-          "id": "journey_c4321cfcc97d8fce",
-          "name": "Journey 90: Choose View details for Sauce Labs Backpack.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_f0c2774ee6e9748f",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Backpack."
-            }
-          }
-        },
-        {
-          "id": "journey_c4353612112292d0",
-          "name": "Journey 91: Choose Add to cart.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_242302636264361b",
-          "properties": {
-            "business": {
-              "intent": "Choose Add to cart."
-            }
-          }
-        },
-        {
-          "id": "journey_bc9423babe403bed",
-          "name": "Journey 92: Choose View details for Sauce Labs Bike Light.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_319b8ba726dcad85",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Bike Light."
-            }
-          }
-        },
-        {
-          "id": "journey_5249eb7674a33da1",
-          "name": "Journey 93: Choose Remove.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_9a79440c50b56d38",
-          "properties": {
-            "business": {
-              "intent": "Choose Remove."
-            }
-          }
-        },
-        {
-          "id": "journey_efccd87027fdcbd1",
-          "name": "Journey 94: Choose View details for Sauce Labs Bolt T-Shirt.",
-          "sourceVertexId": "page_deb88cb10dc77583",
-          "targetVertexId": "page_5f9079a138660904",
-          "properties": {
-            "business": {
-              "intent": "Choose View details for Sauce Labs Bolt T-Shirt."
             }
           }
         }

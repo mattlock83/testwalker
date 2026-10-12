@@ -79,6 +79,9 @@ export const SNAPSHOT = `() => {
     url: location.href, title: document.title,
     headings,
     text: (document.body?.innerText || '').slice(0, 12000),
+    displayed_values: [...document.querySelectorAll('dt')].filter(visible).map(e => ({
+      label: label(e), value: e.nextElementSibling?.tagName === 'DD' && visible(e.nextElementSibling) ? label(e.nextElementSibling) : ''
+    })).filter(e => e.value),
     links: [...document.querySelectorAll('a[href]')].map((e, dom_index) => ({
       label: label(e), url: e.href, download: e.hasAttribute('download'), dom_index, visible: visible(e), actionable: actionable(e)
     })).filter(e => e.visible),

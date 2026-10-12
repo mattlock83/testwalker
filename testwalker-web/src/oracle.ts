@@ -37,7 +37,9 @@ export function stateQuestion(descriptions: string[]): Json {
       UNKNOWN:
         "None matches, multiple states fit, or observed evidence is insufficient",
     },
-    "Identify the current business state solely from observed heading, workflow stage and current feedback. " +
+    "Identify the current business and UI state solely from observed heading, workflow stage, current feedback, " +
+      "displayed read-only status and currently open or closed selection lists, menus and dialogs. " +
+      "Visible options establish that a selection list is currently open; displayed read-only selections distinguish current UI states. " +
       "Controls offer future operations; they do not prove an outcome. Distinguish entry, review, confirmation and " +
       "rejection stages. If multiple descriptions fit choose UNKNOWN. " +
       VALIDATION +

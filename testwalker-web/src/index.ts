@@ -13,10 +13,4 @@ export {
   edges,
 } from "./types.js";
 export { serve, staticServer } from "./server.js";
-export {
-  discoverUrl,
-  discoverSitemap,
-  type DiscoveryOptions,
-} from "./discovery.js";
-export type { DiscoveryContext } from "./discovery.js";
 export { observe } from "./observation.js";

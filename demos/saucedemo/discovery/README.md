@@ -6,11 +6,34 @@ navigation hooks. `values.json` supplies the published demo credentials and
 synthetic customer details. The checkout requests names and postcode, not card
 details.
 
-The checked-in [`../model.json`](../model.json) and [`summary.json`](summary.json)
-preserve the earlier discovery baseline: 40 states and 94 journeys, including
-cart mutations and checkout. It is an observed draft requiring review and
-independent business rules, not a passing test specification. New run artifacts
-are saved under the ignored `demos/artifacts/discovery-saucedemo/` directory.
+The checked-in [`../model.json`](../model.json) was regenerated on 12 October
+2026 using only the improved discovery tool. It contains **63 observed states
+and 135 journeys**, up from the earlier baseline of 40 states and 94 journeys.
+It remains an observed draft requiring independent business rules and review.
+[`summary.json`](summary.json) records this regeneration; [`comparison.json`](comparison.json)
+retains the earlier exploration results. Detailed inventories and screenshots
+are in ignored `demos/artifacts/discovery-saucedemo/`.
+
+## Latest regeneration
+
+| Pass | States | Executed transitions | Visits | Replay operations | Failures |
+| --- | --- | --- | --- | --- | --- |
+| Broad menus, sorting and cart exploration | 60 | 118 | 119 | 479 | 0 |
+| Focused checkout and empty-form validation | 17 | 47 | 48 | 204 | 0 |
+
+The union deduplicates observed states and journeys; counts from the passes
+cannot simply be added. It includes all four sort choices, all six product
+pages, the cart, checkout information/rejection, order review, completion and
+PDF generation. Both passes had zero capture errors. All 167 visits have
+screenshots and JSON-only network evidence; no HTML or DOM files were captured.
+The combined model validated through the existing Rust JSON-RPC API.
+
+The broad pass reached its 60-state limit. It lists 141 actions deferred by the
+state budget, 532 by variant sampling and 36 covered controls. The focused pass
+exhausted its queue with 45 explicitly excluded controls and 30 variant-limited
+actions. These are per-run observed frontiers, not missing test counts for the
+combined graph. This is bounded discovery, not complete application coverage.
+The summary groups pending reasons; each linked inventory retains action details.
 
 ## Repeat the improved discovery
 
@@ -20,12 +43,23 @@ From the repository root, build the adapter:
 npm run build
 ```
 
-Explore menus and sorting with a small sampling budget:
+Repeat the broad regeneration pass:
 
 ```bash
-npx --no-install testwalker-web discover-url \
+npx --no-install testwalker-discover discover-url \
   --url https://www.saucedemo.com/ \
-  --output demos/artifacts/discovery-saucedemo/repeat-menu.json \
+  --output demos/artifacts/discovery-saucedemo/repeat-explore.model.json \
+  --depth 8 --max-pages 60 --max-actions 1200 --max-state-variants 2 \
+  --settle-ms 600 --timeout-ms 10000 --click-buttons --probe-empty-forms \
+  --values demos/saucedemo/discovery/values.json
+```
+
+Or explore menus and sorting with a smaller sampling budget:
+
+```bash
+npx --no-install testwalker-discover discover-url \
+  --url https://www.saucedemo.com/ \
+  --output demos/artifacts/discovery-saucedemo/repeat-menu.model.json \
   --depth 3 --max-pages 40 --max-actions 180 --max-state-variants 1 \
   --settle-ms 400 --timeout-ms 10000 --click-buttons \
   --exclude-buttons 'Add to cart' \
@@ -35,9 +69,9 @@ npx --no-install testwalker-web discover-url \
 Focus on the checkout chain and rejection screens:
 
 ```bash
-npx --no-install testwalker-web discover-url \
+npx --no-install testwalker-discover discover-url \
   --url https://www.saucedemo.com/ \
-  --output demos/artifacts/discovery-saucedemo/repeat-workflow.json \
+  --output demos/artifacts/discovery-saucedemo/repeat-workflow.model.json \
   --depth 8 --max-pages 40 --max-actions 400 --max-state-variants 1 \
   --settle-ms 600 --timeout-ms 10000 --click-buttons --probe-empty-forms \
   --exclude-buttons 'Add to cart,Open Menu' \
@@ -61,7 +95,7 @@ To combine inventories from the same implementation into a separate draft:
 node demos/saucedemo/discovery/combine.mjs \
   demos/artifacts/discovery-saucedemo/repeat-model.json \
   demos/artifacts/discovery-saucedemo/repeat-summary.json \
-  demos/artifacts/discovery-saucedemo/repeat-menu.discovery.json \
+  demos/artifacts/discovery-saucedemo/repeat-explore.discovery.json \
   demos/artifacts/discovery-saucedemo/repeat-workflow.discovery.json
 ```
 
@@ -94,7 +128,7 @@ journeys. It does not author business rules or visit the site.
 These changes contain no SauceDemo selectors, labels or business rules. Crawlee
 still owns the queue and browser lifecycle. Rust was unchanged.
 
-## Recorded follow-up results
+## Earlier follow-up results
 
 [`comparison.json`](comparison.json) records exact counts, reasons, evidence
 paths and native model validation. Runs used different focuses/budgets, so the
@@ -119,9 +153,9 @@ intermediate run is presented as complete coverage.
 ## Remaining limits
 
 - These are bounded discovery runs: unknown pages and hypothetical future
-  combinations are not enumerated. Three extended-menu source-state replays
-  remain unresolved and need review. Check every `pending` reason before deciding
-  what to explore next.
+  combinations are not enumerated. Earlier extended-menu runs retained three
+  source-state replay failures; neither new regeneration pass reproduced them.
+  Check every `pending` reason before deciding what to explore next.
 - The account is `standard_user`; other accounts and all invalid credential
   combinations remain outside these runs.
 - Unmarked delayed work may need a longer quiet window or a hook. Closed shadow

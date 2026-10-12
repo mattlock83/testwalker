@@ -192,7 +192,20 @@ impl Model {
                         "Business models cannot contain action or guard scripts",
                     ));
                 }
-                shape(&element["properties"], &["business", "rpc"], &["business"])?;
+                shape(
+                    &element["properties"],
+                    &["business", "rpc", "x", "y"],
+                    &["business"],
+                )?;
+                for coordinate in ["x", "y"] {
+                    if let Some(value) = element["properties"].get(coordinate)
+                        && !value.as_f64().is_some_and(f64::is_finite)
+                    {
+                        return Err(Fault::unknown(
+                            "GraphWalker layout coordinates must be finite numbers",
+                        ));
+                    }
+                }
                 if let Some(metadata) = element["properties"].get("rpc")
                     && (!rpc_profile || !metadata.is_object())
                 {
@@ -569,6 +582,36 @@ mod tests {
         let mut document = bound.document.clone();
         document["models"][0]["properties"]["rpc"]["fixtures"]["name"] = json!("雪");
         assert_ne!(Model::new(document).unwrap().digest, bound.digest);
+    }
+    #[test]
+    fn studio_coordinates_are_preserved_without_weakening_business_validation() {
+        let mut document = fixture();
+        for kind in ["vertices", "edges"] {
+            document["models"][0][kind][0]["properties"]["x"] = json!(-120.5);
+            document["models"][0][kind][0]["properties"]["y"] = json!(240);
+        }
+        let model = Model::new(document).unwrap();
+        for kind in ["vertices", "edges"] {
+            assert_eq!(
+                model.document["models"][0][kind][0]["properties"]["x"],
+                json!(-120.5)
+            );
+            assert_eq!(
+                model.document["models"][0][kind][0]["properties"]["y"],
+                json!(240)
+            );
+            for invalid in [json!("120"), json!(null), json!(true), json!({})] {
+                let mut document = model.document.clone();
+                document["models"][0][kind][0]["properties"]["x"] = invalid;
+                assert!(Model::new(document).is_err());
+            }
+            let mut document = model.document.clone();
+            document["models"][0][kind][0]["properties"]["business"]["selector"] = json!("#target");
+            assert!(Model::new(document).is_err());
+            let mut document = model.document.clone();
+            document["models"][0][kind][0]["properties"]["unexpected"] = json!(0);
+            assert!(Model::new(document).is_err());
+        }
     }
     #[test]
     fn rpc_profiles_require_complete_bindings_without_weakening_business_fields() {

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Page, Request } from "playwright";
 import { SNAPSHOT } from "./discovery-snapshot.js";
-import { Inconclusive, type Json } from "./types.js";
+import { DiscoveryError, type Json } from "./types.js";
 
 export const discoveryHash = (value: unknown): string =>
   createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 16);
@@ -119,7 +119,7 @@ export class DiscoveryState {
         Math.min(50, Math.max(1, deadline - Date.now())),
       );
     }
-    throw new Inconclusive(
+    throw new DiscoveryError(
       expected
         ? "Discovery replay source did not become ready; action was not performed"
         : "Discovery UI did not settle within the timeout; state was not expanded",

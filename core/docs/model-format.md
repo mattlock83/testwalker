@@ -16,6 +16,12 @@ Supply one native GraphWalker JSON graph under `models`, with:
 
 Names must be unique across states and edges. The runner supports at most 100 states and 500 journeys. Native graph metadata such as layout can be retained, but native action scripts and guards are rejected: this business vocabulary does not execute application code.
 
+For GraphWalker Studio, use identifier names without spaces (for example,
+`v_BookingReview` and `e_ConfirmBooking`). Optional finite numeric coordinates
+`properties.x` and `properties.y` are accepted and retained alongside
+`properties.business`. Studio uses these coordinates to preserve the saved layout;
+they do not describe an application action or assertion.
+
 The metadata below belongs under `properties.business` on the graph, state or journey. Unknown business keys are rejected so a misspelled rule cannot silently disappear. Version 2's `properties.test`, targets, action lists and assertion expressions are no longer supported.
 
 ## Graph-level business information

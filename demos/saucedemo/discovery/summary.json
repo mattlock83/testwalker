@@ -3,9 +3,9 @@
     "https://www.saucedemo.com/"
   ],
   "model": "demos/saucedemo/model.json",
-  "sha256": "75320ac59767131a621152c1c871f7bb306c8f0ca750b1ca7ca76b5edb94d0e2",
-  "states": 40,
-  "journeys": 94,
+  "sha256": "82364650f487105b3b4ee6bf3ab67b36d63a416cd4d111d7d6f1888600862e2a",
+  "states": 63,
+  "journeys": 135,
   "observed_urls": [
     "https://www.saucedemo.com/",
     "https://www.saucedemo.com/inventory.html",
@@ -22,155 +22,178 @@
   ],
   "runs": [
     {
-      "inventory": "demos/artifacts/discovery-saucedemo/final-checkout.discovery.json",
-      "artifacts": "demos/artifacts/discovery-saucedemo/final-checkout.discovery",
+      "inventory": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-explore.discovery.json",
+      "artifacts": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-explore.discovery",
       "depth": 8,
-      "states": 15,
-      "executed_transitions": 63,
-      "visits": 66,
-      "replay_operations": 273,
-      "failed": [
-        {
-          "url": "https://www.saucedemo.com/",
-          "error": "Discovery replay source changed; action was not performed"
-        },
-        {
-          "url": "https://www.saucedemo.com/",
-          "error": "Discovery replay source changed; action was not performed"
-        }
-      ],
-      "pending": [],
-      "capture_errors": [],
-      "unresolved_visits": [
-        {
-          "visit": "visit-0064",
-          "source": "page_5752db5dfa3d6452",
-          "source_url": "https://www.saucedemo.com/checkout-complete.html",
-          "source_controls": [
-            "Open Menu",
-            "Cart, empty",
-            "Back Home",
-            "Generating..."
-          ],
-          "artifacts": {
-            "screenshot.png": "visit-0064/screenshot.png",
-            "page.html": "visit-0064/page.html",
-            "dom.json": "visit-0064/dom.json",
-            "network.json": "visit-0064/network.json"
-          }
-        },
-        {
-          "visit": "visit-0066",
-          "source": "page_5752db5dfa3d6452",
-          "source_url": "https://www.saucedemo.com/checkout-complete.html",
-          "source_controls": [
-            "Open Menu",
-            "Cart, empty",
-            "Back Home",
-            "Generating..."
-          ],
-          "artifacts": {
-            "screenshot.png": "visit-0066/screenshot.png",
-            "page.html": "visit-0066/page.html",
-            "dom.json": "visit-0066/dom.json",
-            "network.json": "visit-0066/network.json"
-          }
-        }
-      ],
-      "review": [
-        "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
-        "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
-        "States are grouped by URL, headings, alerts and control structure; changing data values are evidence, not separate states."
-      ],
-      "blocked_endpoints": [
-        "https://events.backtrace.io/api/unique-events/submit?universe=UNIVERSE&token=TOKEN",
-        "https://events.backtrace.io/api/summed-events/submit?universe=UNIVERSE&token=TOKEN"
-      ]
-    },
-    {
-      "inventory": "demos/artifacts/discovery-saucedemo/final-cart.discovery.json",
-      "artifacts": "demos/artifacts/discovery-saucedemo/final-cart.discovery",
-      "depth": 8,
-      "states": 36,
-      "executed_transitions": 109,
-      "visits": 110,
-      "replay_operations": 399,
+      "states": 60,
+      "executed_transitions": 118,
+      "visits": 119,
+      "replay_operations": 479,
       "failed": [],
-      "pending": [
-        {
-          "url": "https://www.saucedemo.com/",
-          "depth": 3
-        }
-      ],
+      "pending": 709,
       "capture_errors": [],
       "unresolved_visits": [],
       "review": [
         "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
         "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
-        "States are grouped by URL, headings, alerts and control structure; changing data values are evidence, not separate states.",
-        "State page_63f3f5b235442a88 has no outgoing journeys; review termination.",
-        "State page_0aff0a16521036da has no outgoing journeys; review termination.",
-        "State page_f400d11f81abbaf3 has no outgoing journeys; review termination.",
-        "State page_3478168d5774917a has no outgoing journeys; review termination.",
-        "State page_8073357e7bd3d887 has no outgoing journeys; review termination.",
-        "State page_319b8ba726dcad85 has no outgoing journeys; review termination.",
-        "State page_a8ab75b322f26df7 has no outgoing journeys; review termination.",
-        "State page_3d52bdf807cdcb0d has no outgoing journeys; review termination.",
-        "State page_8dfcd448a84dd623 has no outgoing journeys; review termination.",
-        "State page_e1a3785d6054079b has no outgoing journeys; review termination.",
-        "State page_101179ec5167e3c8 has no outgoing journeys; review termination.",
-        "State page_5dbc5c2bd6f096d6 has no outgoing journeys; review termination.",
-        "State page_5f9079a138660904 has no outgoing journeys; review termination.",
-        "State page_0eef09824aeb0f6c has no outgoing journeys; review termination.",
-        "State page_e55ec31ba343df1e has no outgoing journeys; review termination.",
-        "State page_cc5af7b850d90780 has no outgoing journeys; review termination.",
-        "State page_4effd20e0da99cbc has no outgoing journeys; review termination.",
-        "State page_242302636264361b has no outgoing journeys; review termination.",
-        "State page_84a370431218d9d1 has no outgoing journeys; review termination.",
-        "State page_8017e18606152f57 has no outgoing journeys; review termination.",
-        "State page_f32da5dda5a8bc8f has no outgoing journeys; review termination.",
-        "State page_2bc2506fdc20c424 has no outgoing journeys; review termination.",
-        "State page_f0c2774ee6e9748f has no outgoing journeys; review termination.",
-        "State page_5b25ff61d6249b44 has no outgoing journeys; review termination."
+        "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
+        "709 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
+        "State page_f4b882a5cd95552e has no outgoing journeys; review termination.",
+        "State page_7f6a9f525db5ff9f has no outgoing journeys; review termination.",
+        "State page_3f21315e843b97a4 has no outgoing journeys; review termination.",
+        "State page_78c4fc43142f6b68 has no outgoing journeys; review termination.",
+        "State page_342fe8fafa4739c8 has no outgoing journeys; review termination.",
+        "State page_533e933377bd24df has no outgoing journeys; review termination.",
+        "State page_0d69e05de288df13 has no outgoing journeys; review termination.",
+        "State page_dc75b9d8e02c48b2 has no outgoing journeys; review termination.",
+        "State page_1be6f572f31e45c1 has no outgoing journeys; review termination.",
+        "State page_6304e0357cfb2ab1 has no outgoing journeys; review termination.",
+        "State page_72fb0f85d1be4914 has no outgoing journeys; review termination.",
+        "State page_b8722af2feca9d0e has no outgoing journeys; review termination.",
+        "State page_5094a037f33f428c has no outgoing journeys; review termination.",
+        "State page_678fade87c33d886 has no outgoing journeys; review termination.",
+        "State page_231253bf14dadbca has no outgoing journeys; review termination.",
+        "State page_13e644d3c8252d8a has no outgoing journeys; review termination.",
+        "State page_d8edd339cde11e14 has no outgoing journeys; review termination.",
+        "State page_714f36550cc29248 has no outgoing journeys; review termination.",
+        "State page_72b00c8b1a1a553c has no outgoing journeys; review termination.",
+        "State page_bf29f4f38a125556 has no outgoing journeys; review termination.",
+        "State page_53d802e570f9d4ac has no outgoing journeys; review termination.",
+        "State page_c781b9bd05feac9c has no outgoing journeys; review termination.",
+        "State page_df2de0dee2bc69de has no outgoing journeys; review termination.",
+        "State page_342403c23a58cec0 has no outgoing journeys; review termination.",
+        "State page_e3ac55fcf51f06ad has no outgoing journeys; review termination.",
+        "State page_fc41618cc26f509e has no outgoing journeys; review termination.",
+        "State page_1d7b447dfbf4ce2b has no outgoing journeys; review termination.",
+        "State page_5a172a08437f8faf has no outgoing journeys; review termination.",
+        "State page_7b2d1808d80e76fe has no outgoing journeys; review termination.",
+        "State page_33d78af6faef1c7b has no outgoing journeys; review termination.",
+        "State page_1fb9e49cd9f9ef22 has no outgoing journeys; review termination.",
+        "State page_a6330a2029e64af3 has no outgoing journeys; review termination.",
+        "State page_d36c65f97ae05391 has no outgoing journeys; review termination.",
+        "State page_b4dc018e66f02dba has no outgoing journeys; review termination.",
+        "State page_0a859a6d311ad7a0 has no outgoing journeys; review termination.",
+        "State page_89321f211c7976a3 has no outgoing journeys; review termination.",
+        "State page_e4dfdb7dfaafbff5 has no outgoing journeys; review termination.",
+        "State page_f6ea92af76ae0556 has no outgoing journeys; review termination.",
+        "State page_dabc74ecfd3e8042 has no outgoing journeys; review termination.",
+        "State page_f5e90cedaab3e34f has no outgoing journeys; review termination.",
+        "State page_0b2564450466d7f9 has no outgoing journeys; review termination.",
+        "State page_b6a2bb59def87892 has no outgoing journeys; review termination.",
+        "State page_fa3ac1d1ee7dfdb7 has no outgoing journeys; review termination.",
+        "State page_aff278c2c1af27a8 has no outgoing journeys; review termination.",
+        "State page_5d2576cee8cab0b5 has no outgoing journeys; review termination."
+      ],
+      "blocked_endpoints": [
+        "https://events.backtrace.io/api/unique-events/submit?universe=UNIVERSE&token=TOKEN",
+        "https://events.backtrace.io/api/summed-events/submit?universe=UNIVERSE&token=TOKEN",
+        null
+      ],
+      "limits": {
+        "max_pages": 60,
+        "max_actions": 1200,
+        "max_state_variants": 2
+      },
+      "stop_reason": "state budget",
+      "pending_reasons": {
+        "state variant limit": 532,
+        "covered control": 36,
+        "state budget": 141
+      }
+    },
+    {
+      "inventory": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-workflow.discovery.json",
+      "artifacts": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-workflow.discovery",
+      "depth": 8,
+      "states": 17,
+      "executed_transitions": 47,
+      "visits": 48,
+      "replay_operations": 204,
+      "failed": [],
+      "pending": 75,
+      "capture_errors": [],
+      "unresolved_visits": [],
+      "review": [
+        "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
+        "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
+        "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
+        "75 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
+        "State page_5cc2997ce4e5f2c5 has no outgoing journeys; review termination.",
+        "State page_f4b882a5cd95552e has no outgoing journeys; review termination.",
+        "State page_7f6a9f525db5ff9f has no outgoing journeys; review termination."
       ],
       "blocked_endpoints": [
         "https://events.backtrace.io/api/unique-events/submit?universe=UNIVERSE&token=TOKEN",
         "https://events.backtrace.io/api/summed-events/submit?universe=UNIVERSE&token=TOKEN"
-      ]
+      ],
+      "limits": {
+        "max_pages": 40,
+        "max_actions": 400,
+        "max_state_variants": 1
+      },
+      "stop_reason": "queue exhausted",
+      "pending_reasons": {
+        "excluded control": 45,
+        "state variant limit": 30
+      }
     }
   ],
   "review": [
     "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
     "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
-    "States are grouped by URL, headings, alerts and control structure; changing data values are evidence, not separate states.",
-    "State page_63f3f5b235442a88 has no outgoing journeys; review termination.",
-    "State page_0aff0a16521036da has no outgoing journeys; review termination.",
-    "State page_f400d11f81abbaf3 has no outgoing journeys; review termination.",
-    "State page_3478168d5774917a has no outgoing journeys; review termination.",
-    "State page_8073357e7bd3d887 has no outgoing journeys; review termination.",
-    "State page_319b8ba726dcad85 has no outgoing journeys; review termination.",
-    "State page_a8ab75b322f26df7 has no outgoing journeys; review termination.",
-    "State page_3d52bdf807cdcb0d has no outgoing journeys; review termination.",
-    "State page_8dfcd448a84dd623 has no outgoing journeys; review termination.",
-    "State page_e1a3785d6054079b has no outgoing journeys; review termination.",
-    "State page_5dbc5c2bd6f096d6 has no outgoing journeys; review termination.",
-    "State page_5f9079a138660904 has no outgoing journeys; review termination.",
-    "State page_0eef09824aeb0f6c has no outgoing journeys; review termination.",
-    "State page_e55ec31ba343df1e has no outgoing journeys; review termination.",
-    "State page_cc5af7b850d90780 has no outgoing journeys; review termination.",
-    "State page_4effd20e0da99cbc has no outgoing journeys; review termination.",
-    "State page_242302636264361b has no outgoing journeys; review termination.",
-    "State page_84a370431218d9d1 has no outgoing journeys; review termination.",
-    "State page_8017e18606152f57 has no outgoing journeys; review termination.",
-    "State page_f32da5dda5a8bc8f has no outgoing journeys; review termination.",
-    "State page_2bc2506fdc20c424 has no outgoing journeys; review termination.",
-    "State page_f0c2774ee6e9748f has no outgoing journeys; review termination.",
-    "State page_5b25ff61d6249b44 has no outgoing journeys; review termination."
+    "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
+    "709 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
+    "75 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
+    "State page_f4b882a5cd95552e has no outgoing journeys; review termination.",
+    "State page_7f6a9f525db5ff9f has no outgoing journeys; review termination.",
+    "State page_3f21315e843b97a4 has no outgoing journeys; review termination.",
+    "State page_78c4fc43142f6b68 has no outgoing journeys; review termination.",
+    "State page_342fe8fafa4739c8 has no outgoing journeys; review termination.",
+    "State page_533e933377bd24df has no outgoing journeys; review termination.",
+    "State page_0d69e05de288df13 has no outgoing journeys; review termination.",
+    "State page_dc75b9d8e02c48b2 has no outgoing journeys; review termination.",
+    "State page_1be6f572f31e45c1 has no outgoing journeys; review termination.",
+    "State page_6304e0357cfb2ab1 has no outgoing journeys; review termination.",
+    "State page_72fb0f85d1be4914 has no outgoing journeys; review termination.",
+    "State page_b8722af2feca9d0e has no outgoing journeys; review termination.",
+    "State page_5094a037f33f428c has no outgoing journeys; review termination.",
+    "State page_678fade87c33d886 has no outgoing journeys; review termination.",
+    "State page_231253bf14dadbca has no outgoing journeys; review termination.",
+    "State page_13e644d3c8252d8a has no outgoing journeys; review termination.",
+    "State page_d8edd339cde11e14 has no outgoing journeys; review termination.",
+    "State page_714f36550cc29248 has no outgoing journeys; review termination.",
+    "State page_72b00c8b1a1a553c has no outgoing journeys; review termination.",
+    "State page_bf29f4f38a125556 has no outgoing journeys; review termination.",
+    "State page_53d802e570f9d4ac has no outgoing journeys; review termination.",
+    "State page_c781b9bd05feac9c has no outgoing journeys; review termination.",
+    "State page_df2de0dee2bc69de has no outgoing journeys; review termination.",
+    "State page_342403c23a58cec0 has no outgoing journeys; review termination.",
+    "State page_e3ac55fcf51f06ad has no outgoing journeys; review termination.",
+    "State page_fc41618cc26f509e has no outgoing journeys; review termination.",
+    "State page_1d7b447dfbf4ce2b has no outgoing journeys; review termination.",
+    "State page_5a172a08437f8faf has no outgoing journeys; review termination.",
+    "State page_7b2d1808d80e76fe has no outgoing journeys; review termination.",
+    "State page_33d78af6faef1c7b has no outgoing journeys; review termination.",
+    "State page_1fb9e49cd9f9ef22 has no outgoing journeys; review termination.",
+    "State page_a6330a2029e64af3 has no outgoing journeys; review termination.",
+    "State page_d36c65f97ae05391 has no outgoing journeys; review termination.",
+    "State page_b4dc018e66f02dba has no outgoing journeys; review termination.",
+    "State page_89321f211c7976a3 has no outgoing journeys; review termination.",
+    "State page_e4dfdb7dfaafbff5 has no outgoing journeys; review termination.",
+    "State page_f6ea92af76ae0556 has no outgoing journeys; review termination.",
+    "State page_dabc74ecfd3e8042 has no outgoing journeys; review termination.",
+    "State page_f5e90cedaab3e34f has no outgoing journeys; review termination.",
+    "State page_0b2564450466d7f9 has no outgoing journeys; review termination.",
+    "State page_b6a2bb59def87892 has no outgoing journeys; review termination.",
+    "State page_fa3ac1d1ee7dfdb7 has no outgoing journeys; review termination.",
+    "State page_aff278c2c1af27a8 has no outgoing journeys; review termination.",
+    "State page_5d2576cee8cab0b5 has no outgoing journeys; review termination."
   ],
-  "validation": {
-    "states": 40,
-    "edges": 94,
-    "data_sets": 0,
-    "model_hash": "d1e7bcdd3f264dedd3d6fbdd10af5255354aaa1e39ab0c87eb7c7d9e4210701c"
+  "generated_on": "2026-10-12",
+  "full_summary": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-summary.json",
+  "native_validation": {
+    "model_hash": "a8e4d3fd17ee7193630be42e80f98cceb8fcf1cc2f0454f4baee25dbc2ba9c2f",
+    "states": 63,
+    "edges": 135
   }
 }

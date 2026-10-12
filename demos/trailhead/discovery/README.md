@@ -29,8 +29,8 @@ npx --no-install testwalker-web serve --directory demos/trailhead/site \
 Run discovery (choose a fresh output filename):
 
 ```bash
-npx --no-install testwalker-web discover-url --url http://127.0.0.1:4191/ \
-  --output demos/artifacts/discovery-trailhead/repeat.json \
+npx --no-install testwalker-discover discover-url --url http://127.0.0.1:4191/ \
+  --output demos/artifacts/discovery-trailhead/repeat.model.json \
   --depth 10 --max-pages 100 --max-actions 4000 --settle-ms 100 \
   --click-buttons --probe-empty-forms
 

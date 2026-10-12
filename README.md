@@ -2,14 +2,16 @@
 
 A Rust test framework driven by declarative GraphWalker models. Rust owns graph exploration, Hegel input generation/shrinking, lifecycle scheduling, decision providers, verdicts, coverage, replay and HTML/JSON/JUnit reports. Executable adapters interact with it through bidirectional JSON-RPC.
 
-The web adapter is **TypeScript/JavaScript**, using Playwright with Jev decisions through the core's JSON-RPC API. Discovery uses JavaScript Crawlee. Python is not required.
+The web adapter is **TypeScript/JavaScript**, using Playwright with Jev decisions through the core's JSON-RPC API. The independent discovery package uses JavaScript Crawlee and needs no Jev key or Rust executable. Python is not required.
 
 ```text
 core/                       Standalone Rust framework, CLI, tests and reports
   models/rpc-selftest.json  Model that tests the framework itself
   docs/, openrpc*.json      Framework documentation and API specifications
 testwalker-web/             Standalone Node package: @testwalker/web
-  src/, tests/, docs/       Playwright/Jev adapter, Crawlee discovery, hooks
+  src/, tests/, docs/       Playwright/Jev adapter and hooks
+testwalker-discover/        Standalone Node package: @testwalker/discover
+  src/, tests/, docs/       Crawlee discovery, model drafts and static viewer
 demos/                      Applications, models and colocated TypeScript tests
   hello-world/             Two navigation options and one form input
   booking/                 Workshop booking with four menu destinations
@@ -64,4 +66,4 @@ TESTWALKER_BROWSER_TESTS=1 npm test
 
 The Rust self-test runs without Node, a browser or an API key. The web package consumes separately installed executables through JSON-RPC; it never compiles or imports Rust source. GraphWalker and Hegel are linked into Rust and need no separate installation.
 
-See [web configuration and architecture](testwalker-web/README.md), [testing and triage](testwalker-web/docs/testing.md), [demo commands](demos/README.md), [model format](core/docs/model-format.md), [framework CLI](core/docs/cli.md), [OpenRPC](core/openrpc.json), and [discovery](testwalker-web/docs/discovery.md).
+See [web configuration and architecture](testwalker-web/README.md), [testing and triage](testwalker-web/docs/testing.md), [demo commands](demos/README.md), [model format](core/docs/model-format.md), [framework CLI](core/docs/cli.md), [OpenRPC](core/openrpc.json), and [discovery](testwalker-discover/README.md).

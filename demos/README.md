@@ -58,7 +58,7 @@ npx --no-install testwalker-web serve --directory demos/trailhead/site \
   --app demos/trailhead/app.ts --port 4184
 ```
 
-Preview and discovery need no Jev key. Run regression checks with `npm test`, or `npm test --workspace @testwalker/demo-trailhead`. Set `TESTWALKER_BROWSER_TESTS=1` to include local Chrome checks. Tests stay under the owning example's `tests/`; shared launcher checks live in `demos/tests/`.
+Preview and [standalone discovery](../testwalker-discover/README.md) need no Jev key. Run regression checks with `npm test`, or `npm test --workspace @testwalker/demo-trailhead`. Set `TESTWALKER_BROWSER_TESTS=1` to include local Chrome checks. Tests stay under the owning example's `tests/`; shared launcher checks live in `demos/tests/`.
 
 ## Repeated live verification
 

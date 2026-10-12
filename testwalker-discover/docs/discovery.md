@@ -11,8 +11,8 @@ npx --no-install testwalker-web serve --directory demos/booking/site --port 4183
 In another terminal, visit the entry page and follow links/submit forms one layer deep:
 
 ```bash
-npx --no-install testwalker-web discover-url --url http://127.0.0.1:4183/ \
-  --output discovered-booking.json --depth 1 --headed
+npx --no-install testwalker-discover discover-url --url http://127.0.0.1:4183/ \
+  --output discovered-booking.model.json --depth 1 --headed
 ```
 
 The URL mode stays on the seed's origin, applies the depth limit, and uses default field values. Buttons are inventoried by default. Add `--click-buttons` to explore enabled non-submit buttons and custom options, including open shadow roots. Review side effects before enabling it; discovery can submit or confirm actions. `--exclude-buttons 'Delete account,Place order'` excludes exact visible labels. The built-in scanner handles native forms in the main document and these open-shadow-root controls. Iframes, closed shadow roots, unlabelled widgets and interactions such as drag/drop need custom handling.
@@ -40,22 +40,46 @@ Forms are queued before navigation and buttons so small budgets can reach valida
 For a supplied sitemap:
 
 ```bash
-npx --no-install testwalker-web discover-sitemap --sitemap /path/to/sitemap.xml \
-  --output discovered-site.json --headed
+npx --no-install testwalker-discover discover-sitemap --sitemap /path/to/sitemap.xml \
+  --output discovered-site.model.json --headed
 ```
 
 Only listed URLs are visited; links outside the list are never followed and forms are not submitted. Supply a `urlset` XML file, expanding sitemap indexes separately. All seed URLs must share an origin. Redirects are checked against the same scope. Normal page assets may be loaded; external data requests/writes are blocked. A URL mode depth of zero also avoids following links and submitting forms.
 
 ## Captured evidence
 
-Beside `discovered-site.json`, discovery writes `discovered-site.discovery.json` (inventory) and `discovered-site.discovery/` (visit artifacts):
+Beside `discovered-site.model.json`, discovery writes `discovered-site.discovery.json` (inventory) and `discovered-site.discovery/` (visit artifacts and a static viewer). Output names always end in `.model.json`; a supplied stem or `.json` filename is normalized to this convention.
+
+The model uses unique identifier names (`v_1_Home`, `e_1_Follow_Booking`) with no spaces or punctuation. Full descriptions, selection labels and journey intents remain in business metadata. A deterministic Dagre layout saves numeric `properties.x` and `properties.y` coordinates for GraphWalker Studio. Forward exploration flows left to right with space for labels; return, menu and self-loop edges are retained in the model without stretching the workflow layout.
+
+Same-heading variants use a small set of observed distinctions in their state
+descriptions: displayed read-only label/value pairs, selected choices, current
+feedback and visible selection-list options. Discovery reads ordinary labelled
+text and definition lists, and uses route or control differences when needed.
+It does not treat editable examples as proof of a workflow outcome or invent
+business requirements from them. These distinctions let the decision provider
+identify a closed selection list separately from an open one, for example,
+without site-specific selectors in the model.
+
+If navigation returns to a fragment route with the **exact same full UI snapshot**
+as the entry URL (for example `/` and `/#home`), discovery can represent the
+unreachable initial URL and that single unambiguous returned alias as one model
+state. Raw observations, URLs, transitions and screenshots remain in the inventory;
+the viewer links both to that state. Different content, input values, paths or
+multiple matching fragment routes are not merged. This avoids a false one-way
+entry state without inventing return edges. Genuine one-way graphs receive a
+review warning: New York Street Sweeper requires strong connectivity, and a
+single walk may be unable to cover all outgoing branches of a transient entry.
 
 | Artifact         | Contents                                                                  |
 | ---------------- | ------------------------------------------------------------------------- |
+| `index.html`     | Interactive overview, navigation graph, visits, issues and deferred actions. |
 | `screenshot.png` | Full-page rendered screenshot.                                            |
 | `network.json`   | JSON request/response bodies with endpoint, method, status and timing.     |
 
-Discovery does not save page HTML or DOM snapshots. Network evidence includes only exchanges whose request or response Content-Type is `application/json` or ends in `+json`. This includes GET APIs returning JSON. HTML, CSS, scripts, images and other non-JSON traffic are omitted entirely and do not consume the capture limit. Non-JSON bodies in an otherwise JSON exchange are marked `not_json` and are not saved.
+Open `discovered-site.discovery/index.html` directly from disk. It needs no server or remote libraries. Its graph, search and category tabs link executed journeys to screenshots and bounded JSON previews. Use `testwalker-discover report --inventory RUN.discovery.json` to add a viewer to an earlier run; see the [package README](../README.md) for combined reports.
+
+Discovery does not save page HTML or DOM snapshots. Network evidence includes only exchanges whose request or response Content-Type is `application/json` or ends in `+json`. This includes GET APIs returning JSON. HTML, CSS, scripts, images and other non-JSON traffic are omitted entirely and do not consume the capture limit. Requests with no payload (typically GET) have `request_body.status: "no_body"`; this says nothing about the response body, which is captured independently. Nonempty non-JSON bodies in an otherwise JSON exchange are marked `not_json` and are not saved. The request Content-Type is recorded to explain this distinction. An unavailable JSON response remains `unavailable`, rather than being mistaken for an empty body.
 
 JSON capture is limited to 1 MiB per body and 1,000 JSON exchanges per visit by default. Oversize, unavailable, failed or incomplete requests are explicitly marked. Streaming or unconsumed bodies may remain incomplete. Capture errors are recorded without pretending an artifact exists. Field inventory includes labels, HTML constraints and accessible help text. `suggested_data_sets` in the inventory groups form fields into provisional business schemas, ready to review. These are not added as Hegel campaigns to the model: discovery cannot infer independent validation rules or reliably classify accepted/rejected outcomes. Form journey intents retain non-password sample values so the draft describes what was tried. Passwords are omitted from those intents; configure authentication explicitly before running a reviewed model.
 
@@ -79,7 +103,7 @@ Inventory version 3 adds `actions`, listing each known seed/action with status (
 Keys match field names; use labels for unnamed fields. Checkbox values must be booleans. Radio values name the selected option. Custom handling can be supplied with `--hooks discovery-hooks.ts`:
 
 ```ts
-import type { DiscoveryContext } from "@testwalker/web";
+import type { DiscoveryContext } from "@testwalker/discover";
 
 export async function before_submit(ctx: DiscoveryContext) {
   ctx.values["Email address"] = "specific@example.test";

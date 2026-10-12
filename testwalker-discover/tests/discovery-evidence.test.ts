@@ -11,10 +11,15 @@ test("Evidence limits count only JSON exchanges, including GET responses and fai
   const directory = await mkdtemp(join(tmpdir(), "testwalker-json-evidence-"));
   const page = new EventEmitter();
   const record = { id: "visit-0001", artifacts: {}, capture_errors: [] };
-  const evidence = new VisitEvidence(page as unknown as Page, directory, record, {
-    screenshots: false,
-    maxNetworkRequests: 3,
-  });
+  const evidence = new VisitEvidence(
+    page as unknown as Page,
+    directory,
+    record,
+    {
+      screenshots: false,
+      maxNetworkRequests: 3,
+    },
+  );
   const request = (url: string, contentType = ""): Request =>
     ({
       url: () => url,
@@ -65,6 +70,8 @@ test("Evidence limits count only JSON exchanges, including GET responses and fai
     assert.equal(network.requests.length, 3);
     assert.equal(network.omitted_requests, 1);
     assert.deepEqual(network.requests[0].response.body.value, { ok: true });
+    assert.equal(network.requests[0].request_body.status, "no_body");
+    assert.equal(network.requests[0].request_content_type, "");
     assert.deepEqual(network.requests[1].request_body.value, { test: true });
     assert.equal(network.requests[1].response.body.status, "not_json");
     assert.equal(network.requests[2].status, "failed");

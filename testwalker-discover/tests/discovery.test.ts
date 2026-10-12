@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { serve } from "../src/server.js";
+import { serve } from "./fixture.js";
 import {
   discoverUrl,
   discoverSitemap,
@@ -102,6 +102,11 @@ test("Draft graphs contain prose and observed journeys, with unreachable/dead-en
   assert.ok(review.some((text) => text.includes("no outgoing")));
 });
 test("JSON capture distinguishes non-JSON, unavailable, malformed and oversize bodies", () => {
+  assert.equal(
+    jsonBody(Buffer.alloc(0), "application/json", 10).status,
+    "no_body",
+  );
+  assert.equal(jsonBody(Buffer.alloc(0), "text/plain", 10).status, "no_body");
   assert.equal(jsonBody(Buffer.from("{}"), "text/html", 10).status, "not_json");
   assert.equal(jsonBody(null, "application/json", 10).status, "unavailable");
   assert.equal(
@@ -208,10 +213,17 @@ test(
       );
       const visit = result.inventory.visits[0],
         base = join(temp, "url.discovery");
-      assert.deepEqual(
-        (await readdir(join(base, visit.id))).sort(),
-        ["network.json", "screenshot.png"],
-      );
+      assert.equal(result.report_path, join(base, "index.html"));
+      assert.equal(result.output, join(temp, "url.model.json"));
+      assert.equal(result.inventory_path, join(temp, "url.discovery.json"));
+      const report = await readFile(result.report_path, "utf8");
+      assert.match(report, /See what discovery found/);
+      assert.ok(report.includes("visit-0001/screenshot.png"));
+      assert.ok(report.includes("../url.model.json"));
+      assert.deepEqual((await readdir(join(base, visit.id))).sort(), [
+        "network.json",
+        "screenshot.png",
+      ]);
       assert.equal(
         (await readFile(join(base, visit.artifacts["screenshot.png"])))
           .subarray(1, 4)
