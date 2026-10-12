@@ -243,7 +243,7 @@
     {
       "name": "target.execute",
       "summary": "Perform the selected edge",
-      "description": "Execute the supplied edge intent using literal input. GraphWalker and the Rust core choose the journey. fields describes this edge only; it is empty for navigation-only edges, while input can retain data from an earlier submission. Return after the target is ready to be observed. destination is the nominal edge destination description; states lists all modeled descriptions.",
+      "description": "Execute the supplied edge intent using literal input. GraphWalker and the Rust core choose the journey. fields describes this edge only; fixed examples supply binding descriptions rather than independent property constraints. It is empty for navigation-only edges, while input can retain data from an earlier submission. Return after the target is ready to be observed. destination is the nominal edge destination description; states lists all modeled descriptions.",
       "paramStructure": "by-name",
       "params": [
         {
@@ -257,14 +257,14 @@
           "name": "fields",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/Fields"
+            "$ref": "#/components/schemas/ExecutionFields"
           }
         },
         {
           "name": "input",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           }
         },
         {
@@ -422,7 +422,7 @@
           "name": "input",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           }
         },
         {
@@ -1197,6 +1197,70 @@
         "description": "Literal text or a JSON number. Input values are never executable code.",
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "ExecutionLiteral": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Literal"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "ExecutionInput": {
+        "type": "object",
+        "maxProperties": 20,
+        "additionalProperties": {
+          "$ref": "#/components/schemas/ExecutionLiteral"
+        },
+        "description": "Graph execution inputs, including retained values from fixed scenarios. Literal values are never executable code."
+      },
+      "BindingField": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "type": {
+            "enum": [
+              "text"
+            ]
+          },
+          "trim spaces": {
+            "enum": [
+              false
+            ]
+          },
+          "example": {
+            "$ref": "#/components/schemas/ExecutionLiteral"
+          }
+        },
+        "required": [
+          "description",
+          "type",
+          "trim spaces",
+          "example"
+        ],
+        "additionalProperties": false,
+        "description": "Descriptions derived from fixed example names, not independently asserted property domains."
+      },
+      "ExecutionFields": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Fields"
+          },
+          {
+            "type": "object",
+            "maxProperties": 20,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BindingField"
+            }
+          }
+        ],
+        "description": "Independent property fields or binding-only descriptions for literal graph examples. Empty for navigation-only edges."
+      },
       "Input": {
         "type": "object",
         "properties": {},
@@ -1392,7 +1456,7 @@
                     "type": "string"
                   },
                   "example": {
-                    "$ref": "#/components/schemas/Input"
+                    "$ref": "#/components/schemas/ExecutionInput"
                   }
                 },
                 "required": [
@@ -1651,7 +1715,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           },
           "invalid": {
             "$ref": "#/components/schemas/Violations"
@@ -2065,7 +2129,7 @@
             ]
           },
           "input": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           },
           "seed": {
             "type": "integer",
@@ -2137,7 +2201,7 @@
             }
           },
           "input": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           },
           "violations": {
             "$ref": "#/components/schemas/Violations"

@@ -1,6 +1,6 @@
 # Exported business model contract
 
-A model is the test specification. Describe **where the user can be, what they are trying to do, what must be true, and which data is permitted**. Do not describe selectors, clicks, typing sequences, page objects or code.
+A model is the test specification. Describe **where the user can be, what they are trying to do, what must be true, and which data is permitted**. Keep selectors, page objects and application code outside the model.
 
 Start with [the smaller enquiry model](../../demos/feedback/model.json) or [the booking model](../../demos/booking/model.json). Both use the same Rust framework through its TypeScript web client. For a larger specification with 20 states, 148 journeys, weighted edges, a predefined route and lifecycle integrations, see the [Trailhead example](../../demos/trailhead/README.md).
 
@@ -92,9 +92,32 @@ A navigation journey needs only business intent:
 {"intent": "Abandon this booking and return to the workshop introduction."}
 ```
 
-Do not say “click the button with this label” or encode a sequence of browser operations. Jev discovers how to carry out the intent from the live page. The runner then verifies the edge's destination.
+Prefer business intent over a sequence of browser operations. Discovery drafts can name an observed link or control by its readable label; this is a text hint, not a selector or executable script. Jev resolves the intent against the live page. The runner then verifies the edge's destination.
 
-A data submission also names the data set and its rejection state:
+For a **fixed scenario** without a property-testing dictionary, an ordinary
+journey can instead supply literal `example` inputs:
+
+```json
+{
+  "intent": "Submit the contact request",
+  "example": {"Name": "Alex Example", "Email address": "alex@example.test"}
+}
+```
+
+The framework supplies those values to the adapter, verifies the journey's target
+state, and records the inputs in the plan, reports and replay recipe. Field names
+describe business meaning; they are not selectors. Fixed examples allow 1–20
+named scalar inputs (text up to 2,000 characters, numbers or booleans). Whitespace
+is preserved. Adapter field descriptions are derived from those names for input
+binding only; they are not inferred validation domains. A replay must use the
+same saved inputs. `--input-mode none` disables property campaigns while still
+executing these fixed graph examples.
+
+Fixed scenarios create no Hegel campaign, validation classification or property
+coverage. `accepted at` and `rejected at` still require an independently defined
+`data set`. To generate and shrink inputs, use the data-submission form below.
+
+A property-tested data submission names the data set and its rejection state:
 
 ```json
 {

@@ -277,7 +277,7 @@ fn plan(model: &Model, options: &Options, replay: Option<&Value>) -> Result<Plan
                 "Replay model hash differs; use the original saved model.json",
             ));
         }
-        report["scope"]["selected_campaigns"] = json!(1);
+        report["scope"]["selected_campaigns"] = json!(if case["kind"] == "graph" { 0 } else { 1 });
         report["tests"].as_array_mut().unwrap().push(json!({"id":"property/replay","kind":case.get("kind").unwrap_or(&json!("property")),"status":"NOT_RUN","journey":case["journey"],"input":case["input"],"phase":{"kind":"replay","source":"replay"}}));
     } else {
         for walk in 0..options.walks {
@@ -314,7 +314,9 @@ fn plan(model: &Model, options: &Options, replay: Option<&Value>) -> Result<Plan
                 let mut test = json!({"id":format!("graph/{}/{}/{}",walk+1,position,string(&element["id"])),"kind":"graph","status":"NOT_RUN","name":format!("Walk {}, step {}: {} → {}",walk+1,position,string(&element["name"]),string(&state["name"])),"walk":walk+1,"seed":options.seed+walk as u64,"position":position,"element":element,"expected_state":state["id"],"description":business(state)["description"],"rules":business(state)["rules"],"global_rules":model.business["rules"],"replay_recipe":{"kind":"graph","model_hash":model.digest,"journey":if position==0 {Value::Null}else{element["id"].clone()},"state":state["id"],"seed":options.seed+walk as u64,"input":model.example(element)?}});
                 if element["kind"] == "edge" {
                     test["intent"] = business(element)["intent"].clone();
-                    if business(element).get("data set").is_some() {
+                    if business(element).get("data set").is_some()
+                        || business(element).get("example").is_some()
+                    {
                         test["input"] = model.example(element)?;
                     }
                 }
@@ -423,11 +425,7 @@ impl<T: Target> Execution<'_, T> {
         )
     }
     fn execute(&mut self, edge: &Value, input: Option<Value>) -> Result<(), Fault> {
-        let fields = if business(edge).get("data set").is_some() {
-            json!(self.model.fields(edge)?)
-        } else {
-            json!({})
-        };
+        let fields = self.model.execution_fields(edge)?;
         if !fields.as_object().unwrap().is_empty() {
             self.fields = fields.clone();
             self.data = input.unwrap_or(self.model.example(edge)?);
@@ -920,14 +918,20 @@ pub fn run<T: Target>(
                     .get(string(&case["journey"]))
                     .ok_or_else(|| Fault::unknown("Replay references an unknown journey"))?;
                 let data = if case["kind"] == "graph" && business(edge).get("data set").is_none() {
-                    json!({})
+                    let fixed = model.example(edge)?;
+                    if case["input"] != fixed {
+                        return Err(Fault::unknown(
+                            "Graph replay input differs from the model's fixed example",
+                        ));
+                    }
+                    fixed
                 } else {
                     validate_input(model.fields(edge)?, &case["input"])?;
                     case["input"].clone()
                 };
                 if case["kind"] == "graph" && business(edge).get("data set").is_none() {
                     execution.setup(edge)?;
-                    execution.execute(edge, None)?;
+                    execution.execute(edge, Some(data))?;
                     execution.check(string(&edge["targetVertexId"]), vec![])?;
                 } else {
                     execution.attempt(edge, data, "replay")?;

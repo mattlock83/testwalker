@@ -67,6 +67,11 @@ function evidence(
         label: control.label,
         operations: ["CLICK"],
       })),
+      ...(page.semantics?.visible_options ?? []).map((control: Json) => ({
+        role: "option",
+        label: control.label,
+        operations: ["CLICK"],
+      })),
       ...(page.semantics?.editable_fields ?? []).map((control: Json) => ({
         role: "textbox",
         label: control.label,
@@ -472,14 +477,15 @@ export class Oracle {
       preceding = undefined;
       if (record.status !== "PASS" || !record.observed) continue;
       const dataSet = journey?.properties.business["data set"];
-      const navigation = journey && !dataSet;
+      const submission = dataSet || journey?.properties.business.example;
+      const navigation = journey && !submission;
       const scenario = {
         observed_state: record.observed,
         expected_state: record.expected,
         transition: journey
           ? {
               id: journey.id,
-              type: dataSet ? "data_submission" : "navigation",
+              type: submission ? "data_submission" : "navigation",
               data_set: dataSet ?? null,
             }
           : undefined,

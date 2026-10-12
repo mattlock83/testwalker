@@ -4,6 +4,30 @@ import { resolve } from "node:path";
 import { buildModel } from "../src/discovery.js";
 import { discoveryPaths, entryAliases } from "../src/model-export.js";
 
+test("Global draft rules describe observable page evidence, with title and URL fallbacks", () => {
+  const page = (headings: string[], title: string) => ({
+    url: "https://example.test/",
+    headings,
+    title,
+    forms: [],
+    buttons: [],
+  });
+  for (const [pages, rule] of [
+    [
+      { entry: page(["Welcome"], "Home") },
+      "The current page has a visible heading.",
+    ],
+    [
+      { entry: page(["Welcome"], "Home"), next: page([], "Details") },
+      "The browser page has a nonempty title.",
+    ],
+    [{ entry: page([], "") }, "The browser page has an HTTP or HTTPS URL."],
+  ] as const) {
+    const model = buildModel(pages, [], []).models[0];
+    assert.deepEqual(model.properties.business.rules, [rule]);
+  }
+});
+
 test("Only an unambiguous, fully identical returned entry fragment is merged; observed evidence is retained", () => {
   const seed = {
     url: "https://example.test/",

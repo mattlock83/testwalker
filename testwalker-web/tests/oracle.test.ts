@@ -79,6 +79,27 @@ test("Insufficient state or requirement evidence remains unresolved", async () =
   ).check({ text: "Done" }, "done");
   assert.equal(result.checks[0].status, "uncertain");
 });
+
+test("Observed selection-list options keep their roles in state evidence", async () => {
+  const core = client("s0");
+  await new Oracle(new Decisions(core), model).identify({
+    text: "Choose a delivery point",
+    semantics: {
+      visible_options: [{ label: "North hub" }, { label: "South hub" }],
+    },
+  });
+  const evidence = core.calls.find(
+    (call) => call.method === "decision.ask",
+  )!.evidence;
+  assert.deepEqual(evidence.accessibility.visible_options, [
+    { label: "North hub" },
+    { label: "South hub" },
+  ]);
+  assert.deepEqual(
+    evidence.elements.map((element: Json) => element.role),
+    ["option", "option"],
+  );
+});
 test("Confidence defaults to 0.80 and explicit overrides reach the Rust answer validator", async () => {
   for (const threshold of [undefined, 0.9]) {
     const core = client("s0");
@@ -212,6 +233,10 @@ test("Audit provenance distinguishes a new submission from values retained durin
       id: "return",
       properties: { business: { intent: "Return to the form" } },
     },
+    {
+      id: "fixed",
+      properties: { business: { example: { Name: "Alex" } } },
+    },
   ];
   const calls: Json[] = [];
   const core = {
@@ -246,6 +271,12 @@ test("Audit provenance distinguishes a new submission from values retained durin
         observed: "done",
         input: { Name: "x" },
       },
+      {
+        journey: "fixed",
+        status: "PASS",
+        observed: "done",
+        input: { Name: "Alex" },
+      },
     ],
     ["Name validation"],
   );
@@ -257,4 +288,7 @@ test("Audit provenance distinguishes a new submission from values retained durin
   assert.deepEqual(scenarios[1].retained_business_values, { Name: "" });
   assert.deepEqual(scenarios[1].input_violations, []);
   assert.equal(scenarios[2].transition.data_set, "Names");
+  assert.equal(scenarios[3].transition.type, "data_submission");
+  assert.equal(scenarios[3].transition.data_set, null);
+  assert.deepEqual(scenarios[3].submitted_values, { Name: "Alex" });
 });

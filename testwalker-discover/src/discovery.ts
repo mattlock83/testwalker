@@ -193,7 +193,8 @@ export function buildModel(
     const intent = prose(transition.intent);
     const source = aliases[transition.source] ?? transition.source;
     const target = aliases[transition.target] ?? transition.target;
-    const key = hash([source, target, intent]);
+    const example = fixedFormExample(transition, review);
+    const key = hash([source, target, intent, ...(example ? [example] : [])]);
     transition.edge_id = "journey_" + key;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -208,7 +209,12 @@ export function buildModel(
       name: studioName("e", edges.length, intent),
       sourceVertexId: source,
       targetVertexId: target,
-      properties: { business: { intent } },
+      properties: {
+        business: {
+          intent,
+          ...(example ? { example } : {}),
+        },
+      },
     });
   }
   studioLayout(vertices, edges);
@@ -250,6 +256,16 @@ export function buildModel(
     review.push(
       "The observed graph is not strongly connected: some states cannot return to the entry. New York Street Sweeper cannot traverse it; review the model before requesting full single-walk edge coverage.",
     );
+  // Global prose must be observable at a checkpoint. Graph completion is
+  // already enforced by the core's coverage gate, not inferred from one page.
+  const observed = Object.values(pages);
+  const globalRule = observed.every((page) =>
+    page.headings?.some((heading: string) => heading.trim()),
+  )
+    ? "The current page has a visible heading."
+    : observed.every((page) => page.title?.trim())
+      ? "The browser page has a nonempty title."
+      : "The browser page has an HTTP or HTTPS URL.";
   return {
     models: [
       {
@@ -263,7 +279,7 @@ export function buildModel(
             purpose:
               "Draft from observed UI; review navigation and add independent business rules before testing.",
             "entry path": entry.pathname + entry.search + entry.hash,
-            rules: ["Each journey reaches its described destination."],
+            rules: [globalRule],
             "data sets": {},
           },
         },
@@ -281,6 +297,50 @@ const editableField = (field: Json): boolean =>
   !["hidden", "submit", "image", "button", "reset", "file"].includes(
     field.type,
   );
+
+/** Fixed replay inputs are observed examples, not inferred validation domains. */
+function fixedFormExample(
+  transition: Json,
+  review: string[],
+): Json | undefined {
+  if (!transition.form) return;
+  const fields = transition.form.fields.filter(editableField);
+  if (!fields.length) return;
+  const example: Json = {};
+  const values = transition.values ?? {};
+  for (const field of fields) {
+    const source = field.name || field.label;
+    const name = prose(field.label || source);
+    if (Object.hasOwn(example, name)) {
+      review.push(
+        "A form has ambiguous repeated field labels; review input bindings before replay.",
+      );
+      return;
+    }
+    const value =
+      field.type === "radio" && Object.hasOwn(values, source)
+        ? values[source] === field.value
+        : values[source];
+    if (
+      !["string", "number", "boolean"].includes(typeof value) ||
+      (typeof value === "number" && !Number.isFinite(value)) ||
+      String(value).length > 2000
+    ) {
+      review.push(
+        "An observed form input cannot be represented as a scalar fixed example; review this journey before replay.",
+      );
+      return;
+    }
+    example[name] = value;
+  }
+  if (Object.keys(example).length > 20) {
+    review.push(
+      "An observed form exceeds the framework's 20-field fixed example limit; review this journey before replay.",
+    );
+    return;
+  }
+  return example;
+}
 
 const formIdentity = (form: Json): string =>
   hash(
@@ -1152,7 +1212,7 @@ export async function discoverUrls(
                     label: link.label,
                     url: link.url,
                   },
-                  `Follow ${prose(link.label)}.`,
+                  `Click the link labelled "${prose(link.label)}".`,
                   "executed hyperlink",
                   link.actionable ? deferred : "covered control",
                 );
@@ -1171,7 +1231,7 @@ export async function discoverUrls(
                       index: button.index,
                       label: button.label,
                     },
-                    `Choose ${prose(button.label)}.`,
+                    `Click the control labelled "${prose(button.label)}".`,
                     "executed control",
                     options.excludeButtons?.includes(button.label)
                       ? "excluded control"

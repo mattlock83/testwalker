@@ -162,6 +162,45 @@ fn published_documents_conform_to_official_schema_and_examples_offline() {
     );
 }
 #[test]
+fn fixed_scenarios_have_distinct_model_adapter_and_replay_input_schemas() {
+    let document = core();
+    let callback = adapter();
+    let schema = |doc: &Value, name: &str| {
+        validator(
+            &json!({"$ref":format!("#/components/schemas/{name}"),"components":doc["components"]}),
+        )
+    };
+    let input = json!({"Name":" Alex ","Quantity":3.5,"Consent":true});
+    let business = json!({"intent":"Submit the request","example":input});
+    schema(&document, "EdgeBusiness")
+        .validate(&business)
+        .unwrap();
+    assert!(!schema(&document, "Input").is_valid(&input));
+    assert!(!schema(&callback, "Input").is_valid(&input));
+    assert!(!schema(&document, "FixedInput").is_valid(&json!({})));
+    let mut data_journey = business.clone();
+    data_journey["data set"] = json!("Details");
+    assert!(!schema(&document, "EdgeBusiness").is_valid(&data_journey));
+    let edge = json!({"id":"submit","name":"e_Submit","sourceVertexId":"form","targetVertexId":"done","properties":{"x":20,"y":30,"business":business}});
+    schema(&document, "Edge").validate(&edge).unwrap();
+    valid(
+        &callback,
+        "target.execute",
+        &json!({
+            "edge":edge,"fields":{"Consent":{"description":"Consent","type":"text","trim spaces":false,"example":true}},
+            "input":input,"destination":"Request received","states":["Enter request details","Request received"]
+        }),
+        &json!({}),
+    );
+    schema(&document, "ReplayCase")
+        .validate(
+            &json!({"kind":"graph","model_hash":"0".repeat(64),"journey":"submit","input":input}),
+        )
+        .unwrap();
+    schema(&callback, "ReplayRecipe").validate(&json!({"kind":"graph","model_hash":"0".repeat(64),"journey":"submit","state":"done","seed":42,"input":input})).unwrap();
+}
+
+#[test]
 fn actual_self_model_traffic_matches_published_methods_and_faults() {
     let model = Model::new(serde_json::from_str(SELF_MODEL).unwrap()).unwrap();
     let mut target = RpcTarget::new(

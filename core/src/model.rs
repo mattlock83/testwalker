@@ -278,11 +278,16 @@ impl Model {
                     ));
                 }
                 model.setup(string(&edge["sourceVertexId"]))?;
-            } else if ["example", "accepted at", "rejected at"]
-                .iter()
-                .any(|k| spec.get(k).is_some())
-            {
-                return Err(Fault::unknown("Data options require a data set"));
+            } else {
+                if ["accepted at", "rejected at"]
+                    .iter()
+                    .any(|k| spec.get(k).is_some())
+                {
+                    return Err(Fault::unknown("Data options require a data set"));
+                }
+                if let Some(example) = spec.get("example") {
+                    validate_fixed_example(example)?;
+                }
             }
         }
         let used = model
@@ -312,12 +317,22 @@ impl Model {
     }
     pub fn example(&self, edge: &Value) -> Result<Value, Fault> {
         if business(edge).get("data set").is_none() {
-            return Ok(json!({}));
+            return Ok(business(edge).get("example").cloned().unwrap_or(json!({})));
         }
         Ok(business(edge)
             .get("example")
             .cloned()
             .unwrap_or(baseline(self.fields(edge)?)))
+    }
+    /// Binding descriptions for fixed inputs are not independent property domains.
+    pub fn execution_fields(&self, edge: &Value) -> Result<Value, Fault> {
+        if business(edge).get("data set").is_some() {
+            return Ok(json!(self.fields(edge)?));
+        }
+        let example = self.example(edge)?;
+        Ok(Value::Object(example.as_object().unwrap().iter().map(|(name, value)| (
+            name.clone(), json!({"description":name,"type":"text","trim spaces":false,"example":value})
+        )).collect()))
     }
     pub fn start(&self) -> &str {
         string(&self.graph["startElementId"])
@@ -350,6 +365,21 @@ impl Model {
 
 pub fn literal(value: &Value) -> bool {
     (value.is_string() || value.is_number()) && rendered(value).chars().count() <= 2000
+}
+fn validate_fixed_example(example: &Value) -> Result<(), Fault> {
+    let fields = example
+        .as_object()
+        .filter(|fields| !fields.is_empty() && fields.len() <= 20)
+        .ok_or_else(|| Fault::unknown("Fixed examples need 1–20 named literal inputs"))?;
+    for (name, value) in fields {
+        text(&json!(name))?;
+        if !(literal(value) || value.is_boolean()) {
+            return Err(Fault::unknown(
+                "Fixed examples must contain literal text, numbers or booleans",
+            ));
+        }
+    }
+    Ok(())
 }
 pub fn validate_input(fields: &Map<String, Value>, data: &Value) -> Result<(), Fault> {
     if !data.as_object().is_some_and(|d| {

@@ -353,6 +353,13 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
       available_buttons: controls
         .filter((control) => control.role === "button")
         .map((control) => ({ label: control.label })),
+      visible_options: elements
+        .filter(
+          (element) =>
+            element.getAttribute("role") === "option" && rendered(element),
+        )
+        .slice(0, 100)
+        .map((element) => ({ label: label(element) })),
     };
     // innerText includes offscreen rendered evidence. Shadow trees need their own text.
     const page = {

@@ -604,9 +604,12 @@ export class BrowserTarget {
         this.assertSnapshotOwner();
         const value = values[field];
         await this.measure("interaction", async () => {
-          if (control.operations.includes("CHECK"))
-            await handle.setChecked(value);
-          else if (control.operations.includes("SELECT")) {
+          if (control.operations.includes("CHECK")) {
+            // Selecting a radio clears its siblings; browsers cannot uncheck
+            // a radio directly. The complete group is verified below.
+            if (control.type !== "radio" || value)
+              await handle.setChecked(value);
+          } else if (control.operations.includes("SELECT")) {
             // Native select values/labels are matched exactly; arbitrary invalid options cannot be fabricated.
             const options = await handle.evaluate((element) =>
               Array.from((element as HTMLSelectElement).options).map(

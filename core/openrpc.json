@@ -111,7 +111,7 @@
     {
       "name": "model.validate",
       "summary": "Validate a business model.",
-      "description": "Applies defaults, checks the supported business vocabulary and model relationships, and returns the canonical model hash and counts. It does not execute the graph or contact a provider. Returns the normalized document and resolved nominal inputs; adapters must use these rather than implementing defaults or input rules.",
+      "description": "Applies defaults, checks the supported business vocabulary and model relationships, and returns the canonical model hash and counts. It does not execute the graph or contact a provider. Returns the normalized document and resolved nominal inputs; adapters must use these rather than implementing defaults or input rules. Ordinary graph journeys can supply bounded fixed example inputs without a data set; these are replayed and reported but do not create property campaigns.",
       "paramStructure": "by-name",
       "params": [
         {
@@ -2962,8 +2962,41 @@
           "string",
           "number"
         ],
-        "description": "Literal text or a number, with at most 2,000 characters when rendered. Booleans, null, arrays and objects are not business field values.",
+        "description": "Property-test literal text or a number, with at most 2,000 characters when rendered. Booleans are supported only by fixed graph examples; null, arrays and objects are not inputs.",
         "maxLength": 2000
+      },
+      "ExecutionLiteral": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/LiteralInput"
+          },
+          {
+            "type": "boolean"
+          }
+        ],
+        "description": "Fixed graph examples also allow boolean checkbox and radio inputs; property domains remain text/number only."
+      },
+      "ExecutionInput": {
+        "type": "object",
+        "maxProperties": 20,
+        "additionalProperties": {
+          "$ref": "#/components/schemas/ExecutionLiteral"
+        },
+        "description": "Graph execution inputs, including retained values from fixed scenarios. Literal values are never executable code."
+      },
+      "FixedInput": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExecutionInput"
+          },
+          {
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "#/components/schemas/BusinessText"
+            }
+          }
+        ],
+        "description": "One to twenty named fixed scenario inputs. No Hegel campaign is inferred."
       },
       "Input": {
         "type": "object",
@@ -3276,7 +3309,7 @@
             "$ref": "#/components/schemas/BusinessText"
           },
           "example": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           },
           "accepted at": {
             "$ref": "#/components/schemas/BusinessText"
@@ -3289,7 +3322,44 @@
           "intent"
         ],
         "additionalProperties": false,
-        "description": "A data journey must name an existing data set, distinct existing acceptance/rejection states, and have examples consistent with its target state. Without a data set, example/accepted at/rejected at are forbidden. Graph relations are checked by model.validate."
+        "description": "Data journeys define independent input domains and acceptance/rejection states. Without a data set, a bounded fixed example can replay literal inputs without creating property tests; accepted at and rejected at are forbidden. Graph relations and data-target consistency are checked by model.validate.",
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "data set"
+              ]
+            },
+            "then": {
+              "properties": {
+                "example": {
+                  "$ref": "#/components/schemas/Input"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "example": {
+                  "$ref": "#/components/schemas/FixedInput"
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "accepted at"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "rejected at"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "State": {
         "type": "object",
@@ -3323,6 +3393,14 @@
                 "type": "object",
                 "additionalProperties": true,
                 "description": "RPC state or edge bindings, requiring graph-level RPC profile version 1. Rust validates predicates, requests and rule bindings before execution."
+              },
+              "x": {
+                "type": "number",
+                "description": "GraphWalker Studio layout coordinate; ignored during execution."
+              },
+              "y": {
+                "type": "number",
+                "description": "GraphWalker Studio layout coordinate; ignored during execution."
               }
             },
             "required": [
@@ -3376,6 +3454,14 @@
                 "type": "object",
                 "additionalProperties": true,
                 "description": "RPC state or edge bindings, requiring graph-level RPC profile version 1. Rust validates predicates, requests and rule bindings before execution."
+              },
+              "x": {
+                "type": "number",
+                "description": "GraphWalker Studio layout coordinate; ignored during execution."
+              },
+              "y": {
+                "type": "number",
+                "description": "GraphWalker Studio layout coordinate; ignored during execution."
               }
             },
             "required": [
@@ -3810,7 +3896,7 @@
             "type": "string"
           },
           "input": {
-            "$ref": "#/components/schemas/Input"
+            "$ref": "#/components/schemas/ExecutionInput"
           },
           "seed": {
             "type": "integer",

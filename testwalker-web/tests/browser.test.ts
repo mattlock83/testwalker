@@ -84,6 +84,76 @@ const navParams = {
 };
 
 test(
+  "Fixed scalar inputs preserve whitespace and boolean checkbox/radio choices",
+  chrome,
+  async () => {
+    const browser = await chromium.launch({ channel: "chrome" });
+    const target = new BrowserTarget(decisionClient().core);
+    try {
+      const page = (target.page = await browser.newPage());
+      await page.setContent(`<form>
+        <label>Name<input name="name"></label>
+        <label>Consent<input name="consent" type="checkbox"></label>
+        <label>Alpha<input name="option" value="alpha" type="radio" checked></label>
+        <label>Beta<input name="option" value="beta" type="radio"></label>
+        <button>Review</button></form>
+        <script>window.submissions=[];document.querySelector('form').onsubmit=e=>{
+          e.preventDefault();window.submissions.push(Object.fromEntries(new FormData(e.target)));
+        };</script>`);
+      const fields = Object.fromEntries(
+        ["Name", "Consent", "Alpha", "Beta"].map((name) => [
+          name,
+          { description: name, "trim spaces": false },
+        ]),
+      );
+      await target.execute(
+        formParams(fields, {
+          Name: " Alex ",
+          Consent: true,
+          Alpha: false,
+          Beta: true,
+        }),
+        async () => null,
+      );
+      await target.observe();
+      await target.execute(
+        formParams(fields, {
+          Name: "",
+          Consent: false,
+          Alpha: true,
+          Beta: false,
+        }),
+        async () => null,
+      );
+      assert.deepEqual(await page.evaluate(() => (window as any).submissions), [
+        { name: " Alex ", consent: "on", option: "beta" },
+        { name: "", option: "alpha" },
+      ]);
+      await target.observe();
+      await assert.rejects(
+        target.execute(
+          formParams(fields, {
+            Name: "Alex",
+            Consent: false,
+            Alpha: false,
+            Beta: false,
+          }),
+          async () => null,
+        ),
+        /exact input for Alpha/,
+      );
+      assert.equal(
+        await page.evaluate(() => (window as any).submissions.length),
+        2,
+      );
+    } finally {
+      await target.close();
+      await browser.close();
+    }
+  },
+);
+
+test(
   "Native forms bind all fields together, preserve invalid data and submit once through the associated form",
   chrome,
   async () => {

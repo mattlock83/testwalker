@@ -321,7 +321,8 @@ test(
       assert.ok(!JSON.stringify(result.model).includes("querySelector"));
       assert.ok(
         !result.inventory.transitions.some(
-          (transition: any) => transition.intent === "Choose Unavailable.",
+          (transition: any) =>
+            transition.intent === 'Click the control labelled "Unavailable".',
         ),
       );
       assert.ok(
@@ -341,7 +342,7 @@ test(
       });
       assert.ok(
         !excluded.inventory.transitions.some(
-          (t: any) => t.intent === "Choose Finish.",
+          (t: any) => t.intent === 'Click the control labelled "Finish".',
         ),
       );
       assert.ok(
@@ -681,14 +682,17 @@ test(
         !result.inventory.transitions.some(
           (t: any) =>
             t.source === menuId &&
-            ["Choose Underlying.", "Choose Offscreen action."].includes(
-              t.intent,
-            ),
+            [
+              'Click the control labelled "Underlying".',
+              'Click the control labelled "Offscreen action".',
+            ].includes(t.intent),
         ),
       );
       assert.ok(
         result.inventory.transitions.some(
-          (t: any) => t.source === menuId && t.intent === "Choose Close menu.",
+          (t: any) =>
+            t.source === menuId &&
+            t.intent === 'Click the control labelled "Close menu".',
         ),
       );
       const entry = result.model.models[0].startElementId;
@@ -696,7 +700,7 @@ test(
         result.inventory.actions.some(
           (a: any) =>
             a.source === entry &&
-            a.intent === "Choose Partially covered." &&
+            a.intent === 'Click the control labelled "Partially covered".' &&
             a.reason === "covered control",
         ),
       );
@@ -749,7 +753,10 @@ test(
       assert.equal(variants.inventory.transitions.length, 2);
       assert.equal(variants.inventory.pending.length, 1);
       assert.equal(variants.inventory.pending[0].reason, "state variant limit");
-      assert.equal(variants.inventory.pending[0].intent, "Choose Count 2.");
+      assert.equal(
+        variants.inventory.pending[0].intent,
+        'Click the control labelled "Count 2".',
+      );
       assert.match(variants.model.models[0].vertices[0].name, /Products/);
       const budget = await discoverUrl(server.url, {
         ...options,
@@ -792,7 +799,10 @@ test(
       });
       assert.equal(result.inventory.transitions.length, 0);
       assert.equal(result.inventory.failed.length, 1);
-      assert.equal(result.inventory.failed[0].intent, "Choose Wait forever.");
+      assert.equal(
+        result.inventory.failed[0].intent,
+        'Click the control labelled "Wait forever".',
+      );
       const failed = result.inventory.visits.find(
         (v: any) => v.id === result.inventory.failed[0].visit,
       );

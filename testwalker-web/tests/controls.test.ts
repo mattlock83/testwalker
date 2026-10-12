@@ -6,6 +6,37 @@ import { captureControls, StaleSnapshot } from "../src/controls.js";
 const browserTest = { skip: !process.env.TESTWALKER_BROWSER_TESTS };
 
 test(
+  "Visible custom options are recorded separately from closed lists and native select choices",
+  browserTest,
+  async () => {
+    const browser = await chromium.launch({ channel: "chrome" });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(`<select><option>Native choice</option></select>
+        <div role="listbox"><button role="option">North hub</button><button role="option" disabled>Unavailable hub</button></div>
+      <div role="listbox" hidden><button role="option">South hub</button></div>`);
+      const snapshot = await captureControls(page);
+      try {
+        assert.deepEqual(snapshot.page.semantics.visible_options, [
+          { label: "North hub" },
+          { label: "Unavailable hub" },
+        ]);
+        assert.equal(
+          snapshot.controls.some(
+            (control) => control.label === "Unavailable hub",
+          ),
+          false,
+        );
+      } finally {
+        await snapshot.dispose();
+      }
+    } finally {
+      await browser.close();
+    }
+  },
+);
+
+test(
   "Controls retain duplicate links, accessible names, native operations and form associations",
   browserTest,
   async () => {
