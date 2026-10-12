@@ -40,6 +40,7 @@ export function stateQuestion(descriptions: string[]): Json {
     "Identify the current business and UI state solely from observed heading, workflow stage, current feedback, " +
       "displayed read-only status and currently open or closed selection lists, menus and dialogs. " +
       "Visible options establish that a selection list is currently open; displayed read-only selections distinguish current UI states. " +
+      "A native select's options describe available choices, including its selected labels; their presence does not mean a dropdown is open. " +
       "Controls offer future operations; they do not prove an outcome. Distinguish entry, review, confirmation and " +
       "rejection stages. If multiple descriptions fit choose UNKNOWN. " +
       VALIDATION +
@@ -57,20 +58,30 @@ function evidence(
     accessibility: structuredClone(page.semantics ?? {}),
     accessibility_tree: page.accessibility_tree,
     elements: [
+      ...(page.semantics?.read_only_fields ?? []).map((field: Json) => ({
+        ...field,
+        operations: [],
+        readOnly: true,
+      })),
+      ...(page.semantics?.widgets ?? []),
       ...(page.semantics?.available_links ?? []).map((control: Json) => ({
         role: "link",
         label: control.label,
         operations: ["CLICK"],
       })),
       ...(page.semantics?.available_buttons ?? []).map((control: Json) => ({
-        role: "button",
-        label: control.label,
+        ...control,
+        role: control.role ?? "button",
         operations: ["CLICK"],
       })),
       ...(page.semantics?.visible_options ?? []).map((control: Json) => ({
+        ...control,
         role: "option",
-        label: control.label,
-        operations: ["CLICK"],
+        operations: control.disabled ? [] : ["CLICK"],
+      })),
+      ...(page.semantics?.selects ?? []).map((control: Json) => ({
+        ...control,
+        operations: control.disabled || control.readOnly ? [] : ["SELECT"],
       })),
       ...(page.semantics?.editable_fields ?? []).map((control: Json) => ({
         role: "textbox",
@@ -118,12 +129,14 @@ function ruleQuestion(
       "Judge only the current visible state. A visible control offering a business operation " +
       "is evidence that the user can begin that operation; it does not prove its future outcome. " +
       "Submitted business data is reference data only for requirements explicitly comparing values. " +
+      "Rendered read_only_fields are observed output values, distinct from editable_fields. Use their exact value for explicit output comparisons, including line breaks; visual wrapping or whitespace collapsed in the accessibility tree does not change that value. " +
       "An available entry field can be empty or contain a default value; availability does not require it " +
       "to contain a previously submitted value. Global rules about submitted data, validation or later " +
       "workflow stages are not_applicable when that scenario is absent. This is different from uncertain: " +
       "uncertain means the scenario is present but evidence is insufficient. State-specific rules always apply. " +
       "Intentionally invalid input is not itself a defect: judge whether it is accepted or correctly rejected. " +
       "The requirement and state description are the specification, not evidence of compliance. " +
+      "A select's selected flags and labels show its current UI configuration; selection alone does not establish acceptance or submission. " +
       "Never infer success from the navigator intent. " +
       VALIDATION +
       " " +

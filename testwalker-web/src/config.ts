@@ -12,6 +12,8 @@ export interface BrowserSettings {
   navigation_timeout_ms?: number;
   settle_ms?: number;
   settle_timeout_ms?: number;
+  /** Named upload fixtures. Models refer to aliases, never filesystem paths. */
+  uploads?: Record<string, string[]>;
 }
 export function httpUrl(value: unknown): string {
   if (typeof value !== "string" || /\s/.test(value))
@@ -43,6 +45,7 @@ export async function loadBrowserSettings(
         "navigation_timeout_ms",
         "settle_ms",
         "settle_timeout_ms",
+        "uploads",
       ].includes(key)
     ) {
       throw new Error(`Unknown browser setting: ${key}`);
@@ -83,6 +86,26 @@ export async function loadBrowserSettings(
       dirname(resolve(path)),
       config.launch.executablePath,
     );
+  }
+  if (config.uploads !== undefined) {
+    if (
+      !config.uploads ||
+      Array.isArray(config.uploads) ||
+      typeof config.uploads !== "object"
+    )
+      throw new Error("uploads must map fixture names to arrays of file paths");
+    for (const [name, paths] of Object.entries(config.uploads)) {
+      if (
+        !name.trim() ||
+        !Array.isArray(paths) ||
+        !paths.length ||
+        paths.some((path) => typeof path !== "string" || !path.trim())
+      )
+        throw new Error(`Invalid upload fixture: ${name}`);
+      config.uploads[name] = paths.map((file) =>
+        resolve(dirname(resolve(path!)), file),
+      );
+    }
   }
   return config;
 }

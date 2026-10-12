@@ -1,0 +1,11 @@
+{
+  "launch": { "channel": "chrome" },
+  "context": { "viewport": { "width": 1280, "height": 900 } },
+  "uploads": {
+    "travel note": ["fixtures/sample-note.txt"],
+    "travel documents": [
+      "fixtures/sample-note.txt",
+      "fixtures/sample-receipt.txt"
+    ]
+  }
+}

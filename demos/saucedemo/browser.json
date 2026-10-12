@@ -1,0 +1,16 @@
+{
+  "launch": {
+    "channel": "chrome"
+  },
+  "context": {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "ignoreHTTPSErrors": false
+  },
+  "action_timeout_ms": 15000,
+  "navigation_timeout_ms": 30000,
+  "settle_ms": 600,
+  "settle_timeout_ms": 10000
+}

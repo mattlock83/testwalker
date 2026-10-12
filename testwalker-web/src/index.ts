@@ -14,3 +14,4 @@ export {
 } from "./types.js";
 export { serve, staticServer } from "./server.js";
 export { observe } from "./observation.js";
+export { loadBrowserSettings, type BrowserSettings } from "./config.js";

@@ -6,6 +6,80 @@ import { captureControls, StaleSnapshot } from "../src/controls.js";
 const browserTest = { skip: !process.env.TESTWALKER_BROWSER_TESTS };
 
 test(
+  "Native select evidence includes every option, selected flags, disabled groups and form association",
+  browserTest,
+  async () => {
+    const browser = await chromium.launch({ channel: "chrome" });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(`<select aria-label="Sort products">
+      <option value="az" selected>Name ascending</option><option value="za">Name descending</option>
+      <option value="price" disabled>Price ascending</option></select>
+      <form id="details"><label>Delivery points<select name="points" multiple>
+      <option value="north" selected>North hub</option><option value="south" selected>South hub</option>
+      <optgroup label="Unavailable" disabled><option value="island">Island hub</option></optgroup>
+      </select></label><label>Name<input value="Entered text"></label></form>
+      <select aria-label="External choice" form="details"><option value="outside">Outside</option></select>
+      <select aria-label="Disabled choice" disabled><option value="d" selected>Displayed choice</option></select>
+      <select aria-label="Hidden choice" hidden><option>Hidden</option></select>`);
+      const snapshot = await captureControls(page);
+      try {
+        const selects = snapshot.page.semantics.selects;
+        assert.equal(selects.length, 4);
+        assert.deepEqual(selects[0].selected_labels, ["Name ascending"]);
+        assert.equal(selects[0].form, null);
+        assert.deepEqual(selects[0].options, [
+          {
+            label: "Name ascending",
+            value: "az",
+            selected: true,
+            disabled: false,
+          },
+          {
+            label: "Name descending",
+            value: "za",
+            selected: false,
+            disabled: false,
+          },
+          {
+            label: "Price ascending",
+            value: "price",
+            selected: false,
+            disabled: true,
+          },
+        ]);
+        assert.equal(selects[1].multiple, true);
+        assert.equal(selects[1].role, "listbox");
+        assert.deepEqual(selects[1].selected_labels, [
+          "North hub",
+          "South hub",
+        ]);
+        assert.equal(selects[1].options[2].disabled, true);
+        assert.ok(selects[1].form);
+        assert.equal(selects[1].form, selects[2].form);
+        assert.equal(selects[3].disabled, true);
+        assert.deepEqual(selects[3].selected_labels, ["Displayed choice"]);
+        assert.equal(
+          snapshot.controls.some((c) => c.label === "Disabled choice"),
+          false,
+        );
+        assert.deepEqual(snapshot.page.semantics.visible_options, []);
+        assert.deepEqual(snapshot.page.semantics.editable_fields, [
+          { label: "Name", current_value: "Entered text" },
+        ]);
+        // Changing a second selected option must invalidate the snapshot even when .value is unchanged.
+        await page.getByLabel("Delivery points").selectOption(["north"]);
+        await assert.rejects(snapshot.assertFresh(), StaleSnapshot);
+      } finally {
+        await snapshot.dispose();
+      }
+    } finally {
+      await browser.close();
+    }
+  },
+);
+
+test(
   "Visible custom options are recorded separately from closed lists and native select choices",
   browserTest,
   async () => {
@@ -19,8 +93,16 @@ test(
       try {
         assert.deepEqual(snapshot.page.semantics.visible_options, [
           { label: "North hub" },
-          { label: "Unavailable hub" },
+          { label: "Unavailable hub", disabled: true },
         ]);
+        assert.equal(
+          snapshot.controls.some(
+            (control) =>
+              control.role === "listbox" && control.operations.includes("DROP"),
+          ),
+          false,
+          "Selection lists are not empty drop zones",
+        );
         assert.equal(
           snapshot.controls.some(
             (control) => control.label === "Unavailable hub",

@@ -8,11 +8,75 @@ details.
 
 The checked-in [`../model.json`](../model.json) was regenerated on 12 October
 2026 using only the improved discovery tool. It contains **63 observed states
-and 135 journeys**, up from the earlier baseline of 40 states and 94 journeys.
+and 135 journeys**, including **12 fixed-input form journeys**, up from the
+earlier baseline of 40 states and 94 journeys.
 It remains an observed draft requiring independent business rules and review.
 [`summary.json`](summary.json) records this regeneration; [`comparison.json`](comparison.json)
 retains the earlier exploration results. Detailed inventories and screenshots
 are in ignored `demos/artifacts/discovery-saucedemo/`.
+
+The latest inventories are `fresh-2026-10-12-01-explore.discovery.json` and
+`fresh-2026-10-12-01-workflow.discovery.json`. The combined export is
+`fresh-2026-10-12-01-combined.model.json`, copied to the checked-in model path.
+[Open the fresh discovery viewer](../../artifacts/discovery-saucedemo/fresh-2026-10-12-01-overview/index.html).
+
+## Latest live execution
+
+After adding native select configuration to the adapter's observation evidence,
+the previously inconclusive login/sort-check replay **passes** at confidence 0.80.
+The [broader rerun](../../artifacts/saucedemo/2026-10-12T11-07-00.480Z-85789-0/report.html)
+gets through cart and checkout to order completion, verifying 6 of 135 journeys.
+That run stopped as **INCONCLUSIVE** on a standalone sort-selection action.
+
+Intent-driven native select actions have since been implemented generically in
+the adapter. The [blocked sort replay](../../artifacts/saucedemo/2026-10-12T20-38-54.276Z-15483-0/report.html)
+**passes**. A [focused four-route run](../../artifacts/saucedemo/2026-10-12T20-41-14.369Z-18155-0/report.html)
+uses prefixes of observed discovery routes and exercises every sorting choice:
+**13 passed cases, no failed, inconclusive or skipped cases**, at confidence
+0.80. Overall status remains **INCONCLUSIVE** because these selected routes
+verify 5 of 135 journeys, below the unchanged full-model coverage goal.
+
+The first replay attempt stopped before any Jev call because a page request
+exceeded the 10-second settling timeout. Verification used a temporary browser
+configuration with a 30-second settling allowance. The checked-in browser
+configuration, model, Rust core and confidence threshold were unchanged.
+
+### Initial execution, before select evidence was exposed
+
+The generated graph has sampled states with no outgoing journeys, so a full
+single GraphWalker walk stops with `No path found`. Successful discovery visits
+provide 117 connected routes covering all 135 journeys. These were supplied
+through the core's existing `options.paths` support in two batches of 100 and 17
+walks, each resetting the browser context. The model and its coverage goals were
+preserved; no return edges or independent business rules were invented.
+
+Both batches stopped after login as **INCONCLUSIVE** at confidence **0.80**:
+`The Sort products selection is Name (A to Z).` The screenshot shows that selected
+label. State identification recognized Products, but the assertion evidence
+does not clearly expose the selected native option label. No SauceDemo defect
+was established. Each batch passed its initial state, then recorded one
+inconclusive case and skipped the remaining planned cases; neither verified a
+complete journey. The other routes remain untested.
+
+The native framework owns the HTML/JSON/JUnit results:
+
+- [Batch 1 report](../../artifacts/saucedemo/2026-10-12T10-03-05.445Z-25327-0/report.html)
+- [Batch 2 report](../../artifacts/saucedemo/2026-10-12T10-06-51.357Z-28859-0/report.html)
+
+No Hegel campaigns were created: discovery supplies observed fixed examples,
+not independent input domains or acceptance/rejection rules. Runtime Jev keys
+are in ignored `run*.local.json` files. To repeat the locally prepared execution:
+
+```bash
+node testwalker-web/dist/cli.js run --model demos/saucedemo/model.json \
+  --url https://www.saucedemo.com/ --config demos/saucedemo/run-batch-1.local.json \
+  --browser-config demos/saucedemo/browser.json \
+  --framework "$PWD/core/target/debug/testwalker" --input-mode none \
+  --max-steps 10000 --max-calls 4000 --output demos/artifacts/saucedemo
+```
+
+Use `run-batch-2.local.json` for the second batch. The exact route references and
+source visits are recorded in `fresh-2026-10-12-01-routes.json` beside the inventories.
 
 ## Latest regeneration
 
@@ -87,7 +151,8 @@ actions. They do not prove that cart contents are equivalent.
 Each branch starts in a fresh context and replays its login/earlier actions.
 This can repeat demo purchases. Discovery stays on the seed origin and blocks
 external navigation/data writes. Published passwords are absent from generated
-journey prose; configure authentication before executing a reviewed graph.
+journey prose; the structured fixed login example retains the published demo
+password so the executor can replay authentication.
 
 To combine inventories from the same implementation into a separate draft:
 
@@ -99,7 +164,7 @@ node demos/saucedemo/discovery/combine.mjs \
   demos/artifacts/discovery-saucedemo/repeat-workflow.discovery.json
 ```
 
-The helper uses the framework model builder to union only observed states and
+The helper uses the standalone discovery model builder to union only observed states and
 journeys. It does not author business rules or visit the site.
 
 ## Learnings applied to the generic explorer

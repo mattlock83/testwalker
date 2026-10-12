@@ -1,0 +1,1511 @@
+{
+  "models": [
+    {
+      "id": "controls_lab",
+      "name": "Controls_lab",
+      "startElementId": "home",
+      "generator": "new_york_street_sweeper()",
+      "properties": {
+        "business": {
+          "version": 3,
+          "purpose": "Exercise common web controls through business intent, literal data and independent visible-state checks.",
+          "entry path": "/",
+          "coverage": {
+            "edges": 100,
+            "states": 100
+          },
+          "rules": [
+            "Home remains available in the main navigation."
+          ],
+          "data sets": {
+            "Registration": {
+              "Name": {
+                "description": "Name of the person registering",
+                "type": "text",
+                "required": true,
+                "minimum length": 2,
+                "maximum length": 20,
+                "example": "Alex"
+              },
+              "Email": {
+                "description": "Synthetic email address of the person registering",
+                "type": "email",
+                "required": true,
+                "example": "alex@example.com"
+              },
+              "Notes": {
+                "description": "Optional synthetic registration notes",
+                "type": "text",
+                "required": false,
+                "maximum length": 120,
+                "example": "Bring water.\nPack a hat."
+              }
+            }
+          }
+        }
+      },
+      "vertices": [
+        {
+          "id": "home",
+          "name": "home",
+          "properties": {
+            "x": 100,
+            "y": 100,
+            "business": {
+              "description": "The Web controls lab home page is shown, with a grid of links to the individual controls. No scenario is open.",
+              "rules": [
+                "The home page offers links for Checkboxes, Radio choices, Selection lists, Native date, Calendar date picker, Attachments, Sliders, Colour picker, Drag and drop, Custom dropdown and Registration form."
+              ]
+            }
+          }
+        },
+        {
+          "id": "checkbox_off",
+          "name": "checkbox_off",
+          "properties": {
+            "x": 440,
+            "y": 100,
+            "business": {
+              "description": "The Checkboxes scenario is shown. Newsletter is off and Priority notifications is off.",
+              "rules": [
+                "The disabled newsletter and read-only consent controls remain unavailable for editing."
+              ]
+            }
+          }
+        },
+        {
+          "id": "checkbox_on",
+          "name": "checkbox_on",
+          "properties": {
+            "x": 780,
+            "y": 100,
+            "business": {
+              "description": "The Checkboxes scenario is shown. Newsletter is on and Priority notifications is off.",
+              "rules": [
+                "Newsletter is checked and Priority notifications is off."
+              ]
+            }
+          }
+        },
+        {
+          "id": "switch_on",
+          "name": "switch_on",
+          "properties": {
+            "x": 1120,
+            "y": 100,
+            "business": {
+              "description": "The Checkboxes scenario is shown. Newsletter is off and Priority notifications is on.",
+              "rules": [
+                "Newsletter is unchecked and Priority notifications is on."
+              ]
+            }
+          }
+        },
+        {
+          "id": "radio_economy",
+          "name": "radio_economy",
+          "properties": {
+            "x": 1460,
+            "y": 100,
+            "business": {
+              "description": "The Radio choices scenario is shown. Economy is the selected delivery service.",
+              "rules": [
+                "Only Economy delivery is selected."
+              ]
+            }
+          }
+        },
+        {
+          "id": "radio_express",
+          "name": "radio_express",
+          "properties": {
+            "x": 1800,
+            "y": 100,
+            "business": {
+              "description": "The Radio choices scenario is shown. Express is the selected delivery service.",
+              "rules": [
+                "Only Express delivery is selected."
+              ]
+            }
+          }
+        },
+        {
+          "id": "select_standard",
+          "name": "select_standard",
+          "properties": {
+            "x": 100,
+            "y": 340,
+            "business": {
+              "description": "The Selection lists scenario is shown. Shipping is Standard shipping and no Extras are selected.",
+              "rules": [
+                "Shipping is Standard shipping and Extras has no selected options."
+              ]
+            }
+          }
+        },
+        {
+          "id": "select_express",
+          "name": "select_express",
+          "properties": {
+            "x": 440,
+            "y": 340,
+            "business": {
+              "description": "The Selection lists scenario is shown. Shipping is Express shipping and no Extras are selected.",
+              "rules": [
+                "Shipping is Express shipping and Extras has no selected options."
+              ]
+            }
+          }
+        },
+        {
+          "id": "select_extras",
+          "name": "select_extras",
+          "properties": {
+            "x": 780,
+            "y": 340,
+            "business": {
+              "description": "The Selection lists scenario is shown. Shipping is Standard shipping, and Meals and Insurance are selected as Extras.",
+              "rules": [
+                "Extras has exactly Meals and Insurance selected; Shipping remains Standard shipping."
+              ]
+            }
+          }
+        },
+        {
+          "id": "date_empty",
+          "name": "date_empty",
+          "properties": {
+            "x": 1120,
+            "y": 340,
+            "business": {
+              "description": "The Native date scenario is shown. No travel date is selected and no validation alert is displayed.",
+              "rules": [
+                "The page reports no selected travel date and shows no date-range alert."
+              ]
+            }
+          }
+        },
+        {
+          "id": "date_valid",
+          "name": "date_valid",
+          "properties": {
+            "x": 1460,
+            "y": 340,
+            "business": {
+              "description": "The Native date scenario is shown. Travel date 2030-06-15 is accepted.",
+              "rules": [
+                "The accepted date is within 1–30 June 2030."
+              ]
+            }
+          }
+        },
+        {
+          "id": "date_invalid",
+          "name": "date_invalid",
+          "properties": {
+            "x": 1800,
+            "y": 340,
+            "business": {
+              "description": "The Native date scenario is shown. Travel date 2030-07-01 is rejected with a visible date-range validation alert.",
+              "rules": [
+                "The page explains that travel dates must be between 1 and 30 June 2030."
+              ]
+            }
+          }
+        },
+        {
+          "id": "calendar_closed",
+          "name": "calendar_closed",
+          "properties": {
+            "x": 100,
+            "y": 580,
+            "business": {
+              "description": "The Calendar date picker scenario is shown. The appointment calendar is closed and no appointment date is selected.",
+              "rules": [
+                "The Appointment calendar is closed and the page reports no selected appointment date."
+              ]
+            }
+          }
+        },
+        {
+          "id": "calendar_june",
+          "name": "calendar_june",
+          "properties": {
+            "x": 440,
+            "y": 580,
+            "business": {
+              "description": "The Calendar date picker scenario has an open Appointment calendar showing June 2030.",
+              "rules": [
+                "Each day button has a full date as its accessible name."
+              ]
+            }
+          }
+        },
+        {
+          "id": "calendar_july",
+          "name": "calendar_july",
+          "properties": {
+            "x": 780,
+            "y": 580,
+            "business": {
+              "description": "The Calendar date picker scenario has an open Appointment calendar showing July 2030.",
+              "rules": [
+                "The open appointment calendar has the month heading July 2030."
+              ]
+            }
+          }
+        },
+        {
+          "id": "calendar_chosen",
+          "name": "calendar_chosen",
+          "properties": {
+            "x": 1120,
+            "y": 580,
+            "business": {
+              "description": "The Calendar date picker scenario is shown. The appointment calendar is closed and the appointment date is 15 July 2030.",
+              "rules": [
+                "The displayed appointment date is 15 July 2030 and the calendar is closed."
+              ]
+            }
+          }
+        },
+        {
+          "id": "upload_empty",
+          "name": "upload_empty",
+          "properties": {
+            "x": 1460,
+            "y": 580,
+            "business": {
+              "description": "The Attachments scenario is shown. No supporting documents are selected.",
+              "rules": [
+                "No files are selected in Supporting documents."
+              ]
+            }
+          }
+        },
+        {
+          "id": "upload_note",
+          "name": "upload_note",
+          "properties": {
+            "x": 1800,
+            "y": 580,
+            "business": {
+              "description": "The Attachments scenario is shown. The sole supporting document is sample-note.txt.",
+              "rules": [
+                "The file table lists sample-note.txt and its displayed Size (bytes) matches the selected file size."
+              ]
+            }
+          }
+        },
+        {
+          "id": "upload_documents",
+          "name": "upload_documents",
+          "properties": {
+            "x": 100,
+            "y": 820,
+            "business": {
+              "description": "The Attachments scenario is shown. Supporting documents are sample-note.txt and sample-receipt.txt.",
+              "rules": [
+                "The file table lists sample-note.txt and sample-receipt.txt, with sizes matching the selected files."
+              ]
+            }
+          }
+        },
+        {
+          "id": "sliders_default",
+          "name": "sliders_default",
+          "properties": {
+            "x": 440,
+            "y": 820,
+            "business": {
+              "description": "The Sliders scenario is shown. Volume is 50% and Gain is 50%.",
+              "rules": [
+                "Volume is 50% and Gain is 50%."
+              ]
+            }
+          }
+        },
+        {
+          "id": "volume_75",
+          "name": "volume_75",
+          "properties": {
+            "x": 780,
+            "y": 820,
+            "business": {
+              "description": "The Sliders scenario is shown. Volume is 75% and Gain is 50%.",
+              "rules": [
+                "Volume is 75% and Gain remains 50%."
+              ]
+            }
+          }
+        },
+        {
+          "id": "volume_min",
+          "name": "volume_min",
+          "properties": {
+            "x": 1120,
+            "y": 820,
+            "business": {
+              "description": "The Sliders scenario is shown. Volume is 0% and Gain is 50%.",
+              "rules": [
+                "Volume is 0% and Gain remains 50%."
+              ]
+            }
+          }
+        },
+        {
+          "id": "volume_max",
+          "name": "volume_max",
+          "properties": {
+            "x": 1460,
+            "y": 820,
+            "business": {
+              "description": "The Sliders scenario is shown. Volume is 100% and Gain is 50%.",
+              "rules": [
+                "Volume is 100% and Gain remains 50%."
+              ]
+            }
+          }
+        },
+        {
+          "id": "gain_70",
+          "name": "gain_70",
+          "properties": {
+            "x": 1800,
+            "y": 820,
+            "business": {
+              "description": "The Sliders scenario is shown. Volume is 50% and Gain is 70%.",
+              "rules": [
+                "Gain is 70% and Volume remains 50%."
+              ]
+            }
+          }
+        },
+        {
+          "id": "color_default",
+          "name": "color_default",
+          "properties": {
+            "x": 100,
+            "y": 1060,
+            "business": {
+              "description": "The Colour picker scenario is shown. Accent colour is #225577.",
+              "rules": [
+                "Accent colour is #225577."
+              ]
+            }
+          }
+        },
+        {
+          "id": "color_changed",
+          "name": "color_changed",
+          "properties": {
+            "x": 440,
+            "y": 1060,
+            "business": {
+              "description": "The Colour picker scenario is shown. Accent colour is #336699.",
+              "rules": [
+                "Accent colour is #336699."
+              ]
+            }
+          }
+        },
+        {
+          "id": "drag_backlog",
+          "name": "drag_backlog",
+          "properties": {
+            "x": 780,
+            "y": 1060,
+            "business": {
+              "description": "The Drag and drop scenario is shown. Travel checklist is in Backlog and Completed work is empty.",
+              "rules": [
+                "Backlog contains Travel checklist and Completed work is empty."
+              ]
+            }
+          }
+        },
+        {
+          "id": "drag_complete",
+          "name": "drag_complete",
+          "properties": {
+            "x": 1120,
+            "y": 1060,
+            "business": {
+              "description": "The Drag and drop scenario is shown. Travel checklist is in Completed work and Backlog is empty.",
+              "rules": [
+                "Completed work contains Travel checklist and Backlog is empty."
+              ]
+            }
+          }
+        },
+        {
+          "id": "dropdown_morning",
+          "name": "dropdown_morning",
+          "properties": {
+            "x": 1460,
+            "y": 1060,
+            "business": {
+              "description": "The Custom dropdown scenario is shown. The collection selection list is closed and Morning collection is selected.",
+              "rules": [
+                "The collection selection list is closed and the page reports Morning collection."
+              ]
+            }
+          }
+        },
+        {
+          "id": "dropdown_open",
+          "name": "dropdown_open",
+          "properties": {
+            "x": 1800,
+            "y": 1060,
+            "business": {
+              "description": "The Custom dropdown scenario is shown. The Collection slots selection list is open with visible Morning collection and Evening collection options.",
+              "rules": [
+                "The collection selection list is open with Morning collection and Evening collection available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "dropdown_evening",
+          "name": "dropdown_evening",
+          "properties": {
+            "x": 100,
+            "y": 1300,
+            "business": {
+              "description": "The Custom dropdown scenario is shown. The collection selection list is closed and Evening collection is selected.",
+              "rules": [
+                "The collection selection list is closed and the page reports Evening collection."
+              ]
+            }
+          }
+        },
+        {
+          "id": "registration_ready",
+          "name": "registration_ready",
+          "properties": {
+            "x": 440,
+            "y": 1300,
+            "business": {
+              "description": "The Registration form scenario is shown. Registration ready is displayed and no registration validation error is visible.",
+              "rules": [
+                "Name and Email inputs and the Register action are available."
+              ]
+            }
+          }
+        },
+        {
+          "id": "registration_accepted",
+          "name": "registration_accepted",
+          "properties": {
+            "x": 780,
+            "y": 1300,
+            "business": {
+              "description": "The Registration form scenario is shown. Registration accepted is displayed with the registered name and email.",
+              "rules": [
+                "The registered name and email match the exact supplied values after trimming spaces.",
+                "The read-only Registered Notes output matches the supplied Notes after trimming surrounding whitespace. Empty Notes are displayed as (none)."
+              ]
+            }
+          }
+        },
+        {
+          "id": "registration_rejected",
+          "name": "registration_rejected",
+          "properties": {
+            "x": 1120,
+            "y": 1300,
+            "business": {
+              "description": "The Registration form scenario is shown. Registration rejected is displayed with a validation alert and no registration was created.",
+              "rules": [
+                "The form remains available for correction."
+              ]
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_open_checkbox",
+          "name": "e_open_checkbox",
+          "sourceVertexId": "home",
+          "targetVertexId": "checkbox_off",
+          "properties": {
+            "business": {
+              "intent": "Choose Checkboxes from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_checkbox_off_home",
+          "name": "e_checkbox_off_home",
+          "sourceVertexId": "checkbox_off",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_checkbox_on_home",
+          "name": "e_checkbox_on_home",
+          "sourceVertexId": "checkbox_on",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_switch_on_home",
+          "name": "e_switch_on_home",
+          "sourceVertexId": "switch_on",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_check_newsletter",
+          "name": "e_check_newsletter",
+          "sourceVertexId": "checkbox_off",
+          "targetVertexId": "checkbox_on",
+          "properties": {
+            "business": {
+              "intent": "Check the Newsletter checkbox."
+            }
+          }
+        },
+        {
+          "id": "e_uncheck_newsletter",
+          "name": "e_uncheck_newsletter",
+          "sourceVertexId": "checkbox_on",
+          "targetVertexId": "checkbox_off",
+          "properties": {
+            "business": {
+              "intent": "Uncheck the Newsletter checkbox."
+            }
+          }
+        },
+        {
+          "id": "e_enable_priority",
+          "name": "e_enable_priority",
+          "sourceVertexId": "checkbox_off",
+          "targetVertexId": "switch_on",
+          "properties": {
+            "business": {
+              "intent": "Turn on the Priority notifications switch."
+            }
+          }
+        },
+        {
+          "id": "e_disable_priority",
+          "name": "e_disable_priority",
+          "sourceVertexId": "switch_on",
+          "targetVertexId": "checkbox_off",
+          "properties": {
+            "business": {
+              "intent": "Turn off the Priority notifications switch."
+            }
+          }
+        },
+        {
+          "id": "e_open_radio",
+          "name": "e_open_radio",
+          "sourceVertexId": "home",
+          "targetVertexId": "radio_economy",
+          "properties": {
+            "business": {
+              "intent": "Choose Radio choices from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_radio_economy_home",
+          "name": "e_radio_economy_home",
+          "sourceVertexId": "radio_economy",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_radio_express_home",
+          "name": "e_radio_express_home",
+          "sourceVertexId": "radio_express",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_choose_express",
+          "name": "e_choose_express",
+          "sourceVertexId": "radio_economy",
+          "targetVertexId": "radio_express",
+          "properties": {
+            "business": {
+              "intent": "Choose the Express delivery radio option."
+            }
+          }
+        },
+        {
+          "id": "e_choose_economy",
+          "name": "e_choose_economy",
+          "sourceVertexId": "radio_express",
+          "targetVertexId": "radio_economy",
+          "properties": {
+            "business": {
+              "intent": "Choose the Economy delivery radio option."
+            }
+          }
+        },
+        {
+          "id": "e_open_select",
+          "name": "e_open_select",
+          "sourceVertexId": "home",
+          "targetVertexId": "select_standard",
+          "properties": {
+            "business": {
+              "intent": "Choose Selection lists from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_select_standard_home",
+          "name": "e_select_standard_home",
+          "sourceVertexId": "select_standard",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_select_express_home",
+          "name": "e_select_express_home",
+          "sourceVertexId": "select_express",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_select_extras_home",
+          "name": "e_select_extras_home",
+          "sourceVertexId": "select_extras",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_shipping_express",
+          "name": "e_shipping_express",
+          "sourceVertexId": "select_standard",
+          "targetVertexId": "select_express",
+          "properties": {
+            "business": {
+              "intent": "Choose Express shipping in Shipping."
+            }
+          }
+        },
+        {
+          "id": "e_shipping_standard",
+          "name": "e_shipping_standard",
+          "sourceVertexId": "select_express",
+          "targetVertexId": "select_standard",
+          "properties": {
+            "business": {
+              "intent": "Choose Standard shipping in Shipping."
+            }
+          }
+        },
+        {
+          "id": "e_extras_choose",
+          "name": "e_extras_choose",
+          "sourceVertexId": "select_standard",
+          "targetVertexId": "select_extras",
+          "properties": {
+            "business": {
+              "intent": "Select exactly Meals and Insurance in Extras."
+            }
+          }
+        },
+        {
+          "id": "e_extras_clear",
+          "name": "e_extras_clear",
+          "sourceVertexId": "select_extras",
+          "targetVertexId": "select_standard",
+          "properties": {
+            "business": {
+              "intent": "Clear all selections in Extras."
+            }
+          }
+        },
+        {
+          "id": "e_open_date",
+          "name": "e_open_date",
+          "sourceVertexId": "home",
+          "targetVertexId": "date_empty",
+          "properties": {
+            "business": {
+              "intent": "Choose Native date from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_date_empty_home",
+          "name": "e_date_empty_home",
+          "sourceVertexId": "date_empty",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_date_valid_home",
+          "name": "e_date_valid_home",
+          "sourceVertexId": "date_valid",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_date_invalid_home",
+          "name": "e_date_invalid_home",
+          "sourceVertexId": "date_invalid",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_date_enter",
+          "name": "e_date_enter",
+          "sourceVertexId": "date_empty",
+          "targetVertexId": "date_valid",
+          "properties": {
+            "business": {
+              "intent": "Set Travel date to the supplied date without submitting a form.",
+              "example": {
+                "Travel date": "2030-06-15"
+              }
+            }
+          }
+        },
+        {
+          "id": "e_date_out_of_range",
+          "name": "e_date_out_of_range",
+          "sourceVertexId": "date_valid",
+          "targetVertexId": "date_invalid",
+          "properties": {
+            "business": {
+              "intent": "Set Travel date to the supplied date without submitting a form.",
+              "example": {
+                "Travel date": "2030-07-01"
+              }
+            }
+          }
+        },
+        {
+          "id": "e_date_clear",
+          "name": "e_date_clear",
+          "sourceVertexId": "date_invalid",
+          "targetVertexId": "date_empty",
+          "properties": {
+            "business": {
+              "intent": "Clear Travel date without submitting a form.",
+              "example": {
+                "Travel date": ""
+              }
+            }
+          }
+        },
+        {
+          "id": "e_open_calendar",
+          "name": "e_open_calendar",
+          "sourceVertexId": "home",
+          "targetVertexId": "calendar_closed",
+          "properties": {
+            "business": {
+              "intent": "Choose Calendar date picker from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_closed_home",
+          "name": "e_calendar_closed_home",
+          "sourceVertexId": "calendar_closed",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_june_home",
+          "name": "e_calendar_june_home",
+          "sourceVertexId": "calendar_june",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_july_home",
+          "name": "e_calendar_july_home",
+          "sourceVertexId": "calendar_july",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_chosen_home",
+          "name": "e_calendar_chosen_home",
+          "sourceVertexId": "calendar_chosen",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_open",
+          "name": "e_calendar_open",
+          "sourceVertexId": "calendar_closed",
+          "targetVertexId": "calendar_june",
+          "properties": {
+            "business": {
+              "intent": "Open Choose appointment date."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_next",
+          "name": "e_calendar_next",
+          "sourceVertexId": "calendar_june",
+          "targetVertexId": "calendar_july",
+          "properties": {
+            "business": {
+              "intent": "Choose Next month in the appointment calendar."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_previous",
+          "name": "e_calendar_previous",
+          "sourceVertexId": "calendar_july",
+          "targetVertexId": "calendar_june",
+          "properties": {
+            "business": {
+              "intent": "Choose Previous month in the appointment calendar."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_pick",
+          "name": "e_calendar_pick",
+          "sourceVertexId": "calendar_july",
+          "targetVertexId": "calendar_chosen",
+          "properties": {
+            "business": {
+              "intent": "Choose 15 July 2030 in the appointment calendar."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_reopen",
+          "name": "e_calendar_reopen",
+          "sourceVertexId": "calendar_chosen",
+          "targetVertexId": "calendar_june",
+          "properties": {
+            "business": {
+              "intent": "Open Choose appointment date to start a fresh date selection."
+            }
+          }
+        },
+        {
+          "id": "e_calendar_cancel",
+          "name": "e_calendar_cancel",
+          "sourceVertexId": "calendar_june",
+          "targetVertexId": "calendar_closed",
+          "properties": {
+            "business": {
+              "intent": "Cancel date selection."
+            }
+          }
+        },
+        {
+          "id": "e_open_upload",
+          "name": "e_open_upload",
+          "sourceVertexId": "home",
+          "targetVertexId": "upload_empty",
+          "properties": {
+            "business": {
+              "intent": "Choose Attachments from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_upload_empty_home",
+          "name": "e_upload_empty_home",
+          "sourceVertexId": "upload_empty",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_upload_note_home",
+          "name": "e_upload_note_home",
+          "sourceVertexId": "upload_note",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_upload_documents_home",
+          "name": "e_upload_documents_home",
+          "sourceVertexId": "upload_documents",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_upload_one",
+          "name": "e_upload_one",
+          "sourceVertexId": "upload_empty",
+          "targetVertexId": "upload_note",
+          "properties": {
+            "business": {
+              "intent": "Upload the travel note fixture to Supporting documents."
+            }
+          }
+        },
+        {
+          "id": "e_upload_many",
+          "name": "e_upload_many",
+          "sourceVertexId": "upload_note",
+          "targetVertexId": "upload_documents",
+          "properties": {
+            "business": {
+              "intent": "Replace Supporting documents with the travel documents fixture."
+            }
+          }
+        },
+        {
+          "id": "e_upload_clear",
+          "name": "e_upload_clear",
+          "sourceVertexId": "upload_documents",
+          "targetVertexId": "upload_empty",
+          "properties": {
+            "business": {
+              "intent": "Clear the selected files in the Supporting documents file input."
+            }
+          }
+        },
+        {
+          "id": "e_open_slider",
+          "name": "e_open_slider",
+          "sourceVertexId": "home",
+          "targetVertexId": "sliders_default",
+          "properties": {
+            "business": {
+              "intent": "Choose Sliders from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_sliders_default_home",
+          "name": "e_sliders_default_home",
+          "sourceVertexId": "sliders_default",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_volume_75_home",
+          "name": "e_volume_75_home",
+          "sourceVertexId": "volume_75",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_volume_min_home",
+          "name": "e_volume_min_home",
+          "sourceVertexId": "volume_min",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_volume_max_home",
+          "name": "e_volume_max_home",
+          "sourceVertexId": "volume_max",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_gain_70_home",
+          "name": "e_gain_70_home",
+          "sourceVertexId": "gain_70",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_volume_set",
+          "name": "e_volume_set",
+          "sourceVertexId": "sliders_default",
+          "targetVertexId": "volume_75",
+          "properties": {
+            "business": {
+              "intent": "Set Volume to the supplied level without submitting a form.",
+              "example": {
+                "Volume": 75
+              }
+            }
+          }
+        },
+        {
+          "id": "e_volume_restore",
+          "name": "e_volume_restore",
+          "sourceVertexId": "volume_75",
+          "targetVertexId": "sliders_default",
+          "properties": {
+            "business": {
+              "intent": "Set Volume to the supplied level without submitting a form.",
+              "example": {
+                "Volume": 50
+              }
+            }
+          }
+        },
+        {
+          "id": "e_volume_minimum",
+          "name": "e_volume_minimum",
+          "sourceVertexId": "sliders_default",
+          "targetVertexId": "volume_min",
+          "properties": {
+            "business": {
+              "intent": "Set Volume to the supplied level without submitting a form.",
+              "example": {
+                "Volume": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "e_volume_maximum",
+          "name": "e_volume_maximum",
+          "sourceVertexId": "volume_min",
+          "targetVertexId": "volume_max",
+          "properties": {
+            "business": {
+              "intent": "Set Volume to the supplied level without submitting a form.",
+              "example": {
+                "Volume": 100
+              }
+            }
+          }
+        },
+        {
+          "id": "e_volume_reset",
+          "name": "e_volume_reset",
+          "sourceVertexId": "volume_max",
+          "targetVertexId": "sliders_default",
+          "properties": {
+            "business": {
+              "intent": "Set Volume to the supplied level without submitting a form.",
+              "example": {
+                "Volume": 50
+              }
+            }
+          }
+        },
+        {
+          "id": "e_gain_set",
+          "name": "e_gain_set",
+          "sourceVertexId": "sliders_default",
+          "targetVertexId": "gain_70",
+          "properties": {
+            "business": {
+              "intent": "Set Gain to the supplied level without submitting a form.",
+              "example": {
+                "Gain": 70
+              }
+            }
+          }
+        },
+        {
+          "id": "e_gain_restore",
+          "name": "e_gain_restore",
+          "sourceVertexId": "gain_70",
+          "targetVertexId": "sliders_default",
+          "properties": {
+            "business": {
+              "intent": "Set Gain to the supplied level without submitting a form.",
+              "example": {
+                "Gain": 50
+              }
+            }
+          }
+        },
+        {
+          "id": "e_open_color",
+          "name": "e_open_color",
+          "sourceVertexId": "home",
+          "targetVertexId": "color_default",
+          "properties": {
+            "business": {
+              "intent": "Choose Colour picker from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_color_default_home",
+          "name": "e_color_default_home",
+          "sourceVertexId": "color_default",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_color_changed_home",
+          "name": "e_color_changed_home",
+          "sourceVertexId": "color_changed",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_color_set",
+          "name": "e_color_set",
+          "sourceVertexId": "color_default",
+          "targetVertexId": "color_changed",
+          "properties": {
+            "business": {
+              "intent": "Set Accent colour to the supplied colour without submitting a form.",
+              "example": {
+                "Accent colour": "#336699"
+              }
+            }
+          }
+        },
+        {
+          "id": "e_color_restore",
+          "name": "e_color_restore",
+          "sourceVertexId": "color_changed",
+          "targetVertexId": "color_default",
+          "properties": {
+            "business": {
+              "intent": "Set Accent colour to the supplied colour without submitting a form.",
+              "example": {
+                "Accent colour": "#225577"
+              }
+            }
+          }
+        },
+        {
+          "id": "e_open_drag",
+          "name": "e_open_drag",
+          "sourceVertexId": "home",
+          "targetVertexId": "drag_backlog",
+          "properties": {
+            "business": {
+              "intent": "Choose Drag and drop from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_drag_backlog_home",
+          "name": "e_drag_backlog_home",
+          "sourceVertexId": "drag_backlog",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_drag_complete_home",
+          "name": "e_drag_complete_home",
+          "sourceVertexId": "drag_complete",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_drag_complete",
+          "name": "e_drag_complete",
+          "sourceVertexId": "drag_backlog",
+          "targetVertexId": "drag_complete",
+          "properties": {
+            "business": {
+              "intent": "Drag Travel checklist from Backlog into Completed work."
+            }
+          }
+        },
+        {
+          "id": "e_drag_restore",
+          "name": "e_drag_restore",
+          "sourceVertexId": "drag_complete",
+          "targetVertexId": "drag_backlog",
+          "properties": {
+            "business": {
+              "intent": "Drag Travel checklist from Completed work into Backlog."
+            }
+          }
+        },
+        {
+          "id": "e_open_dropdown",
+          "name": "e_open_dropdown",
+          "sourceVertexId": "home",
+          "targetVertexId": "dropdown_morning",
+          "properties": {
+            "business": {
+              "intent": "Choose Custom dropdown from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_morning_home",
+          "name": "e_dropdown_morning_home",
+          "sourceVertexId": "dropdown_morning",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_open_home",
+          "name": "e_dropdown_open_home",
+          "sourceVertexId": "dropdown_open",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_evening_home",
+          "name": "e_dropdown_evening_home",
+          "sourceVertexId": "dropdown_evening",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_open",
+          "name": "e_dropdown_open",
+          "sourceVertexId": "dropdown_morning",
+          "targetVertexId": "dropdown_open",
+          "properties": {
+            "business": {
+              "intent": "Open Choose collection slot."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_evening",
+          "name": "e_dropdown_evening",
+          "sourceVertexId": "dropdown_open",
+          "targetVertexId": "dropdown_evening",
+          "properties": {
+            "business": {
+              "intent": "Choose Evening collection from the open selection list."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_reopen",
+          "name": "e_dropdown_reopen",
+          "sourceVertexId": "dropdown_evening",
+          "targetVertexId": "dropdown_open",
+          "properties": {
+            "business": {
+              "intent": "Open Choose collection slot."
+            }
+          }
+        },
+        {
+          "id": "e_dropdown_morning",
+          "name": "e_dropdown_morning",
+          "sourceVertexId": "dropdown_open",
+          "targetVertexId": "dropdown_morning",
+          "properties": {
+            "business": {
+              "intent": "Choose Morning collection from the open selection list."
+            }
+          }
+        },
+        {
+          "id": "e_open_form",
+          "name": "e_open_form",
+          "sourceVertexId": "home",
+          "targetVertexId": "registration_ready",
+          "properties": {
+            "business": {
+              "intent": "Choose Registration form from the home page."
+            }
+          }
+        },
+        {
+          "id": "e_registration_ready_home",
+          "name": "e_registration_ready_home",
+          "sourceVertexId": "registration_ready",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_registration_accepted_home",
+          "name": "e_registration_accepted_home",
+          "sourceVertexId": "registration_accepted",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_registration_rejected_home",
+          "name": "e_registration_rejected_home",
+          "sourceVertexId": "registration_rejected",
+          "targetVertexId": "home",
+          "properties": {
+            "business": {
+              "intent": "Choose Home from the main navigation."
+            }
+          }
+        },
+        {
+          "id": "e_registration_submit",
+          "name": "e_registration_submit",
+          "sourceVertexId": "registration_ready",
+          "targetVertexId": "registration_accepted",
+          "properties": {
+            "business": {
+              "intent": "Submit the supplied Name and Email to Register once. Stop after acceptance or rejection.",
+              "data set": "Registration",
+              "rejected at": "registration_rejected"
+            }
+          }
+        },
+        {
+          "id": "e_registration_reject",
+          "name": "e_registration_reject",
+          "sourceVertexId": "registration_ready",
+          "targetVertexId": "registration_rejected",
+          "properties": {
+            "business": {
+              "intent": "Submit the supplied Name and Email to Register once. Stop after acceptance or rejection.",
+              "example": {
+                "Name": "",
+                "Email": "alex@example.com",
+                "Notes": ""
+              },
+              "data set": "Registration",
+              "accepted at": "registration_accepted",
+              "rejected at": "registration_rejected"
+            }
+          }
+        },
+        {
+          "id": "e_registration_clear_success",
+          "name": "e_registration_clear_success",
+          "sourceVertexId": "registration_accepted",
+          "targetVertexId": "registration_ready",
+          "properties": {
+            "business": {
+              "intent": "Choose Clear registration."
+            }
+          }
+        },
+        {
+          "id": "e_registration_clear_error",
+          "name": "e_registration_clear_error",
+          "sourceVertexId": "registration_rejected",
+          "targetVertexId": "registration_ready",
+          "properties": {
+            "business": {
+              "intent": "Choose Clear registration."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Controls lab · Testwalker</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="controls.js"></script>
+  </head>
+  <body>
+    <header>
+      <strong>Testwalker · Controls lab</strong>
+      <nav aria-label="Main"><a href="/">Home</a></nav>
+    </header>
+    <main class="layout">
+      <div>
+        <section data-scenario="checkbox" hidden>
+          <h1>Checkboxes</h1>
+          <label><input id="newsletter" type="checkbox" /> Newsletter</label>
+          <button
+            id="priority"
+            type="button"
+            role="switch"
+            aria-checked="false"
+          >
+            Priority notifications
+          </button>
+          <label><input type="checkbox" disabled /> Disabled newsletter</label>
+          <label
+            ><input type="checkbox" aria-readonly="true" checked /> Read-only
+            consent</label
+          >
+          <p id="checkbox-result" role="status">
+            Newsletter: off. Priority notifications: off.
+          </p>
+        </section>
+        <section data-scenario="radio" hidden>
+          <h1>Radio choices</h1>
+          <fieldset>
+            <legend>Delivery service</legend>
+            <label
+              ><input type="radio" name="delivery" value="Economy" checked />
+              Economy delivery</label
+            ><label
+              ><input type="radio" name="delivery" value="Express" /> Express
+              delivery</label
+            ><label
+              ><input
+                type="radio"
+                name="delivery"
+                value="Unavailable"
+                disabled
+              />
+              Unavailable delivery</label
+            >
+          </fieldset>
+          <p id="radio-result" role="status">Delivery service: Economy.</p>
+        </section>
+        <section data-scenario="select" hidden>
+          <h1>Selection lists</h1>
+          <label
+            >Shipping<select id="shipping">
+              <option value="standard">Standard shipping</option>
+              <option value="express">Express shipping</option>
+              <optgroup disabled label="Unavailable services">
+                <option>Weekend shipping</option>
+              </optgroup>
+            </select></label
+          >
+          <label
+            >Extras<select id="extras" multiple>
+              <option value="meal">Meals</option>
+              <option value="insurance">Insurance</option>
+              <option value="lounge" disabled>Lounge access</option>
+            </select></label
+          >
+          <p id="select-result" role="status">
+            Shipping: Standard shipping. Extras: none.
+          </p>
+        </section>
+        <section data-scenario="date" hidden>
+          <h1>Native date</h1>
+          <p>Choose a travel date from 1–30 June 2030. A date is required.</p>
+          <label
+            >Travel date<input
+              id="travel-date"
+              type="date"
+              min="2030-06-01"
+              max="2030-06-30"
+              required
+          /></label>
+          <p id="date-result" role="status">No travel date selected.</p>
+          <div id="date-error" role="alert" hidden></div>
+        </section>
+        <section data-scenario="calendar" hidden>
+          <h1>Calendar date picker</h1>
+          <p>A custom picker uses labelled day buttons and month navigation.</p>
+          <button
+            id="open-calendar"
+            type="button"
+            aria-expanded="false"
+            aria-controls="calendar"
+          >
+            Choose appointment date
+          </button>
+          <div
+            id="calendar"
+            role="dialog"
+            aria-label="Appointment calendar"
+            class="calendar"
+            hidden
+          >
+            <h2 id="month"></h2>
+            <button id="previous-month" type="button">Previous month</button
+            ><button id="next-month" type="button">Next month</button>
+            <div id="days" class="days"></div>
+            <button id="close-calendar" type="button">
+              Cancel date selection
+            </button>
+          </div>
+          <p id="calendar-result" role="status">
+            No appointment date selected.
+          </p>
+        </section>
+        <section data-scenario="upload" hidden>
+          <h1>Attachments</h1>
+          <p>
+            Use the supplied synthetic text files; no data leaves this site.
+          </p>
+          <label
+            >Supporting documents<input
+              id="documents"
+              type="file"
+              accept=".txt"
+              multiple
+          /></label>
+          <p id="upload-result" role="status">
+            No supporting documents selected.
+          </p>
+          <table aria-label="Selected supporting documents">
+            <thead>
+              <tr>
+                <th scope="col">File name</th>
+                <th scope="col">Size (bytes)</th>
+                <th scope="col">File type</th>
+              </tr>
+            </thead>
+            <tbody id="file-list"></tbody>
+          </table>
+        </section>
+        <section data-scenario="slider" hidden>
+          <h1>Sliders</h1>
+          <label
+            >Volume<input
+              id="volume"
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value="50"
+          /></label>
+          <div id="gain-label">Gain</div>
+          <div
+            id="gain"
+            role="slider"
+            tabindex="0"
+            aria-labelledby="gain-label"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="50"
+            aria-valuetext="50 percent"
+          >
+            Use arrow keys, Home and End.
+          </div>
+          <p id="slider-result" role="status">Volume: 50%. Gain: 50%.</p>
+        </section>
+        <section data-scenario="color" hidden>
+          <h1>Colour picker</h1>
+          <label
+            >Accent colour <input id="accent" type="color" value="#225577"
+          /></label>
+          <p id="color-result" role="status">Accent colour: #225577.</p>
+        </section>
+        <section data-scenario="drag" hidden>
+          <h1>Drag and drop</h1>
+          <div class="board">
+            <div class="lane" role="list" aria-label="Backlog">
+              <h2>Backlog</h2>
+              <div
+                id="task"
+                class="task"
+                role="listitem"
+                aria-label="Travel checklist"
+                draggable="true"
+              >
+                Travel checklist
+              </div>
+            </div>
+            <div class="lane" role="list" aria-label="Completed work">
+              <h2>Completed work</h2>
+            </div>
+          </div>
+          <p id="drag-result" role="status">
+            Travel checklist is in Backlog. Completed work is empty.
+          </p>
+        </section>
+        <section data-scenario="dropdown" hidden>
+          <h1>Custom dropdown</h1>
+          <button
+            id="open-slots"
+            type="button"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="slots"
+          >
+            Choose collection slot
+          </button>
+          <div id="slots" role="listbox" aria-label="Collection slots" hidden>
+            <button type="button" role="option" aria-selected="true">
+              Morning collection</button
+            ><button type="button" role="option" aria-selected="false">
+              Evening collection</button
+            ><button type="button" role="option" disabled>
+              Unavailable collection
+            </button>
+          </div>
+          <p id="dropdown-result" role="status">
+            Collection slot: Morning collection. Selection list closed.
+          </p>
+        </section>
+        <section data-scenario="form" hidden>
+          <h1>Registration form</h1>
+          <form id="registration" novalidate>
+            <label
+              >Name<input id="name" name="Name" required minlength="2" /></label
+            ><label
+              >Email<input
+                id="email"
+                name="Email"
+                type="email"
+                required /></label
+            ><label
+              >Notes<textarea
+                id="notes"
+                name="Notes"
+                rows="3"
+              ></textarea></label
+            ><button type="submit">Register</button
+            ><button id="clear-registration" type="button">
+              Clear registration
+            </button>
+          </form>
+          <h2 id="registration-heading">Registration ready</h2>
+          <p id="registration-result" role="status">
+            Enter your name and email.
+          </p>
+          <div id="registered-notes" hidden>
+            <h3>Registered Notes</h3>
+            <output id="notes-result" aria-label="Registered Notes"></output>
+          </div>
+          <div id="registration-error" role="alert" hidden></div>
+        </section>
+      </div>
+      <aside>
+        <h2>Event history</h2>
+        <p>
+          Historical events, not the current scenario result. These controls
+          never submit anything unless Register is pressed.
+        </p>
+        <ol id="events" aria-label="Historical browser events"></ol>
+      </aside>
+    </main>
+  </body>
+</html>

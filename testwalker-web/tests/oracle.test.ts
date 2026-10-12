@@ -110,6 +110,58 @@ test("Confidence defaults to 0.80 and explicit overrides reach the Rust answer v
     );
   }
 });
+
+test("Select configuration survives state and outcome checks without exposing text inputs or implying an open list", async () => {
+  const core = client("s1");
+  const select = {
+    label: "Delivery points",
+    role: "listbox",
+    form: "f0-form0",
+    multiple: true,
+    disabled: false,
+    readOnly: false,
+    selected_labels: ["North hub", "South hub"],
+    options: [
+      { label: "North hub", value: "n", selected: true, disabled: false },
+      { label: "South hub", value: "s", selected: true, disabled: false },
+      { label: "Island hub", value: "i", selected: false, disabled: true },
+    ],
+  };
+  const page = {
+    text: "Details",
+    accessibility_tree: "Entered text",
+    semantics: {
+      editable_fields: [{ label: "Name", current_value: "Entered text" }],
+      selects: [select],
+      visible_options: [],
+    },
+  };
+  await new Oracle(new Decisions(core), model).check(page, "done");
+  const requests = core.calls.filter((call) => call.method === "decision.ask");
+  assert.ok(requests.length >= 2);
+  for (const request of requests) {
+    assert.deepEqual(request.evidence.accessibility.selects, [select]);
+    assert.equal(
+      request.evidence.accessibility.editable_fields[0].current_value,
+      undefined,
+    );
+    assert.equal(request.evidence.accessibility_tree, undefined);
+    assert.equal(
+      request.evidence.elements.some((e: Json) => e.role === "option"),
+      false,
+    );
+    const element = request.evidence.elements.find(
+      (e: Json) => e.role === "listbox",
+    );
+    assert.deepEqual(element.options, select.options);
+    assert.deepEqual(element.operations, ["SELECT"]);
+  }
+  assert.equal(
+    page.semantics.editable_fields[0].current_value,
+    "Entered text",
+    "Evidence filtering must not mutate the observation",
+  );
+});
 test("Global audits preserve later batch contradictions and never pass absent evidence", async () => {
   let globalCalls = 0;
   const core = {

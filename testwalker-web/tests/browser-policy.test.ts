@@ -519,8 +519,8 @@ test("The input and submission action budget is checked before any fields are ch
   await assert.rejects(
     run.execute({
       ...journey,
-      fields: { Name: { required: true } },
-      input: { Name: "" },
+      fields: { Name: { required: true }, Email: { required: true } },
+      input: { Name: "", Email: "" },
     }),
     /action allowance/,
   );

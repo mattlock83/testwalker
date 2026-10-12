@@ -2,10 +2,13 @@
   "source": [
     "https://www.saucedemo.com/"
   ],
+  "generated_on": "2026-10-12",
   "model": "demos/saucedemo/model.json",
-  "sha256": "82364650f487105b3b4ee6bf3ab67b36d63a416cd4d111d7d6f1888600862e2a",
+  "sha256": "6832bd4e2a45d77aede86f0173606e06df0d47d7771562513f6692fcff6074a1",
   "states": 63,
   "journeys": 135,
+  "fixed_input_journeys": 12,
+  "property_campaigns": 0,
   "observed_urls": [
     "https://www.saucedemo.com/",
     "https://www.saucedemo.com/inventory.html",
@@ -22,119 +25,42 @@
   ],
   "runs": [
     {
-      "inventory": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-explore.discovery.json",
-      "artifacts": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-explore.discovery",
-      "depth": 8,
+      "inventory": "demos/artifacts/discovery-saucedemo/fresh-2026-10-12-01-explore.discovery.json",
       "states": 60,
       "executed_transitions": 118,
       "visits": 119,
       "replay_operations": 479,
       "failed": [],
-      "pending": 709,
       "capture_errors": [],
-      "unresolved_visits": [],
-      "review": [
-        "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
-        "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
-        "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
-        "709 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
-        "State page_f4b882a5cd95552e has no outgoing journeys; review termination.",
-        "State page_7f6a9f525db5ff9f has no outgoing journeys; review termination.",
-        "State page_3f21315e843b97a4 has no outgoing journeys; review termination.",
-        "State page_78c4fc43142f6b68 has no outgoing journeys; review termination.",
-        "State page_342fe8fafa4739c8 has no outgoing journeys; review termination.",
-        "State page_533e933377bd24df has no outgoing journeys; review termination.",
-        "State page_0d69e05de288df13 has no outgoing journeys; review termination.",
-        "State page_dc75b9d8e02c48b2 has no outgoing journeys; review termination.",
-        "State page_1be6f572f31e45c1 has no outgoing journeys; review termination.",
-        "State page_6304e0357cfb2ab1 has no outgoing journeys; review termination.",
-        "State page_72fb0f85d1be4914 has no outgoing journeys; review termination.",
-        "State page_b8722af2feca9d0e has no outgoing journeys; review termination.",
-        "State page_5094a037f33f428c has no outgoing journeys; review termination.",
-        "State page_678fade87c33d886 has no outgoing journeys; review termination.",
-        "State page_231253bf14dadbca has no outgoing journeys; review termination.",
-        "State page_13e644d3c8252d8a has no outgoing journeys; review termination.",
-        "State page_d8edd339cde11e14 has no outgoing journeys; review termination.",
-        "State page_714f36550cc29248 has no outgoing journeys; review termination.",
-        "State page_72b00c8b1a1a553c has no outgoing journeys; review termination.",
-        "State page_bf29f4f38a125556 has no outgoing journeys; review termination.",
-        "State page_53d802e570f9d4ac has no outgoing journeys; review termination.",
-        "State page_c781b9bd05feac9c has no outgoing journeys; review termination.",
-        "State page_df2de0dee2bc69de has no outgoing journeys; review termination.",
-        "State page_342403c23a58cec0 has no outgoing journeys; review termination.",
-        "State page_e3ac55fcf51f06ad has no outgoing journeys; review termination.",
-        "State page_fc41618cc26f509e has no outgoing journeys; review termination.",
-        "State page_1d7b447dfbf4ce2b has no outgoing journeys; review termination.",
-        "State page_5a172a08437f8faf has no outgoing journeys; review termination.",
-        "State page_7b2d1808d80e76fe has no outgoing journeys; review termination.",
-        "State page_33d78af6faef1c7b has no outgoing journeys; review termination.",
-        "State page_1fb9e49cd9f9ef22 has no outgoing journeys; review termination.",
-        "State page_a6330a2029e64af3 has no outgoing journeys; review termination.",
-        "State page_d36c65f97ae05391 has no outgoing journeys; review termination.",
-        "State page_b4dc018e66f02dba has no outgoing journeys; review termination.",
-        "State page_0a859a6d311ad7a0 has no outgoing journeys; review termination.",
-        "State page_89321f211c7976a3 has no outgoing journeys; review termination.",
-        "State page_e4dfdb7dfaafbff5 has no outgoing journeys; review termination.",
-        "State page_f6ea92af76ae0556 has no outgoing journeys; review termination.",
-        "State page_dabc74ecfd3e8042 has no outgoing journeys; review termination.",
-        "State page_f5e90cedaab3e34f has no outgoing journeys; review termination.",
-        "State page_0b2564450466d7f9 has no outgoing journeys; review termination.",
-        "State page_b6a2bb59def87892 has no outgoing journeys; review termination.",
-        "State page_fa3ac1d1ee7dfdb7 has no outgoing journeys; review termination.",
-        "State page_aff278c2c1af27a8 has no outgoing journeys; review termination.",
-        "State page_5d2576cee8cab0b5 has no outgoing journeys; review termination."
-      ],
-      "blocked_endpoints": [
-        "https://events.backtrace.io/api/unique-events/submit?universe=UNIVERSE&token=TOKEN",
-        "https://events.backtrace.io/api/summed-events/submit?universe=UNIVERSE&token=TOKEN",
-        null
-      ],
-      "limits": {
-        "max_pages": 60,
-        "max_actions": 1200,
-        "max_state_variants": 2
-      },
-      "stop_reason": "state budget",
+      "pending": 709,
       "pending_reasons": {
         "state variant limit": 532,
         "covered control": 36,
         "state budget": 141
+      },
+      "limits": {
+        "max_pages": 60,
+        "max_actions": 1200,
+        "max_state_variants": 2
       }
     },
     {
-      "inventory": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-workflow.discovery.json",
-      "artifacts": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-workflow.discovery",
-      "depth": 8,
+      "inventory": "demos/artifacts/discovery-saucedemo/fresh-2026-10-12-01-workflow.discovery.json",
       "states": 17,
       "executed_transitions": 47,
       "visits": 48,
       "replay_operations": 204,
       "failed": [],
-      "pending": 75,
       "capture_errors": [],
-      "unresolved_visits": [],
-      "review": [
-        "Observed labels and HTML constraints are provisional. Add independent business rules and data sets.",
-        "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
-        "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
-        "75 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
-        "State page_5cc2997ce4e5f2c5 has no outgoing journeys; review termination.",
-        "State page_f4b882a5cd95552e has no outgoing journeys; review termination.",
-        "State page_7f6a9f525db5ff9f has no outgoing journeys; review termination."
-      ],
-      "blocked_endpoints": [
-        "https://events.backtrace.io/api/unique-events/submit?universe=UNIVERSE&token=TOKEN",
-        "https://events.backtrace.io/api/summed-events/submit?universe=UNIVERSE&token=TOKEN"
-      ],
+      "pending": 75,
+      "pending_reasons": {
+        "excluded control": 45,
+        "state variant limit": 30
+      },
       "limits": {
         "max_pages": 40,
         "max_actions": 400,
         "max_state_variants": 1
-      },
-      "stop_reason": "queue exhausted",
-      "pending_reasons": {
-        "excluded control": 45,
-        "state variant limit": 30
       }
     }
   ],
@@ -143,6 +69,7 @@
     "Button exploration is opt-in; review side effects before enabling it. Open shadow roots are inspected; closed roots require hooks.",
     "States are grouped by URL, page labels/headings, alerts, control disabled status, links and standalone selections; changing body/form data are evidence, not separate states.",
     "709 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
+    "The observed graph is not strongly connected: some states cannot return to the entry. New York Street Sweeper cannot traverse it; review the model before requesting full single-walk edge coverage.",
     "75 known actions remain unexecuted; inspect pending for individual reasons. This is a bounded draft, not complete coverage.",
     "State page_f4b882a5cd95552e has no outgoing journeys; review termination.",
     "State page_7f6a9f525db5ff9f has no outgoing journeys; review termination.",
@@ -187,13 +114,118 @@
     "State page_b6a2bb59def87892 has no outgoing journeys; review termination.",
     "State page_fa3ac1d1ee7dfdb7 has no outgoing journeys; review termination.",
     "State page_aff278c2c1af27a8 has no outgoing journeys; review termination.",
-    "State page_5d2576cee8cab0b5 has no outgoing journeys; review termination."
+    "State page_5d2576cee8cab0b5 has no outgoing journeys; review termination.",
+    "The observed graph is not strongly connected: some states cannot return to the entry. New York Street Sweeper cannot traverse it; review the model before requesting full single-walk edge coverage."
   ],
-  "generated_on": "2026-10-12",
-  "full_summary": "demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-summary.json",
+  "full_summary": "demos/artifacts/discovery-saucedemo/fresh-2026-10-12-01-summary.json",
+  "viewer": "demos/artifacts/discovery-saucedemo/fresh-2026-10-12-01-overview/index.html",
   "native_validation": {
-    "model_hash": "a8e4d3fd17ee7193630be42e80f98cceb8fcf1cc2f0454f4baee25dbc2ba9c2f",
+    "model_hash": "f6354a06fa0a83d23755114703d1a1c1598e563aa7b3c73ca49e7dcc1cf89fcb",
     "states": 63,
     "edges": 135
+  },
+  "execution": {
+    "routes": 117,
+    "route_inventory": "demos/artifacts/discovery-saucedemo/fresh-2026-10-12-01-routes.json",
+    "scope": "Successful observed routes, partitioned into 100 and 17 walks. Each batch retains the full model and its coverage goals.",
+    "batches": [
+      {
+        "batch": 1,
+        "status": "INCONCLUSIVE",
+        "error": "Unresolved state requirements: The Sort products selection is Name (A to Z).",
+        "summary": {
+          "PASS": 1,
+          "FAIL": 0,
+          "INCONCLUSIVE": 1,
+          "SKIPPED": 428
+        },
+        "model_calls": 10,
+        "verified_edges": 0,
+        "total_edges": 135,
+        "report": "demos/artifacts/saucedemo/2026-10-12T10-03-05.445Z-25327-0/report.html",
+        "junit": "demos/artifacts/saucedemo/2026-10-12T10-03-05.445Z-25327-0/junit.xml",
+        "screenshot": "demos/artifacts/saucedemo/2026-10-12T10-03-05.445Z-25327-0/screenshots/000002.png"
+      },
+      {
+        "batch": 2,
+        "status": "INCONCLUSIVE",
+        "error": "Unresolved state requirements: The Sort products selection is Name (A to Z).",
+        "summary": {
+          "PASS": 1,
+          "FAIL": 0,
+          "INCONCLUSIVE": 1,
+          "SKIPPED": 83
+        },
+        "model_calls": 10,
+        "verified_edges": 0,
+        "total_edges": 135,
+        "report": "demos/artifacts/saucedemo/2026-10-12T10-06-51.357Z-28859-0/report.html",
+        "junit": "demos/artifacts/saucedemo/2026-10-12T10-06-51.357Z-28859-0/junit.xml",
+        "screenshot": "demos/artifacts/saucedemo/2026-10-12T10-06-51.357Z-28859-0/screenshots/000002.png"
+      }
+    ],
+    "triage": "Both batches stop after login because the selected sorting label is not exposed clearly in assertion evidence. The screenshot displays Name (A to Z). No application failure was established.",
+    "select_evidence_update": {
+      "replay": {
+        "status": "PASS",
+        "report": "demos/artifacts/saucedemo/2026-10-12T11-04-32.601Z-82919-0/report.html"
+      },
+      "model_run": {
+        "status": "INCONCLUSIVE",
+        "summary": {
+          "PASS": 9,
+          "FAIL": 0,
+          "INCONCLUSIVE": 1,
+          "SKIPPED": 420
+        },
+        "verified_edges": 6,
+        "total_edges": 135,
+        "model_calls": 28,
+        "blocked_intent": "Select Name (Z to A) for Sort products.",
+        "reason": "The next browser action remains ambiguous",
+        "report": "demos/artifacts/saucedemo/2026-10-12T11-07-00.480Z-85789-0/report.html",
+        "junit": "demos/artifacts/saucedemo/2026-10-12T11-07-00.480Z-85789-0/junit.xml"
+      },
+      "triage": "Native select option labels, values, selected/disabled flags and form association are now exposed. Login/Products sorting verification passes. The full-model rerun reaches order completion, then stops on a standalone sort-selection action."
+    },
+    "native_select_update": {
+      "tested_on": "2026-10-13",
+      "confidence": 0.8,
+      "replay": {
+        "status": "PASS",
+        "report": "demos/artifacts/saucedemo/2026-10-12T20-38-54.276Z-15483-0/report.html"
+      },
+      "model_run": {
+        "scope": "Four observed route prefixes covering all four native sorting choices",
+        "status": "INCONCLUSIVE",
+        "summary": {
+          "PASS": 13,
+          "FAIL": 0,
+          "INCONCLUSIVE": 0,
+          "SKIPPED": 0
+        },
+        "verified_edges": 5,
+        "total_edges": 135,
+        "model_calls": 28,
+        "error": "Required verified edge coverage was not achieved",
+        "report": "demos/artifacts/saucedemo/2026-10-12T20-41-14.369Z-18155-0/report.html",
+        "junit": "demos/artifacts/saucedemo/2026-10-12T20-41-14.369Z-18155-0/junit.xml"
+      },
+      "triage": "Generic native select actions now choose enabled observed options by business intent. All selected cases pass. Overall coverage remains incomplete because this was a focused selection run, not a full model traversal.",
+      "browser_settle_timeout_ms": 30000,
+      "initial_replay_attempt": {
+        "status": "INCONCLUSIVE",
+        "model_calls": 0,
+        "reason": "The browser did not settle before observation",
+        "report": "demos/artifacts/saucedemo/2026-10-12T20-37-38.532Z-13621-0/report.html"
+      }
+    }
+  },
+  "synthetic_data": {
+    "account": "Published standard_user demo account",
+    "customer": "Alex Tester",
+    "postal_code": "3000",
+    "email": "alex@example.com",
+    "card_fields_observed": false
   }
 }

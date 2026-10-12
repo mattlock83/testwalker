@@ -19,7 +19,17 @@ export interface Control {
   operations: string[];
   readOnly: boolean;
   disabled: boolean;
+  multiple?: boolean;
   options?: Array<{ value: string; label: string; disabled: boolean }>;
+  minimum?: number;
+  maximum?: number;
+  step?: number;
+  stepBase?: number;
+  accept?: string;
+  files?: Array<{ name: string; size: number; type: string }>;
+  members?: string[];
+  expanded?: boolean;
+  selected?: boolean;
 }
 
 export class StaleSnapshot extends Inconclusive {}
@@ -126,16 +136,30 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
     if (!forms.has(form)) forms.set(form, `f${frame}-form${nextForm++}`);
     return forms.get(form)!;
   };
-  const describe = (element: Element, index: number): Control | null => {
+  const describe = (
+    element: Element,
+    index: number,
+    observationOnly = false,
+  ): Control | null => {
     const editable =
       Boolean((element as HTMLElement).isContentEditable) &&
       !(element.parentElement as HTMLElement | null)?.isContentEditable;
     if (
       !editable &&
-      !element.matches("input,textarea,select,button,a[href],summary,[role]")
+      !element.matches(
+        "input,textarea,select,button,a[href],summary,[role],[draggable=true],[aria-dropeffect]",
+      )
     )
       return null;
-    if (!element.isConnected || !rendered(element) || disabled(element))
+    const labelledUpload =
+      element instanceof HTMLInputElement &&
+      element.type === "file" &&
+      [...(element.labels ?? [])].some(rendered);
+    if (
+      !element.isConnected ||
+      (!rendered(element) && !labelledUpload) ||
+      (!observationOnly && disabled(element))
+    )
       return null;
     const tag = element.localName;
     const roleAttribute = (element.getAttribute("role") ?? "").split(/\s+/)[0];
@@ -146,6 +170,10 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
     const type = input || button ? element.type : "";
     if (type === "hidden") return null;
     const checkable = input && ["checkbox", "radio"].includes(type);
+    const ariaCheck =
+      ["checkbox", "radio", "switch"].includes(roleAttribute ?? "") &&
+      element.hasAttribute("aria-checked");
+    const slider = type === "range" || roleAttribute === "slider";
     const nativeButton =
       button ||
       (input && ["submit", "reset", "button", "image"].includes(type));
@@ -155,10 +183,15 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
       Boolean((input || textarea) && element.readOnly) ||
       element.getAttribute("aria-readonly") === "true";
     const operations: string[] = [];
-    if (checkable && !readOnly) operations.push("CHECK");
+    if ((checkable || ariaCheck) && !readOnly) operations.push("CHECK");
     else if (select && !readOnly) operations.push("SELECT");
+    else if (slider && !readOnly) operations.push("RANGE");
+    else if (type === "color" && !readOnly) operations.push("COLOR");
+    else if (type === "file" && !readOnly) operations.push("UPLOAD");
     else if (
       !readOnly &&
+      !checkable &&
+      !ariaCheck &&
       (textarea ||
         editable ||
         (input && !nativeButton && !["file", "range", "color"].includes(type)))
@@ -166,6 +199,8 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
       operations.push("FILL");
     if (
       !readOnly &&
+      !checkable &&
+      !ariaCheck &&
       (nativeButton ||
         link ||
         [
@@ -184,22 +219,40 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
         tag === "summary")
     )
       operations.push("CLICK");
+    if (!readOnly && element.getAttribute("draggable") === "true")
+      operations.push("DRAG");
+    if (
+      !readOnly &&
+      ((element.hasAttribute("aria-dropeffect") &&
+        element.getAttribute("aria-dropeffect") !== "none") ||
+        (["region", "group", "list"].includes(roleAttribute ?? "") &&
+          Boolean(label(element))))
+    )
+      operations.push("DROP");
     if (!input && !textarea && !select && !editable && !operations.length)
       return null;
     const role =
       roleAttribute ||
       (checkable
         ? type
-        : select
-          ? "combobox"
-          : nativeButton || tag === "summary"
-            ? "button"
-            : link
-              ? "link"
-              : "textbox");
+        : slider
+          ? "slider"
+          : type === "file"
+            ? "file"
+            : type === "color"
+              ? "colorwell"
+              : select
+                ? element.multiple || element.size > 1
+                  ? "listbox"
+                  : "combobox"
+                : nativeButton || tag === "summary"
+                  ? "button"
+                  : link
+                    ? "link"
+                    : "textbox");
     const region = ancestor(
       element,
-      "fieldset,form,section,[role=group],[role=dialog]",
+      "fieldset,form,section,[role=group],[role=dialog],[role=list],[role=listbox]",
     );
     const heading = region?.querySelector("legend,h1,h2,h3,h4,[role=heading]");
     const context = clean(
@@ -214,15 +267,20 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
       label: label(element).slice(0, 1000),
       tag,
       type,
-      value: checkable
-        ? element.checked
-        : input || textarea || select
-          ? element.value
-          : editable
-            ? text(element)
-            : element.hasAttribute("aria-checked")
-              ? element.getAttribute("aria-checked") === "true"
-              : null,
+      value:
+        slider && !input
+          ? element.getAttribute("aria-valuenow")
+          : type === "file"
+            ? null
+            : checkable
+              ? element.checked
+              : input || textarea || select
+                ? element.value
+                : editable
+                  ? text(element)
+                  : element.hasAttribute("aria-checked")
+                    ? element.getAttribute("aria-checked") === "true"
+                    : null,
       href: link ? element.href : null,
       ...(link
         ? {
@@ -233,11 +291,18 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
       in_navigation: Boolean(ancestor(element, 'nav,[role="navigation"]')),
       form: formIdentity(element),
       context,
-      operations,
+      operations: disabled(element) ? [] : operations,
       readOnly,
-      disabled: false,
+      disabled: disabled(element),
+      ...(element.hasAttribute("aria-expanded")
+        ? { expanded: element.getAttribute("aria-expanded") === "true" }
+        : {}),
+      ...(element.hasAttribute("aria-selected")
+        ? { selected: element.getAttribute("aria-selected") === "true" }
+        : {}),
       ...(select
         ? {
+            multiple: element.multiple,
             options: [...element.options].map((option) => ({
               value: option.value,
               label: option.label,
@@ -248,11 +313,61 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
             })),
           }
         : {}),
+      ...(input && type === "file"
+        ? {
+            multiple: element.multiple,
+            accept: element.accept,
+            files: [...(element.files ?? [])].map((file) => ({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+            })),
+          }
+        : {}),
+      ...(slider
+        ? {
+            minimum: Number(
+              input
+                ? element.min || "0"
+                : (element.getAttribute("aria-valuemin") ?? "0"),
+            ),
+            maximum: Number(
+              input
+                ? element.max || "100"
+                : (element.getAttribute("aria-valuemax") ?? "100"),
+            ),
+            step:
+              !input || element.step === "any"
+                ? undefined
+                : Number(element.step || "1"),
+            ...(input
+              ? {
+                  stepBase: Number(
+                    element.min || element.getAttribute("value") || "0",
+                  ),
+                }
+              : {}),
+          }
+        : {}),
+      ...(operations.includes("DROP") &&
+      (roleAttribute === "list" ||
+        element.querySelector('[role="listitem"],li,[draggable="true"]'))
+        ? {
+            members: [
+              ...element.querySelectorAll(
+                '[role="listitem"],li,[draggable="true"]',
+              ),
+            ]
+              .filter(rendered)
+              .map((member) => label(member))
+              .slice(0, 100),
+          }
+        : {}),
     };
   };
   const identity = (
     element: Element,
-    { id: _id, value: _value, ...control }: Control,
+    { id: _id, value: _value, files: _files, ...control }: Control,
     interaction = false,
   ) =>
     JSON.stringify({
@@ -261,9 +376,15 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
         .getAttributeNames()
         .filter(
           (name) =>
-            !["class", "style", "value", "checked", "aria-checked"].includes(
-              name,
-            ) &&
+            ![
+              "class",
+              "style",
+              "value",
+              "checked",
+              "aria-checked",
+              "aria-valuenow",
+              "aria-valuetext",
+            ].includes(name) &&
             !(
               interaction &&
               [
@@ -330,19 +451,147 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
           .filter(Boolean),
       }));
     const semantics = {
+      read_only_fields: elements
+        .filter(
+          (element) =>
+            rendered(element) &&
+            (element instanceof HTMLOutputElement ||
+              ((element instanceof HTMLInputElement ||
+                element instanceof HTMLTextAreaElement) &&
+                (element.readOnly ||
+                  element.getAttribute("aria-readonly") === "true") &&
+                ![
+                  "checkbox",
+                  "radio",
+                  "file",
+                  "range",
+                  "color",
+                  "hidden",
+                ].includes((element as HTMLInputElement).type))),
+        )
+        .map((element) => ({
+          label: label(element),
+          value: (element as HTMLOutputElement).value,
+          role: element instanceof HTMLOutputElement ? "output" : "textbox",
+          frame,
+        })),
+      tables: elements
+        .filter(
+          (element): element is HTMLTableElement =>
+            element instanceof HTMLTableElement && rendered(element),
+        )
+        .map((table) => {
+          const cellText = (cell: HTMLTableCellElement) => {
+            const walker = document.createTreeWalker(
+              cell,
+              NodeFilter.SHOW_TEXT,
+            );
+            const parts: string[] = [];
+            let node: Node | null;
+            while ((node = walker.nextNode())) {
+              const parent = node.parentElement;
+              if (
+                parent &&
+                rendered(parent) &&
+                !ancestor(
+                  parent,
+                  "input,textarea,select,[contenteditable],script,style",
+                )
+              )
+                parts.push(node.textContent ?? "");
+            }
+            return clean(parts.join(" "));
+          };
+          const rows = [...table.rows].filter(rendered);
+          const headers = rows
+            .filter((row) =>
+              [...row.cells].every((cell) => cell.tagName === "TH"),
+            )
+            .map((row) => [...row.cells].filter(rendered).map(cellText));
+          const data = rows
+            .filter((row) =>
+              [...row.cells].some((cell) => cell.tagName === "TD"),
+            )
+            .slice(0, 100)
+            .map((row) => [...row.cells].filter(rendered).map(cellText));
+          return {
+            label: clean(
+              table.getAttribute("aria-label") ||
+                referenced(table, "aria-labelledby").map(text).join(" ") ||
+                table.caption?.textContent,
+            ),
+            headers,
+            rows: data,
+            records:
+              headers.length === 1 &&
+              new Set(headers[0]).size === headers[0].length
+                ? data
+                    .filter((row) => row.length === headers[0].length)
+                    .map((row) =>
+                      Object.fromEntries(
+                        headers[0].map((header, index) => [header, row[index]]),
+                      ),
+                    )
+                : [],
+            truncated:
+              rows.filter((row) =>
+                [...row.cells].some((cell) => cell.tagName === "TD"),
+              ).length > 100,
+          };
+        }),
       alerts: messages("alert"),
       status: messages("status"),
       invalid_fields,
       editable_fields: controls
-        .filter((control) =>
-          control.operations.some((operation) =>
-            ["FILL", "CHECK", "SELECT"].includes(operation),
-          ),
-        )
+        .filter((control) => control.operations.includes("FILL"))
         .map((control) => ({
           label: control.label,
           current_value: control.value,
         })),
+      selects: elements
+        .filter(
+          (element): element is HTMLSelectElement =>
+            element instanceof HTMLSelectElement && rendered(element),
+        )
+        .map((element) => ({
+          label: label(element),
+          role: element.multiple || element.size > 1 ? "listbox" : "combobox",
+          form: formIdentity(element),
+          multiple: element.multiple,
+          disabled: disabled(element),
+          readOnly: element.getAttribute("aria-readonly") === "true",
+          selected_labels: [...element.selectedOptions].map(
+            (option) => option.label,
+          ),
+          options: [...element.options].map((option) => ({
+            label: option.label,
+            value: option.value,
+            selected: option.selected,
+            disabled:
+              option.disabled ||
+              (option.parentElement instanceof HTMLOptGroupElement &&
+                option.parentElement.disabled),
+          })),
+        })),
+      // Unavailable widgets still provide observable state, but never action bindings.
+      widgets: elements
+        .map((element, index) => describe(element, index, true))
+        .filter((control): control is Control => control !== null)
+        .filter(
+          (control) =>
+            [
+              "checkbox",
+              "radio",
+              "switch",
+              "slider",
+              "colorwell",
+              "file",
+            ].includes(control.role) ||
+            control.operations.some((operation) =>
+              ["DRAG", "DROP"].includes(operation),
+            ),
+        )
+        .map(({ id: _id, ...control }) => control),
       available_links: controls
         .filter((control) => control.role === "link")
         .map((control) => ({
@@ -351,15 +600,67 @@ function retainDocument({ frame, prefix }: { frame: number; prefix: string }) {
           in_navigation: control.in_navigation,
         })),
       available_buttons: controls
-        .filter((control) => control.role === "button")
-        .map((control) => ({ label: control.label })),
+        .filter(
+          (control) =>
+            control.operations.includes("CLICK") &&
+            control.role !== "option" &&
+            (control.tag === "button" ||
+              ["button", "combobox", "tab", "menuitem"].includes(control.role)),
+        )
+        .map((control) => ({
+          label: control.label,
+          role: control.role,
+          ...(control.expanded !== undefined
+            ? { expanded: control.expanded }
+            : {}),
+          ...(control.selected !== undefined
+            ? { selected: control.selected }
+            : {}),
+        })),
+      selection_lists: elements
+        .filter(
+          (element) =>
+            element.getAttribute("role") === "listbox" && rendered(element),
+        )
+        .map((list) => ({
+          label: label(list),
+          multiple: list.getAttribute("aria-multiselectable") === "true",
+          controllers: elements
+            .filter(
+              (element) =>
+                rendered(element) &&
+                Boolean(list.id) &&
+                (element.getAttribute("aria-controls") ?? "")
+                  .split(/\s+/)
+                  .includes(list.id),
+            )
+            .map((element) => ({
+              label: label(element),
+              ...(element.hasAttribute("aria-expanded")
+                ? { expanded: element.getAttribute("aria-expanded") === "true" }
+                : {}),
+            })),
+          options: [...list.querySelectorAll('[role="option"]')]
+            .filter(rendered)
+            .map((option) => ({
+              label: label(option),
+              selected: option.getAttribute("aria-selected") === "true",
+              disabled: disabled(option),
+            })),
+        })),
       visible_options: elements
         .filter(
           (element) =>
             element.getAttribute("role") === "option" && rendered(element),
         )
         .slice(0, 100)
-        .map((element) => ({ label: label(element) })),
+        .map((element) => ({
+          label: label(element),
+          ...(disabled(element) ? { disabled: true } : {}),
+          ...(element.hasAttribute("aria-selected")
+            ? { selected: element.getAttribute("aria-selected") === "true" }
+            : {}),
+        })),
     };
     // innerText includes offscreen rendered evidence. Shadow trees need their own text.
     const page = {

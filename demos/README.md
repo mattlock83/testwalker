@@ -5,6 +5,7 @@ Each example supplies its own website, GraphWalker business model, browser confi
 | Demo | Features | Application code | Wrapper port |
 | --- | --- | --- | --- |
 | [Hello World](hello-world/README.md) | Two navigation options, one required Name input | None | 4185 |
+| [Controls lab](controls/README.md) | 85 journeys covering native controls, custom calendar/dropdown, files and drag/drop | None | 4187 |
 | [Booking](booking/README.md) | Four menu pages, review/confirmation, name/email/places | None | 4183 |
 | [Feedback](feedback/README.md) | Enquiry acceptance/rejection and length boundaries | None | 4186 |
 | [Trailhead](trailhead/README.md) | 148 journeys, profiles, booking/refund ledger, custom pickup | `app.ts`, `hooks.ts` | 4184 |

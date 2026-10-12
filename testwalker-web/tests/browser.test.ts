@@ -23,6 +23,7 @@ function decisionClient(actionLabel = "Continue") {
         answers: Object.fromEntries(
           Object.entries(params.questions).map(
             ([name, question]: [string, any]) => {
+              if (name === "input_action") return [name, { choice: "SUBMIT" }];
               if (name.startsWith("action_"))
                 return [
                   name,
@@ -165,7 +166,9 @@ test(
       await page.setContent(`<form id="unrelated"><label>Other<input></label><button>Review</button></form>
       <form id="active" novalidate><label>Age<input id="age"></label><button>Review</button>
       <button disabled>Disabled</button><button style="display:none">Hidden</button></form>
-      <label>Name<input id="name" form="active"></label><div role="alert" id="errors"></div>
+      <label>Name<input id="name" form="active"></label>
+      <label>Mode<select form="active"><option>Draft</option><option>Final</option></select></label>
+      <div role="alert" id="errors"></div>
       <script>window.attempts=[];window.unrelated=0;
       document.getElementById('unrelated').onsubmit=e=>{e.preventDefault();window.unrelated++};
       document.getElementById('active').onsubmit=e=>{e.preventDefault();window.attempts.push({name:document.getElementById('name').value,age:document.getElementById('age').value});document.getElementById('errors').textContent='Invalid data'};</script>`);
@@ -178,10 +181,10 @@ test(
       });
       assert.equal(
         decisions.requests.length,
-        1,
-        "All fields share one request; native submit adds none",
+        2,
+        "One operation decision and one batched field binding; native submit adds none",
       );
-      assert.equal(Object.keys(decisions.requests[0].questions).length, 2);
+      assert.equal(Object.keys(decisions.requests[1].questions).length, 2);
       await target.observe();
       await target.execute(params, async () => null);
       assert.deepEqual(await page.evaluate(() => (window as any).attempts), [
@@ -198,6 +201,13 @@ test(
       assert.ok(
         decisions.requests.at(-1)!.questions.action_0,
         "Multiple submit operations need a fresh Jev decision",
+      );
+      assert.ok(
+        Object.values(decisions.requests.at(-1)!.questions).every(
+          (question: any) =>
+            !question.instructions.control.operations.includes("SELECT"),
+        ),
+        "Submitting the entered form must not select new input values",
       );
       assert.equal(
         (await page.evaluate(() => (window as any).attempts)).length,
@@ -540,7 +550,8 @@ test(
         );
       }
       assert.equal(
-        decisions.requests.length,
+        decisions.requests.filter((request) => request.questions.field_0)
+          .length,
         2,
         "Each case binds once without a mutation retry",
       );

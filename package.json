@@ -6,6 +6,7 @@
     "testwalker-web",
     "testwalker-discover",
     "demos/hello-world",
+    "demos/controls",
     "demos/booking",
     "demos/feedback",
     "demos/trailhead"

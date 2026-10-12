@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "model_hash": "0cd50fb259f00b846d20b4a1d9ba889ce3e79986bc770afd33cc095ec0fd75d0",
+  "report": "../artifacts/controls/2026-10-12T22-59-14.983Z-56579-0/report.html",
+  "junit": "../artifacts/controls/2026-10-12T22-59-14.983Z-56579-0/junit.xml",
+  "confidence_threshold": 0.8,
+  "graph": {
+    "edges": {
+      "verified": 85,
+      "total": 85
+    },
+    "states": {
+      "verified": 34,
+      "total": 34
+    }
+  },
+  "hegel": {
+    "selected": 6,
+    "completed": 6,
+    "available": 21
+  },
+  "tests": {
+    "PASS": 144,
+    "FAIL": 0,
+    "INCONCLUSIVE": 0,
+    "SKIPPED": 0
+  },
+  "jev_calls": 336,
+  "screenshots": 144,
+  "browser_regression_tests": 32,
+  "rust_core_changed": false
+}
