@@ -1,29 +1,53 @@
-# SauceDemo
+# Sauce Demo draft
 
-[`model.json`](model.json) is a discovery-generated draft of the live
-[SauceDemo](https://www.saucedemo.com/) application, regenerated on 12 October 2026, with 63 observed states and
-135 journeys, including 12 fixed-input form journeys. It needs review and
-independent business rules before property testing. The fresh model includes
-literal login and checkout examples; no Hegel campaigns are inferred.
+This folder contains a discovery-generated [model](model.json) of the external [Sauce Demo](https://www.saucedemo.com/) site. It has 63 observed states and 135 journeys, including fixed login and checkout examples.
 
-The existing draft was retested on 13 October without discovery. A continuous
-walk cannot be planned because 44 observed states have no outgoing edge. Its
-saved route batches were also executed; the latest run verified 9 / 135 edges
-before an ambiguous choice between product-details controls stopped execution
-at confidence 0.80. This is INCONCLUSIVE, with no confirmed website defect. See
-[the full-model verification record](../verification.json) and
-[the latest local report](../artifacts/saucedemo/2026-10-13T01-42-42.029Z-12717-0/report.html).
+**This is a draft, not a complete runnable regression model.** Forty-four states have no outgoing edge, preventing a continuous full traversal. Saved route batches got through some journeys but stopped on ambiguous UI decisions. No website defect was established. The measured results are recorded in [the verification inventory](../verification.json).
 
-Testwalker was run against this model at confidence 0.80. Native select
-observation and intent-driven selection now work: the blocked replay passes,
-and a focused run covering all four sorting choices passes all 13 planned cases.
-That focused run remains **INCONCLUSIVE** overall because it verifies 5 of the
-model's 135 journeys, below the unchanged full-coverage goal. Details, earlier
-results and report links are in the run summary.
+There are no independently authored data sets or Hegel campaigns. `--input-mode none` skips additional property testing while fixed graph form inputs still execute.
 
-[Discovery commands, results and gaps](discovery/README.md) ·
-[Run summary](discovery/summary.json) · [Synthetic values](discovery/values.json)
+## Shell scripts
 
-[View the latest discovery results](../artifacts/discovery-saucedemo/fresh-2026-10-12-01-overview/index.html)
-(local generated artifact). Rebuild it with the `report` command in the
-[standalone discovery package](../../testwalker-discover/README.md).
+After [repository setup](../../README.md#build-and-run), run from the repository root:
+
+```bash
+./demos/saucedemo/test.sh --headed
+./demos/saucedemo/discover.sh --headed
+```
+
+Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. Both scripts use the hosted demo site; discovery loads the synthetic values in `discovery/values.json`. The existing draft still needs review before full test execution. See [the script guide](../README.md#shell-scripts) for overrides.
+
+## Inspect and review
+
+After [setup](../../README.md#build-and-run), inspect the draft without a key or browser:
+
+```bash
+npx --no-install testwalker-web plan \
+  --model demos/saucedemo/model.json --max-steps 10000
+```
+
+The current draft reports a planning error because of its terminal states. Before expecting full execution, review the model in GraphWalker: resolve terminal paths, distinguish ambiguous states/actions and add independent expected rules. Discovery observations alone are not expected business behavior.
+
+For individually reset route testing, the framework also accepts reviewed `options.paths`. Imported route counts must match `walks`, with at most 100 walks per run. See [the CLI reference](../../core/docs/cli.md#graph-walk-modes). Locally recorded batch configurations and report bundles are ignored files and are not required setup assets in a fresh checkout.
+
+## Run a reviewed model
+
+Create a run configuration and set its Jev key. An existing example can be copied as a starting point:
+
+```bash
+cp demos/saucedemo/run.json.example demos/saucedemo/run.local.json
+```
+
+Edit `decision.api_key`, then run:
+
+```bash
+npx --no-install testwalker-web run \
+  --model demos/saucedemo/model.json --url https://www.saucedemo.com/ \
+  --config demos/saucedemo/run.local.json \
+  --browser-config demos/saucedemo/browser.json --headed \
+  --input-mode none --max-steps 10000 --max-calls 4000
+```
+
+Use the reviewed model's path if saved separately. The original checked-in draft still has the limitations above. The command uses the existing external site; it does not host a local server or perform discovery.
+
+For collection commands and synthetic field values, see [Sauce Demo discovery](discovery/README.md). For a complete local example, use [Controls](../controls/README.md) or [Trailhead](../trailhead/README.md).

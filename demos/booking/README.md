@@ -1,34 +1,44 @@
 # Booking
 
-A workshop site with Home, Workshops, Our studio and Visit navigation, customer details, review and confirmation. **Eight states and 35 journeys** exercise required fields, name length, email shape and a 1–4 place limit.
+A workshop website with Home, Workshops, Our studio and Visit navigation. Eight states and 35 journeys cover form entry, rejection, review and confirmation.
 
-`site/` is the plain HTML application; `model.json` is its selector-free GraphWalker business specification. There is no custom runtime test code or hook. The shared TypeScript adapter executes the model through Rust, with focused Hegel input checks by default. Regression checks stay beside the site in [tests/](tests/).
+The [model](model.json) specifies customer-name length, email format, a 1–4 place limit and AUD 45 per place. The plain HTML site needs no custom runtime hook; the shared web adapter executes the model.
+
+## Shell scripts
+
+After [repository setup](../../README.md#build-and-run), run from the repository root:
+
+```bash
+./demos/booking/test.sh --headed
+./demos/booking/discover.sh --headed
+```
+
+Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. The local site is started and stopped automatically; discovery uses a free port. See [the script guide](../README.md#shell-scripts) for overrides.
 
 ## Run
 
-After [building Rust and Node](../../README.md#build-and-run), run from the repository root:
+After [setup](../../README.md#build-and-run), run from the repository root. Create the configuration once and set `decision.api_key`:
 
 ```bash
 cp demos/booking/run.json.example demos/booking/run.local.json
-# Set decision.api_key in run.local.json to your Jev key.
-npx --no-install testwalker-web demo --directory demos/booking --port 4183 --headed
-# Full graph, just two selected property inputs:
-npm run demo --workspace @testwalker/demo-booking -- --headed --max-input-attempts 2 --no-shrink
-# Plan without a key or browser:
-npx --no-install testwalker-web plan --model demos/booking/model.json --config demos/booking/run.json.example
 ```
 
-The owned browser and website close afterward. Reports go to `demos/artifacts/booking/`. Native provider settings are in ignored `run.local.json`; optional Playwright settings are in `browser.json`. Confidence defaults to **0.80**. Use `--input-mode none` for graph only, `--max-calls` for Jev allowance, and `--threshold` to change confidence. See [testing and triage](../../testwalker-web/docs/testing.md).
-
-Preview without Jev:
+Edit `decision.api_key` in the new file, then run:
 
 ```bash
+npm run demo --workspace @testwalker/demo-booking -- --headed
+```
+
+The wrapper uses port 4183 and closes its site and browser after execution. Reports go to `demos/booking/artifact/`. Defaults cover the full graph and 50 focused input phases, including form correction from an error state.
+
+For two selected inputs, append `--max-input-attempts 2 --no-shrink`. For graph only, append `--input-mode none`. Use another `--port` if a preview is already running.
+
+## Plan, preview and regression checks
+
+```bash
+npx --no-install testwalker-web plan --directory demos/booking
 npx --no-install testwalker-web serve --directory demos/booking/site --port 4183
-```
-
-Regression checks use the public `@testwalker/web` package and installed Rust executable, without a Jev key:
-
-```bash
-export PATH="$PWD/core/target/release:$PATH"
 npm test --workspace @testwalker/demo-booking
 ```
+
+Planning and preview need no Jev key. Stop preview before testing on its port. Regression tests use installed Rust executables and deterministic checks. See [test scope and results](../../testwalker-web/docs/testing.md).

@@ -2,7 +2,7 @@
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { realpathSync } from "node:fs";
-import { resolve, join, dirname } from "node:path";
+import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "./server.js";
 import { loadBrowserSettings, DEFAULT_THRESHOLD, httpUrl } from "./config.js";
@@ -93,6 +93,7 @@ Native execution: --framework EXECUTABLE, --browser-config BROWSER.json, --max-c
 --threshold N (default 0.80), --strategy-provider INPUTS.ts, --output DIRECTORY.
 Graph/Hegel/replay flags pass to Rust, e.g. --max-input-attempts 2 --generator new_york_street_sweeper.
 All tests, verdicts, HTML/JSON/JUnit and replay are owned by Rust.
+Default output: artifact/<timestamped run>/ beside the supplied model.
 `;
 export async function main(argv = process.argv.slice(2)): Promise<number> {
   const { command, values: v, native } = argumentsFor([...argv]);
@@ -203,12 +204,8 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
           );
       for (const flag of ["headed", "debug"])
         if (v[flag]) args.push(`--adapter-arg=--${flag}`);
-      const output =
-        v.output ??
-        (directory
-          ? join(dirname(directory), "artifacts", directory.split("/").at(-1)!)
-          : "artifacts");
-      args.push("--output", resolve(output));
+      // Rust derives the default from the actual model path, including --model overrides.
+      if (v.output) args.push("--output", resolve(v.output));
       if (v["strategy-provider"]) args.push("--custom-strategies");
     }
     return await childRun(

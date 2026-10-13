@@ -1,125 +1,104 @@
-# Native adapter protocol (version 1)
+# JSON-RPC adapter protocol
 
-`testwalker-core` speaks bidirectional JSON-RPC 2.0 using one UTF-8 JSON message per line on stdin/stdout. Stdout contains protocol messages only; diagnostics use stderr. Message limit: 64 MiB. `testwalker run --model MODEL --adapter EXECUTABLE` launches a target adapter and issues lifecycle callbacks on these pipes. The adapter can make nested framework service calls while handling a callback. The worker mode also remains available for clients that launch the framework themselves; the Node `CoreClient` implements that client profile. See [CLI configuration](cli.md).
+Testwalker uses bidirectional JSON-RPC 2.0 over stdin/stdout: one UTF-8 JSON object per line, with a 64 MiB message limit. Stdout contains protocol messages; diagnostics go to stderr. Batch requests are not supported.
 
-The machine-readable contracts are [openrpc.json](../openrpc.json) for calls to the worker and [openrpc.adapter.json](../openrpc.adapter.json) for callbacks that adapters implement. Both use OpenRPC 1.3.2 with JSON Schema Draft 7 and include parameter/result schemas, examples, errors and lifecycle requirements. They describe named parameters over stdio; `x-testwalker` metadata records the transport and direction. The two documents keep callback methods out of the worker's callable method inventory.
+There are two roles:
 
-The worker embeds its specification and exposes it through `rpc.discover`, without a provider or adapter. For example, send this line to its stdin:
+1. **Executable adapter:** `testwalker run` hosts the framework, launches the adapter, and calls its target methods. The adapter can make nested framework service requests while handling callbacks.
+2. **Worker client:** a client launches `testwalker-core` without arguments and calls framework methods such as `run.start`. That client also handles target callbacks. The web package's `CoreClient` supports this profile.
+
+Use the native CLI for normal runs. Implement this protocol when adding an adapter or hosting execution yourself. See [CLI configuration](cli.md).
+
+## Machine-readable contracts
+
+- [openrpc.json](../openrpc.json): methods callable on the worker.
+- [openrpc.adapter.json](../openrpc.adapter.json): callbacks implemented by adapters.
+
+Both specify named parameters, result schemas, errors and examples. The worker exposes its embedded contract through `rpc.discover`:
 
 ```json
-{"jsonrpc":"2.0","id":1,"method":"rpc.discover","params":{}}
+{ "jsonrpc": "2.0", "id": 1, "method": "rpc.discover", "params": {} }
 ```
 
-The response's `result` is the complete OpenRPC document. `core.info.methods` advertises the same method inventory. The specifications belong to the framework; the separate TypeScript web package consumes its JSON-RPC interface and does not bundle copies. The graph model continues to define business behaviour and call sequences; the OpenRPC documents define the API interface.
+Valid notifications receive no response. Errors use `-32700` for malformed JSON, `-32600` for invalid request envelopes, `-32601` for unknown methods and `-32602` for invalid parameter types. Domain errors use `-32001` with a structured Testwalker outcome.
 
-This profile accepts single request objects, not batches. Malformed JSON returns `-32700`, invalid request envelopes return `-32600`, unknown methods return `-32601`, and scalar or null parameters return `-32602`. Valid notifications have no response. An unusable or absent ID on an invalid request is returned as null; valid IDs retain their JSON type. Domain validation errors use `-32001` with Testwalker's structured outcome data.
+One worker executes one synchronous run at a time. `run.start` returns the final report, not an asynchronous run handle. Cancellation is cooperative at target/decision boundaries; it cannot interrupt an already running external operation.
 
-Run `testwalker-core self-test` to exercise this API through the Rust library driver and a separate subject worker. The [RPC testing guide](rpc-testing.md) also describes testing other stdio APIs with declarative bindings and deterministic assertions, without Jev.
+## Client to framework
 
-One worker runs one synchronous execution at a time. `run.start` returns its final report, rather than an asynchronous run handle. Start independent workers for parallel runs. `run.cancel` is cooperative at the next target or decision boundary; it cannot interrupt an already running browser operation or HTTP request.
+The OpenRPC contract is the complete schema reference. Main methods are:
 
-## Client → core
+| Method                                                                      | Purpose                                                                            |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `core.info`, `rpc.discover`                                                 | Version, method inventory and API contract.                                        |
+| `model.validate`, `model.configure`                                         | Validate the model; optionally override exploration.                               |
+| `graph.setup`, `graph.plan`, `run.plan`                                     | Setup routes, graph routes and selected inventory without target execution.        |
+| `property.validate`, `property.policy`, `property.plan`, `property.samples` | Input validity, strategy policies and phases.                                      |
+| `run.validate`                                                              | Validate execution options without planning or target initialization.              |
+| `run.start`                                                                 | Execute `{model, options?, target?, output?}` and return final results.            |
+| `case.replay`                                                               | Execute a concrete saved `{case}` using the same model hash.                       |
+| `run.cancel`, `run.results`                                                 | Request cancellation or retrieve the last completed report.                        |
+| `decision.configure`                                                        | Configure Jev before execution: key, endpoint/model, threshold and allowance.      |
+| `decision.ask`                                                              | Submit `{evidence, questions}` through the framework's provider, cache and budget. |
+| `decision.answer`                                                           | Validate a named answer and its confidence against the allowed choices.            |
+| `decision.stats`, `decision.audit`                                          | Usage and paginated request/response transcripts.                                  |
+| `decision.post`                                                             | Auxiliary HTTP JSON request sharing the provider allowance.                        |
+| `property.exercise`                                                         | Run Hegel independently of a graph, with `property.evaluate` callbacks.            |
+| `core.shutdown`                                                             | Exit when no run is active.                                                        |
 
-| Method | Parameters / result |
-| --- | --- |
-| `core.info` | Returns version, protocol version and native dependency revisions. |
-| `rpc.discover` | No parameters → the worker's embedded OpenRPC specification. |
-| `model.validate` | `{model}` → normalized document, model hash, counts and nominal edge inputs. |
-| `model.configure` | `{model, exploration?:{generator?, edges?, states?}}` → the same normalized model result. Fractional stop targets round up for GraphWalker; exact verification thresholds are retained. |
-| `graph.setup` | `{model, state}` → nominal setup edges from the start. |
-| `property.validate` | `{fields, input}` → independent input violations. |
-| `property.policy` | `{policy?, data_sets}` → validated strategy settings and references. |
-| `run.validate` | `{model, options?}` → normalized execution options; no graph planning or target initialization. |
-| `graph.plan` | `{model, options}` → one connected GraphWalker route. No target or provider required. |
-| `run.plan` | `{model, options}` → selected inventory, routes and property phases. No execution. |
-| `run.start` | `{model, options?, target?, output?}` → final results, coverage, cases, stop reason and `directory`. `target` is adapter-specific configuration; `output` requests framework-owned report files in a unique child directory. |
-| `case.replay` | Same as `run.start`, plus `{case}` containing a saved replay recipe. Validates the model hash. |
-| `run.cancel` | Requests cancellation of the active run. |
-| `run.results` | Returns the most recently completed report. |
-| `decision.configure` | `{provider:"jev", api_key, model?, threshold?, max_calls?, endpoint?}`. Configure before starting. |
-| `decision.ask` | `{evidence, questions}` → provider response. Core owns HTTP, cache, call budget and audit. |
-| `decision.answer` | `{result, name, choices, threshold?}` → validated choice or uncertainty. Choice probabilities and confidence must meet the threshold. |
-| `decision.stats` | Provider call, cache-hit and token usage. |
-| `decision.audit` | `{offset?:0, limit?:128}` → `{entries, total, next_offset}`. Fetch the transcript in order until `next_offset` is null. Limit is 1–1024; pages also have a byte bound. |
-| `decision.post` | `{url, key, body, cache?}` for an optional auxiliary text helper; shares the call budget. |
-| `property.plan` | `{fields, data_set?, options?}` → native property phases. |
-| `property.samples` | `{fields}` with one field → named native boundary samples. |
-| `property.exercise` | Callback-based Hegel execution over `{fields, options?, phase_ids?}`; issues `property.evaluate` to the adapter. Used for testing domains independently of a graph. |
-| `core.shutdown` | Graceful exit when no run is active. |
+Worker execution options include `seed`, `walks`, `max_steps`, `cases`, `input_mode`, `input_strategies`, `custom_strategies`, `shrink`, `max_input_attempts`, `keep_target_open`, `evaluator` and optional imported `paths`. Unknown options are rejected. Direct worker defaults include `max_steps:200` and `evaluator:"core"`; the native CLI defaults to 1000 and `adapter` instead.
 
-Options include `seed`, `walks`, `max_steps`, `cases`, `input_mode`, `input_strategies`, `custom_strategies`, `shrink`, `max_input_attempts`, `keep_target_open`, and `evaluator` (`core` or `adapter`). Unknown fields are rejected. Graph steps count both states and edges. Input limits select phases before execution and bound extra reproduction/shrink attempts. Hegel is always the property engine; there is no backend selector.
+Planning does not call custom strategy providers. During execution, custom domains are bound before target initialization and included in the authoritative planned event.
 
-`run.plan` does not execute trusted strategy-provider callbacks. `run.start` binds custom domains before target initialization and emits the resulting authoritative inventory through `run.event`.
+When the native CLI hosts a run, nested adapter requests may use validation/planning, decision queries/audit, `core.info` and `rpc.discover`. Adapters cannot reconfigure the provider, start nested runs, shut down the host, or use callback-driven `property.exercise`.
 
-Run results contain `usage` and can contain a `decision_audit` reference when the provider transcript is omitted from the RPC response. Fetch it with `decision.audit`. Framework-written `report.json` retains the full transcript, and the HTML viewer loads its evidence chunks on demand. Deferred web requirements likewise use bounded provider batches without imposing a limit on total campaign evidence.
+## Framework to adapter
 
-## Framework-owned reports
+Respond with the same request ID. The adapter implements target operations rather than choosing graph edges or changing supplied data.
 
-Supply `output` to `run.start` or `case.replay` to persist the run. The framework creates a unique directory under that parent, saves `model.json` and `plan.json`, then sends `run.event` with `type:"planned"`. Its `data.directory` is the absolute directory path, available before subsequent case events; the same path is passed as `target.initialize.config.directory`. Relative output paths resolve from the worker's working directory. Without `output`, the framework returns results without writing a report bundle and `directory` is null.
+| Callback                              | Contract                                                                                                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `target.initialize`                   | `{protocol_version:"1", model, config}` → `{capabilities:{...}}`.                                                                                             |
+| `target.reset`                        | Restore the entry fixture. Web opens a fresh context; hooks reset backend data.                                                                               |
+| `target.execute`                      | `{edge, input, fields, destination, states}` → perform the declared intent with literal inputs.                                                               |
+| `target.observe`                      | Return arbitrary JSON evidence of the actual target state.                                                                                                    |
+| `target.evaluate`                     | Adapter evaluator only: `{observation, expected, input, violations, ...}` → `{observed, checks}`. Identify state independently before comparing expectations. |
+| `target.audit`                        | Adapter evaluator: `{records, rules}` → checks for deferred global rules.                                                                                     |
+| `target.hook`                         | `{event, context}` → invoke target-specific lifecycle code.                                                                                                   |
+| `target.strategy`                     | `{context, default}` → a declarative Hegel domain when custom strategies are enabled.                                                                         |
+| `target.close`                        | `{keep_open}` → release owned resources after a terminal outcome.                                                                                             |
+| `run.event`                           | `{type, data}` → optional case evidence attachments.                                                                                                          |
+| `target.artifacts`                    | Optional paginated traces, hooks and decisions after cleanup.                                                                                                 |
+| `target.checkpoint`, `target.restore` | Optional complete isolated fixture capture/restore.                                                                                                           |
 
-The adapter performs target operations and returns evidence through the callbacks below. After the run and cleanup, Rust writes `report.json`, `report.html`, `junit.xml`, individual replay files and any counterexample replay. The returned report includes `directory`. Screenshots may be captured by the adapter in that directory and returned as relative attachment paths. Report formatting, planned inventory, skipped-test reasons, JUnit outcomes and replay filenames belong to the framework.
+Checks have a scope, rule and status, for example:
 
-This resembles Cucumber's division of responsibilities: the model defines the scenarios, adapters implement the operations, hooks handle setup or custom actions, and the framework runs and reports the tests. An adapter does not need an HTML or JUnit implementation.
-
-## Core → adapter
-
-Respond to each request with the same ID. The adapter must not choose the next graph edge or silently change supplied data. The native CLI passes literal executable arguments without invoking a shell and drains adapter stderr as diagnostics. Stdout must contain protocol messages only; the Node executable adapter redirects hook/library prints to stderr. Closing the input stream ends the adapter after target cleanup and artifact collection.
-
-When the CLI hosts the run, nested requests can use model/graph/property validation and planning plus `decision.ask`, `decision.answer`, `decision.post`, `decision.stats`, `decision.audit`, `core.info` and `rpc.discover`. Adapters cannot configure a provider, launch a nested run, cancel/shut down the host or use callback-driven `property.exercise`. Configure the provider through the native CLI before execution.
-
-| Method | Contract |
-| --- | --- |
-| `target.initialize` | `{protocol_version:"1", model, config}` → `{capabilities:{...}}`. |
-| `target.reset` | Restore the target's entry state. For web, open a fresh owned tab; hooks restore backend fixtures. |
-| `target.execute` | `{edge, input, fields, destination, states}`. Perform the edge's business intent using literal data. Return when observation can assess the outcome. |
-| `target.observe` | Return arbitrary JSON evidence of the actual target state. |
-| `target.evaluate` | Only with `evaluator:"adapter"`: `{observation, expected, input, violations, ...}` → `{observed, checks}`. Independently identify state before comparing expectations. Rust applies the final verdict. Web sends decision questions through nested core calls. |
-| `target.audit` | Web/adapter evaluator: `{records, rules}` → deferred global rule checks from accumulated observations. |
-| `target.hook` | `{event, context}`. Bind lifecycle events to the implementation language. |
-| `target.strategy` | `{context, default}` → declarative Hegel domain, when `custom_strategies:true`. |
-| `target.close` | `{keep_open}`. Release owned resources; runs after all terminal outcomes. |
-| `target.artifacts` | Optional `{offset, limit}` → `{entries, next_offset, metadata?}` after cleanup. Enabled by `capabilities.artifacts:true`; supplies target traces, hook events and optional decision evidence for framework reports. |
-| `run.event` | `{type, data}`. Types: `planned`, `test.begin`, `step`, `step.result`, `case`, `test.end`. The planned event contains `data.directory`. Return `screenshot`, `screenshot_at`, `screenshot_error`, `trace_range`, `decision_range` or `attachments` from `case` or `test.end` to enrich the report. Inputs, verdicts and replay files remain authoritative in Rust. |
-| `target.checkpoint` | Optional `{state}` → opaque isolated checkpoint handle. |
-| `target.restore` | Optional `{checkpoint}`. Restore the full fixture, including application/backend state. |
-
-Checkpoint calls are enabled only when initialization returns `capabilities.isolated_checkpoints:true`. The runner prepares one source fixture per campaign, then restores and verifies it before each case. The web adapter advertises false. A DOM snapshot alone is insufficient. Restores do not fire reset hooks; the checkpoint adapter owns restoring its full fixture.
-
-Artifact collection is enabled only by `capabilities.artifacts:true`. Keep captured evidence available after `target.close`. The framework starts at offset zero and requests up to 128 entries per page. Each entry is `{kind:"trace"|"hook"|"decision", data:...}`. Return `next_offset:null` at the end; otherwise it must equal the requested offset plus the number of returned entries. Nonterminal pages must make progress and each message must respect the transport byte limit.
-
-The optional first-page metadata supports `hooks:{path,sha256}`, `usage`, `browser_left_open` and `adapter_tracebacks`. It cannot overwrite tests, coverage, inputs or verdicts. When the framework has a configured decision provider, its own audit and usage take precedence over adapter values. Artifact callback failures are included as cleanup errors; an earlier defect remains the primary outcome.
-
-Checks are objects such as `{"scope":"state", "rule":"Invalid data is rejected.", "status":"met"}`. Statuses are `met`, `broken`, `uncertain`, and (for global requirements) `not_applicable`. Wrong identified state or broken requirements produce FAIL. Unknown state, unresolved state requirements, provider or target errors produce INCONCLUSIVE. Untouched selected tests are SKIPPED with the stopping reason. Rules that have not been demonstrated cannot be counted as verified coverage.
-
-Hooks cover before/after run, walk, reset, state, transition and case. Context includes phase (`graph`, `setup`, `property`), walk, element, data, independent violations, result and error. After hooks run even when the wrapped operation fails; cleanup faults do not erase the primary defect.
-
-## A browser-free adapter
-
-```ts
-import {CoreClient, Inconclusive} from '@testwalker/web';
-
-// Implement these application operations independently.
-import {resetFixture, executeIntent} from './my-api-steps.js';
-let lastResponse = {};
-const core = new CoreClient('testwalker-core', async (method, params) => {
-  switch (method) {
-    case 'target.initialize': return {capabilities: {isolated_checkpoints: false}};
-    case 'target.reset': return resetFixture();
-    case 'target.execute':
-      lastResponse = await executeIntent(params.edge, params.input); return {};
-    case 'target.observe': return lastResponse;
-    case 'target.hook': case 'run.event': case 'target.close': return {};
-    default: throw new Inconclusive('Unsupported callback: ' + method);
-  }
-});
-try {
-  await core.request('decision.configure', {provider: 'jev', api_key: process.env.JEV_API_KEY});
-  const report = await core.request('run.start', {model: modelDocument,
-    target: {base_url: 'http://localhost:3000'}, output: 'artifacts',
-    options: {evaluator: 'core'}});
-} finally {await core.close();}
+```json
+{ "scope": "state", "rule": "Invalid data is rejected.", "status": "met" }
 ```
 
-With the core evaluator, Rust constructs state and requirement questions from JSON observations and calls Jev. Adapters for any language can use the same stdio contract; the TypeScript implementation covers browsers, and the native Rust implementation covers stdio JSON-RPC targets.
+Statuses are `met`, `broken`, `uncertain`, and `not_applicable` for global rules. A wrong known state or broken rule produces FAIL. Unknown state, unresolved requirements and target/provider errors produce INCONCLUSIVE. Rust applies the final verdict and coverage policy.
 
-A definite assertion or modeled defect can be returned as a JSON-RPC error whose `data` contains `{status:"FAIL", message, result}`. Transport failures and errors without a definite defect are INCONCLUSIVE. JSON-RPC errors preserve detailed evidence without converting uncertainty into a failed assertion.
+A definite defect may be returned as a JSON-RPC error with `data:{status:"FAIL",message,result}`. Errors without a definite contradiction remain inconclusive.
+
+## Lifecycle and isolation
+
+Hooks cover before/after run, walk, reset, transition, state and case. Context contains phase (`graph`, `setup`, `property`), walk, element, data, independent violations, result and error. After hooks run after failed wrapped operations; cleanup faults do not erase an earlier defect.
+
+Checkpoint callbacks are enabled only by `capabilities.isolated_checkpoints:true`. The adapter must restore the entire fixture, including backend state. A DOM snapshot alone is insufficient. Restores do not fire reset hooks. The web adapter advertises false.
+
+## Evidence and framework-owned reports
+
+Supply `output` to persist a worker run or replay. Rust creates a unique child directory and saves the effective model and plan. It announces the directory in the `planned` event and `target.initialize.config.directory`. Without `output`, worker results remain in memory and `directory` is null.
+
+Event types are `planned`, `test.begin`, `step`, `step.result`, `case` and `test.end`. Returns from `case` or `test.end` may include `screenshot`, `screenshot_at`, `screenshot_error`, `trace_range`, `decision_range` and `attachments`. Core inputs and verdicts remain authoritative.
+
+After cleanup, Rust writes HTML, JSON, JUnit and replay files. The adapter may capture evidence into that directory but does not format reports. See [report contents](../../testwalker-web/docs/testing.md#results-and-reports).
+
+Artifact pagination is enabled by `capabilities.artifacts:true`. Retain captured evidence after `target.close`. Requests contain `{offset,limit}`; responses contain `{entries,next_offset,metadata?}`. Entries have `kind:"trace"|"hook"|"decision"` and `data`. The framework requests up to 128 entries per page. `next_offset:null` ends pagination; other offsets must advance by the number of entries returned.
+
+First-page metadata may contain loaded hook metadata, usage, browser retention or adapter tracebacks. It cannot overwrite tests, coverage, inputs or verdicts. Framework-owned provider usage and audit take precedence. Artifact errors are recorded as cleanup errors.
+
+Provider transcripts can be omitted from a large RPC response with a `decision_audit` reference. Fetch them through `decision.audit` until `next_offset` is null. Framework-written reports retain the transcript, and the HTML viewer loads chunks on demand.
+
+For a complete browser-free integration, see [the built-in RPC target and self-test](rpc-testing.md). For JS/TS browser extensions, see [web hooks](../../testwalker-web/docs/hooks.md).

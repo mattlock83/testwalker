@@ -1,5 +1,5 @@
 import { graphlib, layout } from "@dagrejs/dagre";
-import { resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import type { Json } from "./types.js";
 
 /** A returned fragment route may expose the exact same UI as the seed URL. */
@@ -102,6 +102,8 @@ export function studioLayout(vertices: Json[], edges: Json[]): void {
   }
 }
 
+let runSequence = 0;
+
 export function discoveryPaths(requested: string): {
   output: string;
   inventoryPath: string;
@@ -113,9 +115,11 @@ export function discoveryPaths(requested: string): {
       "Choose a model output filename, not a discovery inventory",
     );
   const stem = absolute.replace(/(?:\.model)?\.json$/i, "");
+  const run = `${new Date().toISOString().replaceAll(":", "-")}-${process.pid}-${runSequence++}`;
+  const artifactRoot = join(dirname(stem), "artifact", run);
   return {
     output: `${stem}.model.json`,
-    inventoryPath: `${stem}.discovery.json`,
-    artifactRoot: `${stem}.discovery`,
+    inventoryPath: join(artifactRoot, `${basename(stem)}.discovery.json`),
+    artifactRoot,
   };
 }

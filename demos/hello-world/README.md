@@ -1,38 +1,56 @@
 # Hello World
 
-The smallest example: **Home** and **Greeting** navigation, one **Name** input, four business states and eight journeys. Names must contain 2–30 characters after trimming spaces.
+The smallest example has Home and Greeting navigation, one Name input, four states and eight journeys. A name must contain 2–30 characters after trimming surrounding spaces.
 
-`site/` is the plain HTML application; `model.json` is its selector-free GraphWalker business specification. There is no custom runtime test code or hook. The shared TypeScript adapter executes the model through Rust, with focused Hegel input checks by default. Regression checks stay beside the site in [tests/](tests/).
+The plain HTML site and selector-free [model](model.json) need no application-specific runtime hook. The web adapter supplies the interactions; Hegel tests the Name constraints.
+
+## Shell scripts
+
+After [repository setup](../../README.md#build-and-run), run from the repository root:
+
+```bash
+./demos/hello-world/test.sh --headed
+./demos/hello-world/discover.sh --headed
+```
+
+Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. The local site is started and stopped automatically; discovery uses a free port. See [the script guide](../README.md#shell-scripts) for overrides.
 
 ## Run
 
-After [building Rust and Node](../../README.md#build-and-run), run from the repository root:
+After [setup](../../README.md#build-and-run), run from the repository root. Create the local configuration once and set `decision.api_key`:
 
 ```bash
 cp demos/hello-world/run.json.example demos/hello-world/run.local.json
-# Set decision.api_key in run.local.json to your Jev key.
-npx --no-install testwalker-web demo --directory demos/hello-world --port 4185 --headed
-# Full graph, just two selected property inputs:
-npm run demo --workspace @testwalker/demo-hello-world -- --headed --max-input-attempts 2 --no-shrink
-# Plan without a key or browser:
-npx --no-install testwalker-web plan --model demos/hello-world/model.json --config demos/hello-world/run.json.example
 ```
 
-The owned browser and website close afterward. Reports go to `demos/artifacts/hello-world/`. Native provider settings are in ignored `run.local.json`; optional Playwright settings are in `browser.json`. Confidence defaults to **0.80**. Use `--input-mode none` for graph only, `--max-calls` for Jev allowance, and `--threshold` to change confidence. See [testing and triage](../../testwalker-web/docs/testing.md).
-
-Preview without Jev:
+Edit `decision.api_key` in the new file, then run:
 
 ```bash
+npm run demo --workspace @testwalker/demo-hello-world -- --headed
+```
+
+The wrapper uses port 4185, starts/stops the site and closes the owned browser. Reports go to `demos/hello-world/artifact/`. Defaults cover the full graph and ten focused input phases.
+
+For the full graph with two selected inputs, append `--max-input-attempts 2 --no-shrink`. For graph only, append `--input-mode none`.
+
+## Plan or preview
+
+Neither command needs a Jev key:
+
+```bash
+npx --no-install testwalker-web plan --directory demos/hello-world
 npx --no-install testwalker-web serve --directory demos/hello-world/site --port 4185
 ```
 
-Regression checks use the public `@testwalker/web` package and installed Rust executable, without a Jev key:
+Stop preview with Ctrl+C before testing on the same port.
+
+## Regression checks
+
+With Rust executables on PATH:
 
 ```bash
-export PATH="$PWD/core/target/release:$PATH"
 npm test --workspace @testwalker/demo-hello-world
+TESTWALKER_BROWSER_TESTS=1 npm test --workspace @testwalker/demo-hello-world
 ```
 
-Prefix with `TESTWALKER_BROWSER_TESTS=1` to include real Chrome form and navigation checks.
-
-The migrated adapter was verified with the default live Jev run at 0.80 confidence: all eight edges and ten focused input attempts passed, using 100 decision calls.
+The [tests](tests/) check the model and site; they are not runtime step definitions. See [scope, reports and replay](../../testwalker-web/docs/testing.md).

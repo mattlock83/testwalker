@@ -1,69 +1,104 @@
 # Testwalker
 
-A Rust test framework driven by declarative GraphWalker models. Rust owns graph exploration, Hegel input generation/shrinking, lifecycle scheduling, decision providers, verdicts, coverage, replay and HTML/JSON/JUnit reports. Executable adapters interact with it through bidirectional JSON-RPC.
+Testwalker runs tests described by a GraphWalker model. The model defines states, journeys, business rules and input constraints. The framework follows those journeys, checks the results, and generates additional input tests with Hegel.
 
-The web adapter is **TypeScript/JavaScript**, using Playwright with Jev decisions through the core's JSON-RPC API. The independent discovery package uses JavaScript Crawlee and needs no Jev key or Rust executable. Python is not required.
-
-```text
-core/                       Standalone Rust framework, CLI, tests and reports
-  models/rpc-selftest.json  Model that tests the framework itself
-  docs/, openrpc*.json      Framework documentation and API specifications
-testwalker-web/             Standalone Node package: @testwalker/web
-  src/, tests/, docs/       Playwright/Jev adapter and hooks
-testwalker-discover/        Standalone Node package: @testwalker/discover
-  src/, tests/, docs/       Crawlee discovery, model drafts and static viewer
-demos/                      Applications, models and colocated TypeScript tests
-  hello-world/             Two navigation options and one form input
-  booking/                 Workshop booking with four menu destinations
-  feedback/                Enquiry form and validation
-  trailhead/               Larger site, TypeScript backend and custom hooks
-```
+The framework is Rust. Its executable adapters communicate over JSON-RPC. The web adapter uses TypeScript, Playwright and Jev to operate a website from business descriptions, without selectors in the model. A separate discovery tool can collect observations and produce a model draft for review.
 
 ## Build and run
 
-Requires Rust 1.88+, Node.js 22+, npm and Google Chrome. From the repository root:
+For the web demos, install Rust 1.88 or later, Node.js 22 or later, npm and Google Chrome. You also need a Jev API key. GraphWalker and Hegel are built into the Rust executable; they need no separate installation.
+
+Run these commands from the repository root:
 
 ```bash
-cd core
-cargo build --release --locked --bin testwalker --bin testwalker-core
-cd ..
-export PATH="$PWD/core/target/release:$PATH"
+cargo build --release --locked --manifest-path core/Cargo.toml \
+  --bin testwalker --bin testwalker-core
 npm ci
 npm run build
+export PATH="$PWD/core/target/release:$PATH"
+```
+
+Create the Hello World run configuration, then edit `decision.api_key` to contain your Jev key:
+
+```bash
 cp demos/hello-world/run.json.example demos/hello-world/run.local.json
-# Set decision.api_key in the ignored run.local.json to your Jev key.
-npx --no-install testwalker-web demo --directory demos/hello-world --headed
 ```
 
-The Node CLI starts the website, invokes Rust, and stops the website afterward. Rust launches the TypeScript executable adapter, schedules tests, closes the browser, and saves reports. Hello World needs no application-specific test code. Default confidence is **0.80**; default input testing is focused Hegel constraint partitions. Nothing is published.
+Keep `run.local.json` out of version control. If it already exists, edit it rather than copying over it.
 
-For Trailhead, including its custom dropdown and backend hooks:
+Start your first test run:
 
 ```bash
-cp demos/trailhead/run.json.example demos/trailhead/run.local.json
-# Set decision.api_key in that file, or use --config with another run.local.json.
-npx --no-install testwalker-web demo --directory demos/trailhead \
-  --app demos/trailhead/app.ts --hooks demos/trailhead/hooks.ts --headed \
-  --generator new_york_street_sweeper --max-steps 1000 \
-  --input-mode generated --cases 1 --max-input-attempts 2 \
-  --no-shrink --max-calls 4000
+npx --no-install testwalker-web demo \
+  --directory demos/hello-world --port 4185 --headed
 ```
 
-That selects full graph exploration and two generated property inputs. Use `--input-mode none` for graph only, or omit the input options for focused boundaries. Models describe flows, input constraints and business requirements without UI selectors. Custom application code belongs in explicitly loaded JS/TS hooks.
+This starts the website and browser, executes the model and input checks, and closes both afterward. Open the printed `Report:` path to view results, screenshots and individual replay cases. Reports are saved under `demos/hello-world/artifact/`.
 
-## Check the framework and adapters
+`--headed` makes the browser visible. The default Jev confidence threshold is **0.80**. If a decision cannot meet that threshold, the result stays inconclusive for review.
+
+## How a run works
+
+```mermaid
+flowchart LR
+  Model[Business model] --> Core[Rust framework]
+  Core --> Graph[GraphWalker plans journeys]
+  Core --> Inputs[Hegel generates inputs]
+  Core <-->|JSON-RPC| Web[Web adapter]
+  Web --> Browser[Playwright and website]
+  Web -->|Decision requests| Core
+  Core --> Jev[Jev API]
+  Core --> Reports[Results, JUnit and replay]
+```
+
+GraphWalker decides which journeys to execute. Jev identifies controls and checks observed states and requirements; it does not choose the next graph edge. The framework runs the graph first, then the selected property tests. Each web property attempt gets a fresh browser context and a modeled setup route. Backend reset or custom interactions can be supplied through [hooks](testwalker-web/docs/hooks.md).
+
+| Result       | Meaning                                                                         |
+| ------------ | ------------------------------------------------------------------------------- |
+| PASS         | Selected checks, required graph coverage and global requirements were verified. |
+| FAIL         | An executed check found a contradiction with the specification.                 |
+| INCONCLUSIVE | Evidence or execution was insufficient to verify the selected work.             |
+
+See [testing and debugging](testwalker-web/docs/testing.md) for scope, budgets and skipped cases.
+
+## Choose a starting point
+
+| Goal                                      | Guide                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ |
+| Run another local example                 | [Demos](demos/README.md)                                                             |
+| Test your own website                     | [Web adapter](testwalker-web/README.md)                                              |
+| Write or refine a model                   | [Business model format](core/docs/model-format.md)                                   |
+| Tune input generation                     | [Hegel strategies](core/docs/input-strategies.md)                                    |
+| Discover pages and create a draft         | [Discovery tool](testwalker-discover/README.md)                                      |
+| Build an adapter in another language      | [Architecture](core/docs/architecture.md), [adapter protocol](core/docs/protocol.md) |
+| Test a JSON-RPC service without a browser | [RPC testing](core/docs/rpc-testing.md)                                              |
+
+## Repository layout
+
+| Folder                 | Contents                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| `core/`                | Rust CLI, worker, graph/property engine, reports, OpenRPC contracts and self-test model. |
+| `testwalker-web/`      | TypeScript web adapter, browser configuration and lifecycle extensions.                  |
+| `testwalker-discover/` | Independent Crawlee/Playwright discovery and static results viewer.                      |
+| `demos/`               | Local sites, their models and tests, plus the external Sauce Demo draft.                 |
+
+The core builds with Cargo alone. The web and discovery packages build with npm. Discovery requires neither Rust nor Jev. Model authoring happens outside the runner, for example in GraphWalker Studio.
+
+## Development checks
+
+From the repository root, with the executables on PATH as above:
 
 ```bash
-cd core
-cargo test --locked
-cargo run --release -- self-test
-cd ..
+cargo test --locked --manifest-path core/Cargo.toml
+testwalker self-test
 npm run check
 npm test
-# Optional local Chrome regression checks, without a Jev key:
+```
+
+Optional local Chrome regression tests use deterministic test decisions and need no Jev key:
+
+```bash
 TESTWALKER_BROWSER_TESTS=1 npm test
 ```
 
-The Rust self-test runs without Node, a browser or an API key. The web package consumes separately installed executables through JSON-RPC; it never compiles or imports Rust source. GraphWalker and Hegel are linked into Rust and need no separate installation.
-
-See [web configuration and architecture](testwalker-web/README.md), [testing and triage](testwalker-web/docs/testing.md), [demo commands](demos/README.md), [model format](core/docs/model-format.md), [framework CLI](core/docs/cli.md), [OpenRPC](core/openrpc.json), and [discovery](testwalker-discover/README.md).
+The [framework guide](core/README.md) documents the standalone Rust commands. Machine-readable API contracts are checked in as [worker OpenRPC](core/openrpc.json) and [adapter OpenRPC](core/openrpc.adapter.json).

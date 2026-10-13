@@ -27,6 +27,60 @@ async function run(
   const [code] = await once(child, "exit");
   return { code, stdout, stderr };
 }
+
+for (const code of [0, 1, 2])
+  test(`Sauce Demo test script targets the external site and preserves exit ${code}`, async () => {
+    const temp = await mkdtemp(join(tmpdir(), "sauce-launcher-"));
+    try {
+      const framework = join(temp, "framework"),
+        capture = join(temp, "capture.json"),
+        config = join(temp, "run.json");
+      await writeFile(
+        framework,
+        `#!/usr/bin/env node
+const fs = require('node:fs');
+(async () => {
+  let input = ''; for await (const chunk of process.stdin) input += chunk;
+  fs.writeFileSync(process.env.CAPTURE, JSON.stringify({ args: process.argv.slice(2), config: JSON.parse(input) }));
+  process.exit(Number(process.env.RESULT));
+})();\n`,
+      );
+      await chmod(framework, 0o755);
+      await writeFile(
+        config,
+        JSON.stringify({ decision: { api_key: "synthetic-key" } }),
+      );
+      const result = await run(
+        join(demos, "saucedemo/test.sh"),
+        ["--config", config, "--headed"],
+        {
+          ...process.env,
+          TESTWALKER_BIN: framework,
+          CAPTURE: capture,
+          RESULT: String(code),
+        },
+        temp,
+      );
+      assert.equal(result.code, code, result.stderr);
+      const observed = JSON.parse(await readFile(capture, "utf8"));
+      assert.equal(observed.args[0], "run");
+      assert.ok(observed.args.includes(join(demos, "saucedemo/model.json")));
+      assert.equal(observed.config.target.url, "https://www.saucedemo.com/");
+      assert.equal(
+        observed.args[observed.args.indexOf("--input-mode") + 1],
+        "none",
+      );
+      assert.ok(observed.args.includes("--adapter-arg=--headed"));
+      assert.ok(!result.stdout.includes("Website:"));
+      assert.ok(
+        !(result.stdout + result.stderr + observed.args.join(" ")).includes(
+          "synthetic-key",
+        ),
+      );
+    } finally {
+      await rm(temp, { recursive: true, force: true });
+    }
+  });
 async function freePort(): Promise<number> {
   const socket = createServer();
   socket.listen(0, "127.0.0.1");
@@ -37,7 +91,13 @@ async function freePort(): Promise<number> {
   await closed;
   return port;
 }
-for (const site of ["hello-world", "booking", "feedback", "trailhead"]) {
+for (const site of [
+  "hello-world",
+  "booking",
+  "feedback",
+  "controls",
+  "trailhead",
+]) {
   for (const code of [0, 1, 2])
     for (const headed of [false, true])
       test(`${site} launcher: exit ${code}, headed ${headed}, cleanup and secret-free argv`, async () => {
@@ -73,7 +133,7 @@ const fs = require('node:fs');
             }),
           );
           const result = await run(
-            join(demos, site, "run.sh"),
+            join(demos, site, "test.sh"),
             [
               "--config",
               config,
@@ -101,6 +161,7 @@ const fs = require('node:fs');
                 "hello-world": "Hello world",
                 booking: "Fieldnotes",
                 feedback: "Studio inbox",
+                controls: "Controls lab",
                 trailhead: "TRAILHEAD",
               }[site],
             },
@@ -154,7 +215,7 @@ const fs = require('node:fs');
       await writeFile(framework, '#!/bin/sh\nprintf "%s\\n" "$@"\n');
       await chmod(framework, 0o755);
       const result = await run(
-        join(demos, site, "run.sh"),
+        join(demos, site, "test.sh"),
         ["--plan"],
         { ...process.env, TESTWALKER_BIN: framework },
         temp,

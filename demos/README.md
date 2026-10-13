@@ -1,120 +1,110 @@
-# Demo applications
+# Demos
 
-Each example supplies its own website, GraphWalker business model, browser configuration and TypeScript regression tests. Only Trailhead needs runtime application code. They consume the Rust framework and shared [@testwalker/web adapter](../testwalker-web/README.md).
+Start with Hello World, then use Controls to see supported browser interactions or Trailhead for backend hooks and a larger workflow. Each local demo contains its site, model, configuration examples and regression tests.
 
-| Demo | Features | Application code | Wrapper port |
-| --- | --- | --- | --- |
-| [Hello World](hello-world/README.md) | Two navigation options, one required Name input | None | 4185 |
-| [Controls lab](controls/README.md) | 85 journeys covering native controls, custom calendar/dropdown, files and drag/drop | None | 4187 |
-| [Booking](booking/README.md) | Four menu pages, review/confirmation, name/email/places | None | 4183 |
-| [Feedback](feedback/README.md) | Enquiry acceptance/rejection and length boundaries | None | 4186 |
-| [Trailhead](trailhead/README.md) | 148 journeys, profiles, booking/refund ledger, custom pickup | `app.ts`, `hooks.ts` | 4184 |
+## Setup
 
-## Setup and CLI
+Complete [the repository build](../README.md#build-and-run) and put `core/target/release` on PATH. Commands below run from the repository root.
 
-Build Rust and install/build Node as described in the [root guide](../README.md#build-and-run). Put `core/target/release` on PATH or supply `--framework PATH`. Copy a demo's `run.json.example` to its ignored `run.local.json`, then set `decision.api_key` to your Jev key. Existing native run JSON files remain usable; old Python properties files are no longer used. Browser settings are in `browser.json`.
+For each demo, copy its configuration once and set `decision.api_key` to your Jev key. For example:
 
 ```bash
-npx --no-install testwalker-web demo --directory demos/booking --port 4183 --headed
-npx --no-install testwalker-web demo --directory demos/feedback --port 4186 --headed
-npx --no-install testwalker-web demo --directory demos/hello-world --port 4185 --headed
+cp demos/hello-world/run.json.example demos/hello-world/run.local.json
 ```
 
-The CLI starts/stops the local website and passes provider configuration to Rust through stdin. Reports go to `demos/artifacts/DEMO/`; Rust owns all HTML/JSON/JUnit/replay output. The browser closes on completion. Defaults use 100% graph coverage, focused Hegel inputs and confidence 0.80. The larger model uses a larger configured route budget.
+If the local file already exists, edit it rather than overwriting it. The files are ignored by Git. Browser settings are separate in each demo's `browser.json`.
 
-Convenient npm scripts select each demo's port and optional extensions:
+## Choose a demo
+
+| Demo                                 | What it shows                                                        | Default port  | States / journeys |
+| ------------------------------------ | -------------------------------------------------------------------- | ------------- | ----------------- |
+| [Hello World](hello-world/README.md) | Two navigation options and one required input.                       | 4185          | 4 / 8             |
+| [Booking](booking/README.md)         | Workshop pages, form rejection, review and confirmation.             | 4183          | 8 / 35            |
+| [Feedback](feedback/README.md)       | Subject/message validation and acceptance.                           | 4186          | 3 / 4             |
+| [Controls](controls/README.md)       | Selects, checks, calendars, files, sliders, colour and drag/drop.    | 4187          | 34 / 85           |
+| [Trailhead](trailhead/README.md)     | Adventures, profiles, booking/refund ledger and custom pickup hooks. | 4184          | 20 / 148          |
+| [Sauce Demo](saucedemo/README.md)    | An external-site discovery draft requiring model review.             | External site | 63 / 135          |
+
+## Shell scripts
+
+Each demo folder has two executable scripts. After the repository build, run them from any directory:
 
 ```bash
-npm run demo --workspace @testwalker/demo-booking -- --headed --max-input-attempts 2 --no-shrink
+./demos/trailhead/test.sh --headed
+./demos/trailhead/discover.sh --headed
+```
+
+- `test.sh` executes the existing `model.json` through Testwalker, using the demo's local Jev configuration. Local sites start and stop automatically; Trailhead includes its backend and lifecycle hooks. Sauce Demo uses the hosted site and its existing draft may remain inconclusive.
+- `discover.sh` needs no Jev key or Rust executable. It starts and stops each local site, or uses the hosted Sauce Demo with its synthetic input values. Local discovery chooses a free port by default; `--port N` selects one. Discovery enables button and empty-form exploration with a bounded scope suited to each demo.
+
+Scripts forward CLI options, so you can select a model or input scope for testing and change discovery depth, limits or output. Relative option paths resolve from your current working directory. For example:
+
+```bash
+./demos/trailhead/test.sh --input-mode generated --cases 1 \
+  --max-input-attempts 2 --no-shrink --max-calls 4000
+./demos/hello-world/discover.sh --depth 1 --output /tmp/hello.model.json
+./demos/saucedemo/discover.sh --headed
+```
+
+Discovery defaults to a new `discovered-<timestamp>-<pid>.model.json` beside the demo's authored model. Its inventory, viewer and visit assets go under the same folder's `artifact/<timestamped run>/`. Review each new draft before testing it; discovery leaves the authored model unchanged. Use `--help` on either script for CLI options.
+
+The npm wrappers set the right directory and port. Trailhead's wrapper also loads its backend and hooks:
+
+```bash
+npm run demo --workspace @testwalker/demo-hello-world -- --headed
+npm run demo --workspace @testwalker/demo-booking -- --headed
+npm run demo --workspace @testwalker/demo-feedback -- --headed
+npm run demo --workspace @testwalker/demo-controls -- --headed
+npm run demo --workspace @testwalker/demo-trailhead -- --headed
+```
+
+Run one command at a time. These start and stop their site and owned browser. A live preview on the same port causes an address-in-use error; stop it or append `--port 4190`. Npm executes inside the demo folder, so use absolute paths when appending your own `--model`, `--config`, `--replay` or strategy files. Sauce Demo has no local site; its `test.sh` targets the external website. See its guide for the draft's limitations.
+
+The demo models request full graph coverage. Input scope comes from the run configuration: the small demos use focused Hegel checks, while Controls selects six phases by default. To select all focused partitions:
+
+```bash
+npm run demo --workspace @testwalker/demo-controls -- --headed \
+  --max-input-attempts 1000
+```
+
+To explore Trailhead with only two generated property inputs:
+
+```bash
 npm run demo --workspace @testwalker/demo-trailhead -- --headed \
-  --generator predefined_path --edge-coverage 0 --state-coverage 0 \
-  --max-input-attempts 2 --no-shrink --max-calls 1000
+  --input-mode generated --cases 1 --max-input-attempts 2 \
+  --no-shrink --max-calls 4000
 ```
 
-These scripts are tiny launch conveniences; users can invoke the Node CLI or Rust CLI directly. Bash is needed only for those wrappers, not for the adapter.
+`--input-mode none` disables extra property tests but keeps fixed graph form inputs. `--max-calls` is the Jev allowance. See [scope and results](../testwalker-web/docs/testing.md).
 
-## Choose scope and replay
+## Plan or preview without Jev
 
-`--max-input-attempts 2` selects two property attempts; excluded phases are outside scope. `--input-mode generated --cases 1` samples broad per-field/combined domains instead of focused constraint partitions. `--input-mode none` disables separate campaigns while keeping form journeys on the graph. `--max-calls` limits all Jev calls, including navigation/setup/assertions. `--threshold` overrides 0.80. Full coverage is measured from verified states/edges, not merely planned visits.
+Planning needs the Rust executable but no API key, browser or server:
 
 ```bash
-# No key, browser or server needed for planning:
-npx --no-install testwalker-web plan --model demos/booking/model.json \
-  --config demos/booking/run.json.example
-# Replay with the effective model and recipe saved in a report:
-npx --no-install testwalker-web demo --directory demos/trailhead \
-  --app demos/trailhead/app.ts --hooks demos/trailhead/hooks.ts \
-  --model /path/to/report/model.json --replay /path/to/report/replays/case.json --headed
+npx --no-install testwalker-web plan --directory demos/hello-world
 ```
 
-Omit exploration overrides during replay. See [the testing guide](../testwalker-web/docs/testing.md) for counting, confidence, outcomes and triage.
-
-## Hooks and preview
-
-Rust triggers lifecycle hooks over JSON-RPC. The TypeScript adapter invokes explicitly supplied JS/TS exports. Trailhead resets fixtures before each case, operates its real bespoke pickup list before two transitions, and checks persisted bookings, inventory and refunds after successful UI states. Jev still verifies the destination. See [the walkthrough](trailhead/README.md#how-the-custom-hook-is-called).
+Preview needs Node and starts the site without tests:
 
 ```bash
-npx --no-install testwalker-web serve --directory demos/booking/site --port 4183
-npx --no-install testwalker-web serve --directory demos/trailhead/site \
-  --app demos/trailhead/app.ts --port 4184
+npx --no-install testwalker-web serve \
+  --directory demos/hello-world/site --port 4185
 ```
 
-Preview and [standalone discovery](../testwalker-discover/README.md) need no Jev key. Run regression checks with `npm test`, or `npm test --workspace @testwalker/demo-trailhead`. Set `TESTWALKER_BROWSER_TESTS=1` to include local Chrome checks. Tests stay under the owning example's `tests/`; shared launcher checks live in `demos/tests/`.
+Use Ctrl+C to stop preview. Trailhead additionally needs `--app demos/trailhead/app.ts` when serving.
 
-## Repeated live verification
+## Results and regression tests
 
-On 13 October 2026, the existing models were executed without discovery or Rust
-changes, at confidence 0.80. The complete focused input scope passed for each
-local demo:
+Each run prints its report and JUnit paths under `demos/DEMO/artifact/`. Those generated directories are not checked in. Use [the testing guide](../testwalker-web/docs/testing.md#results-and-reports) for reports and replay.
 
-| Demo | Verified edges | Focused input attempts | Result |
-| --- | --- | --- | --- |
-| Hello World | 8 / 8 | 10 | PASS |
-| Booking | 35 / 35 | 50 | PASS |
-| Feedback | 4 / 4 | 19 | PASS |
-| Controls lab | 85 / 85 | 21 | PASS |
-| Trailhead | 148 / 148 | 186 | PASS |
+The checked-in [verification inventory](verification.json) records measured runs, scopes and local artifact paths; it is a test record, not a guarantee for future executions. It also records expected failures for Trailhead's injected defects and Sauce Demo's unresolved draft.
 
-All five verified every state and global requirement, with no JUnit failures,
-errors or skips. Trailhead's injected inventory and refund defects separately
-produced the expected FAIL outcomes through its ledger hooks.
-[The verification inventory](verification.json) records reports and counts.
+Run local regression checks without a Jev key:
 
-The additional live Sauce Demo discovery draft remains INCONCLUSIVE: its 44
-terminal states prevent continuous traversal. Its existing route batches avoid
-that planning problem, but UI ambiguity stopped the latest execution at 9 / 135
-verified edges. No application defect was established. The draft model was
-preserved for review rather than regenerated or weakened.
+```bash
+npm test --workspace @testwalker/demo-hello-world
+TESTWALKER_BROWSER_TESTS=1 npm test --workspace @testwalker/demo-controls
+```
 
-Trailhead's previous final audit mixed unrelated validation dictionaries after
-an uncertain scope decision. The adapter now includes field names in scope
-choices and preserves field-linked validation feedback. Controls additionally
-exposes read-only registration confirmations for whitespace comparisons. The
-threshold, models and Rust core were unchanged during these live runs. A
-subsequent authorized Rust correction removed the caught Hegel panic when
-replaying an inconclusive property result, without repeating target/API calls.
-
-On 11 October 2026, the direct Playwright/Jev executor passed three live Chrome runs of each demo, with seeds 42, 43 and 44 and confidence 0.80. Every run used `new_york_street_sweeper`, 100% edge/state coverage, `--max-steps 2000 --cases 1 --no-shrink`. These checks cover the full graphs with a small selected property scope, not every Hegel phase.
-
-| Demo | Passed runs | Verified edges / states per run | Property attempts per run | Jev calls per run |
-| --- | --- | --- | --- | --- |
-| Hello World | 3 / 3 | 8 / 4 | 6 focused | 31 |
-| Booking | 3 / 3 | 35 / 8 | 6 focused | 72–75 |
-| Feedback | 3 / 3 | 4 / 3 | 6 focused | 23 |
-| Trailhead | 3 / 3 | 148 / 20 | 2 generated | 420–432 |
-
-Reports, screenshots and replay recipes remain in the ignored `demos/artifacts/` directory. The combined index at `direct-playwright-confirmed-20261011/summary.json` lists the twelve passing report directories and executor digests. Booking was repeated after correcting equivalent Home links that reload the current URL; the other demos passed before that correction. The test browsers and temporary servers closed at completion.
-
-The twelve reports contain 1,389 passed tests, 60 Hegel attempts and 1,389 valid screenshots. Their 1,401 JUnit cases include twelve run outcomes, with zero failures, errors or skips.
-
-### Trailhead performance comparison
-
-A fresh PlayJev baseline and the direct executor both passed the same seed-42 route: 148 edges, 20 states, two generated property attempts and 355 reported tests.
-
-| Measurement | PlayJev baseline | Direct Playwright/Jev |
-| --- | --- | --- |
-| End-to-end elapsed time | 444.4 s | 211.0 s |
-| Jev calls | 881 | 425 |
-| JSON report size | 35.9 MB | 25.4 MB |
-
-This was about **2.1 times faster with 52% fewer calls** in one local comparison; API latency and website behaviour affect other runs. The independent report comparison confirmed identical planned paths, test inputs and hook results, all five global rules verified, 355 screenshots per run and no JUnit failures, errors or skips. Rust and the 0.80 confidence threshold were unchanged. The baseline and replacement reports are indexed under `direct-playwright-baseline-20261011/` and `direct-playwright-ranked-20261011/` respectively.
+Tests stay under each demo's `tests/`. They check model planning and site behavior; `model.test.ts` is a regression test for the model and is not the runtime implementation of its steps. Runtime interactions come from the shared web adapter, plus explicitly loaded hooks where required.

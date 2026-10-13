@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { buildModel } from "../src/discovery.js";
 import { discoveryPaths, entryAliases } from "../src/model-export.js";
 
@@ -188,18 +188,37 @@ test("Studio exports use unique identifiers and preserve prose with a non-overla
   );
 });
 
-test("Model filenames are explicit without changing inventory and artifact stems", () => {
-  const expected = {
-    output: resolve("artifacts/trailhead.model.json"),
-    inventoryPath: resolve("artifacts/trailhead.discovery.json"),
-    artifactRoot: resolve("artifacts/trailhead.discovery"),
-  };
+test("Model filenames are normalized and each discovery gets a model-local timestamped artifact folder", () => {
+  const roots = new Set<string>();
   for (const path of [
-    "artifacts/trailhead",
-    "artifacts/trailhead.json",
-    "artifacts/trailhead.model.json",
-  ])
-    assert.deepEqual(discoveryPaths(path), expected);
+    "models with spaces/trailhead",
+    "models with spaces/trailhead.json",
+    "models with spaces/trailhead.model.json",
+  ]) {
+    const paths = discoveryPaths(path);
+    assert.equal(
+      paths.output,
+      resolve("models with spaces/trailhead.model.json"),
+    );
+    assert.equal(
+      dirname(paths.artifactRoot),
+      resolve("models with spaces/artifact"),
+    );
+    assert.match(
+      basename(paths.artifactRoot),
+      /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z-\d+-\d+$/,
+    );
+    assert.equal(
+      paths.inventoryPath,
+      join(paths.artifactRoot, "trailhead.discovery.json"),
+    );
+    roots.add(paths.artifactRoot);
+  }
+  assert.equal(
+    roots.size,
+    3,
+    "Run folders must be unique even within the same millisecond",
+  );
   assert.throws(
     () => discoveryPaths("artifacts/trailhead.discovery.json"),
     /inventory/,

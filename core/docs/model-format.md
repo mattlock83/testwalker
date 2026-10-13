@@ -22,7 +22,7 @@ For GraphWalker Studio, use identifier names without spaces (for example,
 `properties.business`. Studio uses these coordinates to preserve the saved layout;
 they do not describe an application action or assertion.
 
-The metadata below belongs under `properties.business` on the graph, state or journey. Unknown business keys are rejected so a misspelled rule cannot silently disappear. Version 2's `properties.test`, targets, action lists and assertion expressions are no longer supported.
+The metadata below belongs under `properties.business` on the graph, state or journey. Unknown business keys are rejected so a misspelled rule cannot silently disappear.
 
 ## Graph-level business information
 
@@ -31,7 +31,7 @@ The metadata below belongs under `properties.business` on the graph, state or jo
   "version": 3,
   "purpose": "Visitors can reserve places for a workshop.",
   "entry path": "/",
-  "coverage": {"edges": 100, "states": 100},
+  "coverage": { "edges": 100, "states": 100 },
   "rules": [
     "Invalid details are rejected with useful explanations.",
     "Reviewing a booking does not confirm it."
@@ -82,14 +82,14 @@ An uncertain verdict from a batch gets at most one focused evaluation of the sam
 
 Keep each statement atomic: prefer separate customer-name, email and quantity checks over one compound “all details match” rule. The framework inserts the literal submitted values into Jev’s questions automatically; no model templates are needed. Constraints already expressed by the data dictionary need not be duplicated as universal prose rules.
 
-These are natural-language requirements interpreted by Jev. They are not JavaScript, Python, formulas, templates or a deterministic assertion language.
+Web rules are natural-language requirements interpreted by Jev. For exact assertions, use lifecycle hooks or the declarative predicates in the [RPC profile](rpc-testing.md).
 
 ## Journeys
 
 A navigation journey needs only business intent:
 
 ```json
-{"intent": "Abandon this booking and return to the workshop introduction."}
+{ "intent": "Abandon this booking and return to the workshop introduction." }
 ```
 
 Prefer business intent over a sequence of browser operations. Discovery drafts can name an observed link or control by its readable label; this is a text hint, not a selector or executable script. Jev resolves the intent against the live page. The runner then verifies the edge's destination.
@@ -100,7 +100,7 @@ journey can instead supply literal `example` inputs:
 ```json
 {
   "intent": "Submit the contact request",
-  "example": {"Name": "Alex Example", "Email address": "alex@example.test"}
+  "example": { "Name": "Alex Example", "Email address": "alex@example.test" }
 }
 ```
 
@@ -153,13 +153,13 @@ Campaigns with the same source state, data set and acceptance/rejection states a
 
 Each field has a business name, `description`, `type` and valid baseline `example`. Field names and descriptions represent meaning, and need not match the site's visible wording. Jev chooses the observed control at runtime.
 
-| Type | Business limits | Automatically explored |
-| --- | --- | --- |
-| `text` | Optional `minimum length`, `maximum length` | Empty, short/long boundaries, surrounding spaces, generated Unicode text |
-| `email` | Optional text lengths; ordinary address with a dotted domain | Valid example, malformed addresses, empty and length partitions |
-| `whole number` | Required integer `minimum` and `maximum` | Bounds, just outside bounds, integers, decimals, empty and nonnumeric strings |
-| `number` | Required finite `minimum` and `maximum` | Bounds, neighboring values, generated finite floats, malformed strings |
-| `choice` | Required nonempty `options` list | Permitted options, empty and an unlisted value |
+| Type           | Business limits                                              | Automatically explored                                                        |
+| -------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `text`         | Optional `minimum length`, `maximum length`                  | Empty, short/long boundaries, surrounding spaces, generated Unicode text      |
+| `email`        | Optional text lengths; ordinary address with a dotted domain | Valid example, malformed addresses, empty and length partitions               |
+| `whole number` | Required integer `minimum` and `maximum`                     | Bounds, just outside bounds, integers, decimals, empty and nonnumeric strings |
+| `number`       | Required finite `minimum` and `maximum`                      | Bounds, neighboring values, generated finite floats, malformed strings        |
+| `choice`       | Required nonempty `options` list                             | Permitted options, empty and an unlisted value                                |
 
 Optional `required` defaults to false. Optional `trim spaces` defaults to true. Blank optional values are permitted. Number rules use decimal textual notation; whole numbers must contain integer digits, without a decimal point. Email rules are deliberately a small practical format check, not full RFC validation. Text length counts Unicode code points.
 
@@ -173,7 +173,7 @@ Generated values are inserted literally. Before submission, the framework verifi
 
 ## External authoring and validation
 
-Author models separately in GraphWalker, through its editor or MCP. The separate [discovery utility](../../testwalker-web/docs/discovery.md) can bootstrap a draft from observed pages; refine its navigation and add independent business expectations before testing. The exported JSON must carry this business metadata.
+Author models separately in GraphWalker, through its editor or MCP. The separate [discovery utility](../../testwalker-discover/README.md) can bootstrap a draft from observed pages; refine its navigation and add independent business expectations before testing. The exported JSON must carry this business metadata.
 
 For stdio JSON-RPC targets, add the optional `properties.rpc` profile alongside `properties.business`. It binds journeys to requests and business requirements to deterministic response predicates. See [RPC models and self-testing](rpc-testing.md); web models continue to use business metadata alone.
 
@@ -182,7 +182,7 @@ For stdio JSON-RPC targets, add the optional `properties.rpc` profile alongside 
 3. Write global and state-specific business rules in plain language.
 4. Define form data meaning, permitted ranges and valid examples.
 5. Connect submission journeys to acceptance and rejection states.
-6. Run `testwalker-web plan --model your-model.json` to validate the model and inspect GraphWalker's route.
+6. After [setup](../../README.md#build-and-run), run `npx --no-install testwalker-web plan --model your-model.json` to validate the model and inspect GraphWalker's route without a key or browser.
 7. Run against the application with a Jev key; inspect inconclusive evidence and refine ambiguous business descriptions.
 
 You still maintain a specification as requirements change. The model avoids application implementation details; the framework owns all browser interaction code. It cannot infer missing requirements or guarantee semantic judgments from an underspecified graph. Backend reset procedures and deterministic external checks can be supplied through optional [JavaScript/TypeScript lifecycle hooks](../../testwalker-web/docs/hooks.md), explicitly loaded with `--hooks`. Hooks are never embedded in or loaded by the model.

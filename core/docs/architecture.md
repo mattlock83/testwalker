@@ -1,71 +1,88 @@
-# Testwalker architecture
+# Architecture
 
-Testwalker separates the test framework from its execution target. A Rust library and JSON-RPC worker own graph planning, property generation, lifecycle, verdict policy, budgets, coverage, replay and every test report. The native CLI launches arbitrary adapter executables and supplies JSON-RPC testing and self-tests. TypeScript supplies the browser adapter, browser evidence and discovery CLI. The codebases share a JSON-RPC contract and have no source or build dependency on each other.
+Testwalker separates the framework from the system being tested. A model declares flows, inputs and expected behavior. An adapter executes target operations and returns observations. Hooks provide fixture setup, custom actions or deterministic checks. Rust schedules the work and produces the results.
 
-The division is similar to Cucumber: the model supplies declarative scenarios and input rules, an adapter implements target operations, and hooks provide setup or custom actions. The Rust framework schedules those operations, evaluates their results and produces reports.
+## Components
+
+| Component         | Responsibility                                                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| GraphWalker       | Calculate seeded graph routes from the model and generator.                                                            |
+| Hegel             | Generate inputs and minimize reproducible failures.                                                                    |
+| Rust framework    | Validate models, plan scope, run lifecycle hooks, apply verdict policy, track coverage and write reports.              |
+| Decision provider | Interpret evidence where needed. The shipped provider is Jev; Rust owns credentials, budgets, caching and transcripts. |
+| Web adapter       | Operate Playwright, capture browser evidence, prepare Jev questions and invoke explicit JS/TS hooks.                   |
+| RPC target        | Send JSON-RPC requests and evaluate exact response predicates, without a decision API.                                 |
+| Discovery package | Explore websites and create draft models independently of execution.                                                   |
 
 ```mermaid
-flowchart TD
-    MODEL[Declarative business model + execution options] --> CORE[Rust testwalker-core]
-    CORE --> GW[Native GraphWalker: seeded graph walks]
-    CORE --> HEGEL[Native Hegel: input generation and shrinking]
-    CORE --> DECISIONS[DecisionProvider: Jev HTTP, confidence, cache, budget, audit]
-    CORE <-->|Bidirectional JSON-RPC / stdio| ADAPTER[TypeScript web adapter]
-    ADAPTER --> WEB[PlayJev + Playwright]
-    WEB --> SITE[Website]
-    ADAPTER --> HOOKS[TypeScript lifecycle hooks / custom controls]
-    ADAPTER --> EVIDENCE[Browser screenshots and observations]
-    CORE --> REPORT[Framework reports: HTML, JSON, JUnit and replay]
-    CORE <-->|Same Target contract| API[API / device / other language adapter]
+sequenceDiagram
+  participant N as Node web CLI
+  participant R as Rust framework
+  participant A as Web adapter
+  participant P as Playwright / website
+  participant J as Jev API
+  N->>R: Start run with model and configuration
+  R->>R: Plan GraphWalker routes and property phases
+  R->>A: Initialize, reset and lifecycle callbacks
+  loop Graph journeys, then selected property attempts
+    R->>A: Execute intent and literal inputs
+    A->>R: decision.ask on observed controls
+    R->>J: Interpret controls
+    J-->>R: Decision
+    R-->>A: Provider response
+    A->>R: decision.answer validates confidence
+    A->>P: Perform browser operations
+    R->>A: Observe and evaluate
+    A->>R: decision.ask on independent evidence
+    R->>J: Identify state and check rules
+    J-->>R: Decisions
+    R-->>A: Provider responses
+    A->>R: decision.answer validates confidence
+    A-->>R: Observed state, checks and evidence
+    R->>R: Apply verdict and credit verified coverage
+  end
+  R->>A: Close target and collect artifacts
+  R->>R: Write HTML, JSON, JUnit and replay
 ```
 
-## Execution ownership
+The diagram shows a web run. The optional Node launcher also starts and stops a local demo server. Rust launches the adapter executable; neither Node nor the adapter chooses the graph route or renders the framework reports.
 
-1. `testwalker run` loads the model and execution configuration, configures its decision provider, and launches the supplied adapter executable. The optional `testwalker-web demo` launcher starts the local demo site and invokes this native command; it does not host the execution worker. TypeScript exposes a read-only view of the model supplied by Rust.
-2. Rust calls GraphWalker to calculate complete seeded routes and plans property phases before executing a target. Generated values are chosen later by Hegel.
-3. Rust asks the adapter to initialize and reset the target, fires lifecycle hooks, and issues the model's next journey intent and literal inputs.
-4. The web adapter asks Jev how to operate observed controls through core decision calls. Playwright performs the operations. The adapter returns observations and prepares web-specific state/rule questions.
-5. The core applies the verification policy to observed state and rule decisions. Planned visits do not count as verified coverage.
-6. After graph execution, Hegel produces inputs for the selected campaigns. Rust restores each case's source state through reset and modeled setup, submits once, and verifies acceptance/rejection. Stable failures are minimized; infrastructure and confidence uncertainty are latched.
-7. Rust emits case events so TypeScript can capture browser evidence. Cleanup runs on pass, failure, uncertainty and interruption. Rust collects target artifacts through JSON-RPC and writes the final HTML, JSON, JUnit and replay files.
+## Planning and execution
 
-GraphWalker chooses graph edges; Jev chooses target operations and assesses observations. A grouped walk shares state. Property cases default to independent setup. Targets that can guarantee an isolated fixture snapshot may advertise checkpoint/restore to avoid repeated setup; the web adapter uses fresh browser contexts and reset hooks instead.
+Graph routes and property phases are planned before target execution. Fixed graph examples and exact boundary references are known at that point; generated Hegel values are drawn later. Planned visits do not count as verified coverage.
 
-## Boundaries and modules
+The graph walk shares application state between journeys. Property attempts reset their source fixture and replay a shortest modeled setup route. For the web adapter, a reset creates a fresh browser context; backend data requires an explicit reset hook. A custom adapter may advertise isolated checkpoint/restore when it can restore the entire fixture, including backend state. The web adapter does not advertise that capability.
 
-| Module | Responsibility |
-| --- | --- |
-| `core/src/cli.rs`, `adapter.rs` | Native run entry point, adapter process ownership and nested framework services. |
-| `core/src/model.rs` | Native model validation, business input validity and modeled setup paths. |
-| `graph.rs` | Calls GraphWalker libraries and validates connected routes. |
-| `properties.rs` | Hegel domain planning, generation, partition filtering and shrinking. |
-| `engine.rs` | Schedules graph/property checks, hooks, isolation, coverage and replay. |
-| `decision.rs` | Provider trait, Jev requests, confidence, caching, budgets and audit. |
-| `protocol.rs` | Bidirectional JSON-RPC worker and cooperative cancellation. |
-| `session.rs` | Shared run orchestration, output directories and artifact persistence. |
-| `report.rs` | Shared HTML, JSON, JUnit and replay rendering for every target. |
-| `testwalker-web/src/rpc.ts` | TypeScript transport/client and native decision proxy. |
-| `adapter.ts`, `main.ts` | Executable stdin/stdout server; accepts lifecycle callbacks and makes nested decision requests. |
-| `browser.ts`, `oracle.ts`, `bridge.ts` | Browser operations, web evidence and web-specific decision questions. |
-| `core/src/rpc/` | Subprocess transport, declarative requests, assertions and self-model execution. |
-| `core/tests/` | Rust core, wire, OpenRPC and self-test regressions. |
-| TypeScript evidence capture | Captures screenshots and browser traces and returns them through JSON-RPC; it does not generate reports. |
-| `discovery/` | Independent Crawlee exploration and draft model generation. |
+Jev resolves browser actions, then independently identifies the observed state and checks requirements. Rust applies the final policy: a contradiction is FAIL, insufficient evidence is INCONCLUSIVE, and PASS requires the selected checks, requested coverage and every global requirement. The RPC target uses exact predicates instead of Jev for its checks.
 
-The Rust `Target` trait and JSON-RPC contract accept observations as JSON. They do not require a DOM, browser, URL or screenshot. With the default core evaluator, the core prepares state and business-rule questions directly over those observations. The web adapter opts into the adapter evaluator for its existing detailed web semantics; its calls still go through the native provider, and Rust determines the final verdict.
+Failures can be reproduced and shrunk. Inconclusive target/provider errors stop the campaign and preserve the original case. Hegel replay consumes the same generator choices without repeating a latched target call.
 
-The JSON-RPC adapter also uses the adapter evaluator, with exact predicates over requests and responses instead of a decision service. `testwalker-core self-test` uses this adapter to test another native worker. Both targets use the same Rust scheduler, replay rules and reporting implementation. Browser screenshots and traces are evidence supplied by TypeScript, while the framework owns the report files and their outcome totals. See [RPC testing](rpc-testing.md) and the [web demo](../../demos/README.md).
+## Executable and transport boundary
 
-`run.start` and `case.replay` accept an optional `output` parent directory. The framework creates a run directory, announces it with the planned `run.event`, and returns its path as `report.directory`. The optional paginated `target.artifacts` callback collects additional target evidence after lifecycle cleanup. Adapters supply observations and artifacts rather than deciding how to render test results.
+`testwalker run` accepts any executable adapter, with literal arguments. There is no language setting. The [protocol](protocol.md) is bidirectional JSON-RPC 2.0 over stdin/stdout, one JSON object per line. The adapter can call framework services while handling a callback.
 
-`DecisionProvider` is the extension point for more decision services. The current worker ships Jev only. Other providers can be added in Rust without changing target adapters. Adapters are executable paths plus literal arguments; the framework does not need a language name or a language runtime of its own. See [the CLI guide](cli.md). This version has one synchronous run per worker and stdio transport; it does not provide a background RPC server or concurrent run scheduler.
+The native CLI defaults to the adapter evaluator. With `--evaluator core`, Rust prepares decision questions directly from JSON observations. The web adapter prepares questions for its richer browser evidence and sends them through the same Rust provider. The built-in RPC target prepares deterministic checks. All use the same scheduler and reports.
 
-## Replay and packaging
+One worker handles one synchronous run at a time. There is no concurrent case scheduler. Other decision providers can implement the Rust `DecisionProvider` trait; the supplied worker currently ships Jev.
 
-Every planned graph test and executed input has a replay recipe with model hash, journey, input and seed. Replaying a case starts from modeled setup; graph replay verifies the selected modeled destination, while input replay calculates acceptance/rejection from concrete data. This makes triage independent of the full preceding walk.
+## Code map
 
-The standalone Node project lives in `testwalker-web/`, alongside `core/`, exporting `@testwalker/web`. Applications, models and extensions live in `demos/` and do not ship in the adapter. It consumes separately installed Rust executables on PATH or explicitly configured paths; it never invokes Cargo or searches ancestor directories. Cargo and npm dependencies are pinned. Hegel is the sole property engine. JS/TS strategy callbacks return declarative domains described in [input strategies](input-strategies.md).
+Paths below are relative to the repository root.
 
-PlayJev's HTTP client calls a loopback bridge with an ephemeral local token. The bridge forwards requests through nested `decision.ask` RPC calls. Rust retains the real provider key, call budget, cache and audit. Playwright controls Chromium; independent web state/rule questions go through the same native provider. Literal inputs are checked against runtime-resolved controls and submitted once, including invalid data. Action verification is diagnostic and never grants verified coverage.
+| Path                                                                                                                              | Responsibility                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `core/src/model.rs`, `core/src/configuration.rs`                                                                                  | Model validation, business validity, setup paths and exploration configuration. |
+| `core/src/graph.rs`, `core/src/properties.rs`                                                                                     | GraphWalker routes and Hegel input strategies.                                  |
+| `core/src/engine.rs`                                                                                                              | Scheduling, hooks, isolation, verification and replay.                          |
+| `core/src/decision.rs`                                                                                                            | Provider requests, confidence gates, cache, budget and transcript.              |
+| `core/src/cli.rs`, `core/src/adapter.rs`, `core/src/protocol.rs`                                                                  | CLI, executable adapters and worker services.                                   |
+| `core/src/session.rs`, `core/src/report.rs`, `core/assets/`                                                                       | Report persistence, JUnit, replay files and viewer.                             |
+| `core/src/rpc/`, `core/models/rpc-selftest.json`                                                                                  | JSON-RPC testing and the bundled self-test.                                     |
+| `testwalker-web/src/cli.ts`, `testwalker-web/src/main.ts`, `testwalker-web/src/adapter.ts`, `testwalker-web/src/rpc.ts`           | Web launcher and adapter transport.                                             |
+| `testwalker-web/src/browser.ts`, `testwalker-web/src/controls.ts`, `testwalker-web/src/inputs.ts`, `testwalker-web/src/oracle.ts` | Browser operations, observations and decision questions.                        |
+| `testwalker-web/src/extensions.ts`                                                                                                | Explicit hooks and custom input domain providers.                               |
+| `testwalker-discover/src/`                                                                                                        | Independent website exploration, model export and viewer.                       |
 
-The Rust library, CLI, self-model, OpenRPC documents, fixtures and tests build using Cargo alone. Core tests never import browser models or JavaScript dependencies. The report viewer and serializers live with Rust. TypeScript regression tests use the public RPC interface and can consume the adapter outside the Rust checkout.
+The core builds with Cargo alone. The Node packages consume installed executables through JSON-RPC and do not compile Rust. Demo sites and their models live outside the packages in `demos/`.
+
+Continue with [the CLI](cli.md), [the adapter contract](protocol.md), or [RPC testing](rpc-testing.md).

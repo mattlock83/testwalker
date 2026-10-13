@@ -6,17 +6,15 @@ Testwalker's [OpenRPC contract](../openrpc.json) documents worker methods and th
 
 ## Run the self-test
 
-From the repository, using Rust 1.88+ and Cargo:
+After [building the framework](../README.md#build-and-test), run from the repository root with the executables on PATH:
 
 ```bash
-cd core  # From the repository root
-cargo build --release
-target/release/testwalker-core self-test
+testwalker self-test
 ```
 
 The bundled [model](../models/rpc-selftest.json) exercises validation, planning, execution, saved results, replay, cancellation, shutdown, invalid requests and input boundaries. It configures synthetic decision settings and checks supplied decision answers without making provider requests.
 
-The native CLI drives the graph through the Rust library and launches a separate native worker as the subject. No Python interpreter or package is required:
+The native CLI drives the graph through the Rust library and launches a separate native worker as the subject. The entire driver, adapter and subject are Rust:
 
 ```mermaid
 flowchart LR
@@ -34,24 +32,24 @@ Useful variations:
 
 ```bash
 # Inspect the selected inventory without starting the subject.
-target/release/testwalker-core self-test --plan
+testwalker self-test --plan
 
 # Explore the graph with only two selected property inputs.
-target/release/testwalker-core self-test --max-input-attempts 2 --no-shrink
+testwalker self-test --max-input-attempts 2 --no-shrink
 
 # Broader generated input coverage with repeated graph walks.
-target/release/testwalker-core self-test --walks 3 --input-mode all --cases 10
+testwalker self-test --walks 3 --input-mode all --cases 10
 
 # Keep these reports in a separate directory.
-target/release/testwalker-core self-test --output artifacts/self-test
+testwalker self-test --output artifacts/self-test
 ```
 
-`self-test` defaults to the bundled model and the same native executable as the driver. Use `--model` or `--target` to override either. The executable you launch is the driver. `cargo run --release -- self-test` also works. The Node `testwalker-web` CLI is reserved for browser testing and discovery.
+`self-test` defaults to the bundled model and the same native executable as the driver. Use `--model` or `--target` to override either. The executable you launch is the driver. `cargo run --release --manifest-path core/Cargo.toml -- self-test` also works from the repository root. The Node `testwalker-web` CLI runs browser tests; discovery has its own `testwalker-discover` command.
 
 ## Test another executable
 
 ```bash
-target/release/testwalker-core rpc \
+testwalker rpc \
   --model models/my-api.json \
   --target /absolute/path/api-server \
   --target-arg=--stdio \
@@ -59,7 +57,7 @@ target/release/testwalker-core rpc \
   --output artifacts/my-api
 ```
 
-Arguments are passed directly to the executable, without a shell. Repeat `--target-arg` for each argument; use `--target-arg=--flag` when the argument begins with a dash. For a Python service, select its interpreter with `--target`, then pass the script path with `--target-arg`. `--cwd` sets the subject's working directory.
+Arguments are passed directly to the executable, without a shell. Repeat `--target-arg` for each argument; use `--target-arg=--flag` when the argument begins with a dash. For a script-based service, select its runtime with `--target` and pass the script path with `--target-arg`. `--cwd` sets the subject's working directory.
 
 The transport is **JSON-RPC 2.0 with one JSON object per line**, encoded as UTF-8. The target writes protocol messages to stdout and diagnostics to stderr. The adapter supports bidirectional requests, responses and incoming notifications; batch requests and HTTP/WebSocket transports are outside this profile. Each modeled journey normally sends a request and waits for a response. Notifications that deliberately have no response are covered by separate protocol tests rather than modeled request journeys.
 
@@ -74,12 +72,12 @@ At graph level, declare profile version 1, an initial request and deterministic 
 ```json
 {
   "version": 1,
-  "reset": {"method": "service.info", "params": {}},
-  "fixtures": {"reservation": {"places": 2}},
+  "reset": { "method": "service.info", "params": {} },
+  "fixtures": { "reservation": { "places": 2 } },
   "variables": {},
   "rules": {
     "Responses identify the protocol version.": [
-      {"path": "/response/jsonrpc", "equals": "2.0"}
+      { "path": "/response/jsonrpc", "equals": "2.0" }
     ]
   }
 }
@@ -91,13 +89,11 @@ A state's RPC object identifies it from evidence and checks its rules:
 
 ```json
 {
-  "match": [
-    {"path": "/response/result/status", "equals": "confirmed"}
-  ],
+  "match": [{ "path": "/response/result/status", "equals": "confirmed" }],
   "rules": {
     "The reservation has an identifier.": [
-      {"path": "/response/result/id", "type": "string"},
-      {"path": "/response/result/id", "length": {"min": 1}}
+      { "path": "/response/result/id", "type": "string" },
+      { "path": "/response/result/id", "length": { "min": 1 } }
     ]
   }
 }
@@ -111,9 +107,9 @@ An edge's RPC object maps its business input to a request:
 {
   "request": {
     "method": "reservation.create",
-    "params": {"places": {"$ref": "/input/Places"}}
+    "params": { "places": { "$ref": "/input/Places" } }
   },
-  "capture": {"reservation_id": "/response/result/id"}
+  "capture": { "reservation_id": "/response/result/id" }
 }
 ```
 
@@ -127,14 +123,14 @@ References use exact [JSON Pointers](https://www.rfc-editor.org/rfc/rfc6901). `{
 
 Each predicate has a `path` plus one operation. A list of predicates is an AND condition.
 
-| Operation | Meaning |
-| --- | --- |
-| `equals`, `not_equals` | JSON value comparison; booleans are distinct from numbers. |
-| `type` | One of `null`, `boolean`, `number`, `integer`, `string`, `array`, `object`. |
-| `exists` | Whether the pointer resolves; an explicit null value still exists. |
-| `length` | String length, array size or object key count: `{"min":1,"max":10}` or `{"exact":2}`. |
-| `contains` | String substring, object key, or exact array member. |
-| `subset` | Recursive object subset; expected array members must occur in the actual array. |
+| Operation              | Meaning                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `equals`, `not_equals` | JSON value comparison; booleans are distinct from numbers.                            |
+| `type`                 | One of `null`, `boolean`, `number`, `integer`, `string`, `array`, `object`.           |
+| `exists`               | Whether the pointer resolves; an explicit null value still exists.                    |
+| `length`               | String length, array size or object key count: `{"min":1,"max":10}` or `{"exact":2}`. |
+| `contains`             | String substring, object key, or exact array member.                                  |
+| `subset`               | Recursive object subset; expected array members must occur in the actual array.       |
 
 Missing actual values fail all operations except `exists: false`. Checks retain the pointer, operation, actual value, expected value and pass/fail result. Observations also expose `callback_methods` and `process` (`running`, `exit_code`) for lifecycle assertions.
 
@@ -148,19 +144,19 @@ For APIs that send requests back to their caller, declare graph-level `callbacks
 {
   "callbacks": {
     "target.execute": {
-      "set": {"fixture_state": "done"},
+      "set": { "fixture_state": "done" },
       "result": {}
     },
     "target.observe": {
-      "result": {"stage": {"$ref": "/variables/fixture_state"}}
+      "result": { "stage": { "$ref": "/variables/fixture_state" } }
     }
   }
 }
 ```
 
-`/callback/method` and `/callback/params` describe the incoming request. A nested request's complete response is available at `/callback/response`. Callback handling applies `set`, runs the nested request, captures values, then resolves the result. These are declarative fixture operations, not Python embedded in the model.
+`/callback/method` and `/callback/params` describe the incoming request. A nested request's complete response is available at `/callback/response`. Callback handling applies `set`, runs the nested request, captures values, then resolves the result. These are declarative fixture operations; they do not execute application code from the model.
 
-The Rust scheduler retains its before/after run, walk, reset, state, transition and case lifecycle. Native integrations receive `target.hook` through the `Target` trait or the bidirectional JSON-RPC adapter protocol. Implement that callback in the adapter's language for arbitrary fixture setup and checks. The built-in RPC target records these lifecycle events; it does not load Python hook files. Declarative `callbacks` above respond to requests from the subject and are separate from scheduler hooks. Browser runs continue to support [JavaScript/TypeScript lifecycle hooks](../../testwalker-web/docs/hooks.md).
+The Rust scheduler retains its before/after run, walk, reset, state, transition and case lifecycle. Native integrations receive `target.hook` through the `Target` trait or the bidirectional JSON-RPC adapter protocol. Implement that callback in the adapter's language for arbitrary fixture setup and checks. The built-in RPC target records these lifecycle events. Declarative `callbacks` above respond to requests from the subject and are separate from scheduler hooks. Browser runs continue to support [JavaScript/TypeScript lifecycle hooks](../../testwalker-web/docs/hooks.md).
 
 ## Results, tuning and replay
 
@@ -169,7 +165,7 @@ Both native commands accept the exploration options (`--generator`, `--edge-cove
 Each output directory contains the effective model, planned inventory, JSON report, JUnit XML, HTML viewer, protocol evidence and individual replay recipes. Requests, responses, callbacks, bounded stderr and predicate diagnostics replace browser screenshots. Replay a saved case with the same command and target configuration:
 
 ```bash
-target/release/testwalker-core self-test \
+testwalker self-test \
   --replay artifacts/self-test/RUN/replays/CASE.json \
   --output artifacts/replay
 ```
@@ -183,8 +179,8 @@ Self-testing adds useful sequence and boundary coverage, but cannot establish co
 ## Develop and verify the core
 
 ```bash
-cargo test --workspace
-cargo clippy --all-targets -- -D warnings
+cargo test --locked --manifest-path core/Cargo.toml
+cargo clippy --manifest-path core/Cargo.toml --all-targets -- -D warnings
 ```
 
-All core unit tests, wire tests, RPC target tests, CLI self-tests and OpenRPC validation checks live under `core` and execute in Rust. The OpenRPC meta-schemas are pinned locally; contract tests perform no network retrieval. The native CLI regression test runs with Python absent from `PATH`, exercises the full graph, then replays graph and property cases. TypeScript tests exercise the browser adapter and its client boundary.
+All core unit tests, wire tests, RPC target tests, CLI self-tests and OpenRPC validation checks live under `core` and execute in Rust. The OpenRPC meta-schemas are pinned locally; contract tests perform no network retrieval. The native CLI regression tests exercise full graphs and replay graph and property cases. TypeScript tests exercise the browser adapter and its client boundary.

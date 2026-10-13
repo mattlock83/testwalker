@@ -17,9 +17,10 @@ testwalker-discover discover-url --url URL --output SITE.model.json [--depth 1]
 testwalker-discover discover-sitemap --sitemap SITEMAP.xml --output SITE.model.json
 testwalker-discover report --inventory INVENTORY.json [--inventory ANOTHER.json] [--model MODEL.json] [--output index.html]
 
-Discovery writes a model, inventory, screenshots, JSON network evidence, and
-SITE.discovery/index.html. Model filenames always end in .model.json;
-inventory files end in .discovery.json. Open the report directly; no server is needed.
+Discovery writes the model at --output, normalized to .model.json.
+Inventory, index.html and visit assets go to artifact/<timestamped run>/ beside
+that model. Inventory filenames end in .discovery.json. Open the report directly;
+no server is needed. Each run uses a separate folder; model files are not overwritten.
 
 Exploration: --depth N --max-pages N --max-actions N --max-state-variants N
 --click-buttons --probe-empty-forms --exclude-buttons 'Label,Other label'

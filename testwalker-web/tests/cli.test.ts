@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, chmod, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -51,6 +51,65 @@ test("The installed symlink CLI prints help and rejects unsupported retention be
   );
   assert.equal(run.status, 2);
   assert.match(run.stderr, /does not support/);
+});
+
+test("Web CLI delegates model-local output defaults to Rust and preserves explicit output overrides", async () => {
+  const temp = await realpath(
+    await mkdtemp(join(tmpdir(), "testwalker-output-")),
+  );
+  const framework = join(temp, "framework"),
+    config = join(temp, "run.json");
+  const bin = fileURLToPath(
+    new URL("../../node_modules/.bin/testwalker-web", import.meta.url),
+  );
+  try {
+    await writeFile(
+      framework,
+      "#!/usr/bin/env node\n(async()=>{for await (const chunk of process.stdin) {} process.stdout.write(JSON.stringify(process.argv.slice(2)));})();\n",
+    );
+    await chmod(framework, 0o755);
+    await writeFile(
+      config,
+      JSON.stringify({ decision: { api_key: "synthetic-key" } }),
+    );
+    // The supplied model is outside the optional demo directory and invocation cwd.
+    const model = join(temp, "external model.json");
+    await writeFile(model, "{}");
+    for (const output of [undefined, "custom output"]) {
+      const run = spawnSync(
+        process.execPath,
+        [
+          bin,
+          "run",
+          "--directory",
+          join(temp, "demo"),
+          "--model",
+          model,
+          "--url",
+          "http://localhost:3000/",
+          "--config",
+          config,
+          "--framework",
+          framework,
+          ...(output ? ["--output", output] : []),
+        ],
+        { cwd: temp, encoding: "utf8" },
+      );
+      assert.equal(run.status, 0, run.stderr);
+      const args: string[] = JSON.parse(run.stdout);
+      assert.equal(args[args.indexOf("--model") + 1], model);
+      const index = args.indexOf("--output");
+      if (output) assert.equal(args[index + 1], join(temp, output));
+      else
+        assert.equal(
+          index,
+          -1,
+          "The launcher must not replace the native model-local default",
+        );
+    }
+  } finally {
+    await rm(temp, { recursive: true, force: true });
+  }
 });
 
 test("Initial callbacks wait for async TypeScript module loading; hook console output cannot corrupt stdout", async () => {

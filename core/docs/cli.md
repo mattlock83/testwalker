@@ -1,99 +1,139 @@
-# Framework CLI and executable adapters
+# Framework CLI
 
-`testwalker` is the Rust framework command. An adapter is any executable implementing the [JSON-RPC target contract](protocol.md): a compiled binary, an installed console entry point, or an executable script with a shebang. The framework does not need to know its language.
+Run `testwalker --help` for the command-line reference. Build and PATH setup are in the [framework guide](../README.md).
 
-```bash
-cd core  # From the repository root
-cargo build --release --locked --bin testwalker --bin testwalker-core
-export PATH="$PWD/target/release:$PATH"
+| Command                | Use                                            |
+| ---------------------- | ---------------------------------------------- |
+| `testwalker run`       | Execute a model through an adapter executable. |
+| `testwalker rpc`       | Test an executable JSON-RPC service.           |
+| `testwalker self-test` | Test the bundled worker API model.             |
 
-testwalker run --model model.json --adapter /path/to/my-adapter \
-  --config run.json --generator new_york_street_sweeper \
-  --max-steps 1000 --max-input-attempts 2 --output artifacts
-```
-
-Adapters receive callbacks such as `target.initialize`, `target.execute`, `target.observe`, `target.hook` and `target.close`. They return observations and evidence. Rust owns graph selection, Hegel inputs, budgets, verdicts, reports, JUnit and replay. Adapter stderr is shown as diagnostics; stdout is reserved for newline-delimited JSON-RPC messages.
-
-Arguments are literal and are never executed by a shell:
+## Run an adapter
 
 ```bash
-testwalker run --model model.json --adapter /path/to/my-adapter \
-  --adapter-arg=--profile --adapter-arg='a profile with spaces' --cwd /path/to/workdir
+testwalker run --model /path/to/model.json \
+  --adapter /path/to/adapter --config /path/to/run.json \
+  --output artifacts
 ```
 
-A non-executable script can also be launched using its runtime as the executable and the script path as an argument. That is ordinary process invocation, not a framework language setting.
+An adapter implements the [target protocol](protocol.md). It may be a binary or executable script. To run a script through its runtime, supply that runtime as the executable and the script as an argument:
+
+```bash
+testwalker run --model /path/to/model.json --adapter node \
+  --adapter-arg=/path/to/adapter.js --adapter-arg=--profile \
+  --adapter-arg='a profile with spaces' --config /path/to/run.json
+```
+
+Arguments are passed directly, without a shell. `--cwd` sets the adapter working directory. Stdout is reserved for JSON-RPC; adapter diagnostics go to stderr. The framework launches and closes the adapter and owns all reports.
+
+For browser tests, the [web CLI](../../testwalker-web/README.md) prepares these arguments and can host the demo site.
+
+Without `--output`, runs write to `<model directory>/artifact/<timestamped run>/`. Each run has its own report files and asset subfolders. `--output DIR` overrides the parent directory. The bundled `self-test` has no model file path, so its default is `artifact/` in the current working directory. Planning with `--plan` writes no artifacts.
 
 ## Run configuration
 
-`--config FILE` reads JSON containing three optional objects:
+`--config FILE` reads three optional JSON objects:
 
 ```json
 {
   "target": {
     "url": "http://localhost:3000",
-    "adapter": "web",
     "screenshots": true,
-    "limits": {"actions_per_journey": 25, "confidence": 0.80}
+    "limits": { "actions_per_journey": 25, "confidence": 0.8 }
   },
   "options": {
-    "input_mode": "generated",
+    "input_mode": "focused",
     "cases": 1,
-    "max_input_attempts": 2,
-    "shrink": false,
+    "max_input_attempts": 1000,
+    "max_steps": 1000,
     "evaluator": "adapter"
   },
   "decision": {
     "provider": "jev",
     "api_key": "your-jev-key",
     "max_calls": 4000,
-    "threshold": 0.80
+    "threshold": 0.8
   }
 }
 ```
 
-`target` is opaque adapter configuration passed to `target.initialize`, with the framework's output directory added. `options` uses the execution settings documented in [the protocol](protocol.md). CLI flags override corresponding options. `decision` configures the native provider and is not included in adapter configuration or reports. Omit it for adapters using deterministic assertions. Keep files containing API keys out of version control.
+- `target` is adapter-specific configuration. The framework adds its report directory before passing it to `target.initialize`.
+- `options` configures execution. CLI flags override matching settings.
+- `decision` configures the Rust decision provider. Omit it when the adapter uses deterministic assertions. Credentials are not passed in target configuration or included in reports.
 
-Use `--config -` to supply the same JSON through stdin, without putting credentials in process arguments. The Node web CLI uses this mechanism. Stdin configuration is consumed before the framework creates the adapter's separate protocol pipes.
+Keep API keys in ignored local files. `--config -` accepts the same JSON on stdin; the web CLI uses this to keep credentials out of process arguments.
 
-`--plan` prints the selected inventory without starting the adapter or configuring a provider. Custom strategy callbacks are not executed during planning. During execution, `--custom-strategies` lets the adapter return declarative Hegel domains through `target.strategy`, before browser initialization.
+With `evaluator: "adapter"`, the adapter returns observed states and rule checks and Rust applies the verdict policy. With `evaluator: "core"`, Rust prepares decision questions from JSON observations. The CLI default is `adapter`.
 
-Use `--evaluator adapter` (the default) when the adapter prepares state/rule checks, as the web adapter does. With `--evaluator core`, Rust prepares questions directly from JSON observations using its configured decision provider.
+## Exploration and input options
 
-`--timeout` bounds each adapter callback, including its nested service calls; default 120 seconds. It is not the overall run duration. Exit codes are 0 for PASS, 1 for FAIL and 2 for INCONCLUSIVE/configuration errors. Normal execution closes the target, retrieves optional artifacts, writes reports, then closes adapter stdin and reaps the process.
+These are CLI defaults when configuration does not override them. Direct worker RPC defaults are documented separately in the [protocol](protocol.md).
 
-## Web adapter
+| Option                                    | Meaning / default                                                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| `--seed N`                                | Graph and input seed; 42.                                                              |
+| `--walks N`                               | Separately reset graph walks; 1, range 1–100.                                          |
+| `--generator EXPR`                        | Generator name or expression; uses the model when no exploration override is supplied. |
+| `--edge-coverage N`, `--state-coverage N` | Required verified coverage percentages; use the model's values by default.             |
+| `--max-steps N`                           | Maximum graph elements per walk; 1000, range 1–10000. Both states and edges count.     |
+| `--input-mode MODE`                       | `focused`, `generated`, `boundaries`, `all` or `none`; default `focused`.              |
+| `--cases N`                               | Up to N generated examples per phase; 1, range 1–200.                                  |
+| `--max-input-attempts N`                  | Select input scope and bound reproduction/shrinking; 1000, range 1–10000.              |
+| `--input-strategies FILE`                 | Focused-mode generation policy.                                                        |
+| `--custom-strategies`                     | Ask the adapter for declarative Hegel domains through `target.strategy`.               |
+| `--no-shrink`                             | Disable shrinking; failure reproduction can still occur.                               |
+| `--timeout SECONDS`                       | Deadline per callback; 120 for adapter runs, 30 for RPC targets.                       |
+| `--output DIR`                            | Report parent; defaults to `artifact/` beside the supplied model.                      |
 
-The [TypeScript adapter](../../testwalker-web/README.md) uses PlayJev and Playwright. Install it locally with `npm ci && npm run build` from the repository root. Put the built Rust executable on PATH or set `TESTWALKER_BIN`.
+Input strategies and scope selection are described in [Hegel strategies](input-strategies.md). `decision.max_calls` bounds provider calls; the web CLI also exposes it as `--max-calls`. It is separate from the input-attempt allowance.
+
+An input limit selects work before execution. Unselected phases are outside scope. A provider or action limit that blocks selected work makes the run inconclusive. Reaching the input allowance during failure minimization preserves the observed defect, with a note that it may not be minimal.
+
+## Graph walk modes
+
+| Generator                          | Use                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| `new_york_street_sweeper`          | Traverse the graph's edges; requires a strongly connected graph.    |
+| `random`                           | Random walk until the stop condition.                               |
+| `quick_random`                     | Random exploration with coverage-oriented routing.                  |
+| `weighted_random`                  | Random walk using native edge `weight` values.                      |
+| `shortest_all_paths`               | Native shortest-path exploration.                                   |
+| `a_star(reached_vertex(state_id))` | Route to a named vertex. A bare `a_star` needs a target expression. |
+| `predefined_path`                  | Use the graph's `predefinedPathEdgeIds`.                            |
+
+New York Street Sweeper treats edges equally and can warn that model weights are treated as 1. Use `weighted_random` when weights should influence exploration.
+
+The bare names `random`, `quick_random`, `weighted_random` and `shortest_all_paths` use the effective edge/state coverage targets as their stop condition. A complete expression retains its own condition:
 
 ```bash
-cp demos/trailhead/run.json.example demos/trailhead/run.local.json
-# Set decision.api_key in run.local.json.
-npx --no-install testwalker-web demo --directory demos/trailhead \
-  --app demos/trailhead/app.ts --hooks demos/trailhead/hooks.ts --headed \
-  --generator predefined_path --edge-coverage 0 --state-coverage 0 \
-  --max-input-attempts 2 --no-shrink --max-calls 1000
+testwalker run --model /path/to/model.json --adapter /path/to/adapter \
+  --config /path/to/run.json \
+  --generator 'random(length(4)) a_star(reached_vertex(review))' \
+  --edge-coverage 0 --state-coverage 0
 ```
 
-The Node launcher hosts the application, passes provider configuration through stdin, invokes Rust, and stops the server at exit. Rust launches the executable adapter and owns all scheduling and reports. The adapter returns screenshots, traces and observations. Neither the launcher nor the adapter renders JUnit or HTML reports. Static demos need no custom code.
+The example requires a vertex named `review`. A short route with zero coverage targets tests that selected route; it does not claim full-graph coverage. The framework separately verifies requested coverage after execution. Increasing `--max-steps` cannot make a terminal graph state traversable.
 
-For an already hosted site, the native framework can invoke Node directly:
+Advanced `options.paths` can import already planned walks as arrays of `{kind:"state"|"edge", id}`. Each route must start at the model's start state and alternate connected edges and states. The route count must match `walks`, and each route must fit `max_steps`.
+
+## Plan, replay and results
+
+Planning validates the model and prints the inventory without starting a target or configuring a provider:
 
 ```bash
-testwalker run --model demos/trailhead/model.json --adapter node \
-  --adapter-arg=/absolute/path/to/testwalker-web/dist/main.js \
-  --adapter-arg=--config --adapter-arg=/absolute/path/to/browser.json \
-  --adapter-arg=--headed \
-  --adapter-arg=--hooks --adapter-arg=/absolute/path/to/trailhead/hooks.ts \
-  --config run.local.json --max-steps 1000
+testwalker run --model /path/to/model.json --plan
 ```
 
-The browser JSON supplies Playwright Chromium launch/context options. The native run JSON supplies the URL, provider and execution options. The convenience CLI aligns adapter confidence with the provider threshold (default 0.80).
+Custom strategy callbacks run during execution before target initialization, not during planning.
 
-Replay uses the same executable and configuration:
+Replay a saved concrete case with its saved effective model:
 
 ```bash
-testwalker run --model /path/to/report/model.json --adapter /path/to/my-adapter \
-  --config run.json --replay /path/to/report/replays/case.json
+testwalker run --model /path/to/report/model.json \
+  --adapter /path/to/adapter --config /path/to/run.json \
+  --replay /path/to/report/replays/case.json
 ```
 
-Replay requires the saved model hash and does not allow generator, coverage or input-strategy overrides. Use `testwalker --help` for all flags. Native `rpc` and `self-test` modes use the same CLI options, scheduler and report implementation.
+Replay validates the model hash and uses the saved input and modeled setup. Do not supply generator, coverage or input-strategy overrides. Supply the same adapter configuration and hooks.
+
+Exit codes are **0 PASS**, **1 FAIL**, and **2 INCONCLUSIVE or configuration error**. Cleanup and report writing also run after an unsuccessful result. See [results and debugging](../../testwalker-web/docs/testing.md#results-and-reports) for the browser report bundle, and [RPC testing](rpc-testing.md) for browser-free execution.

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { serve } from "./fixture.js";
 import {
   discoverUrl,
@@ -212,14 +212,25 @@ test(
         ),
       );
       const visit = result.inventory.visits[0],
-        base = join(temp, "url.discovery");
+        base = dirname(result.inventory_path);
+      assert.equal(dirname(base), join(temp, "artifact"));
+      assert.match(
+        basename(base),
+        /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z-\d+-\d+$/,
+      );
       assert.equal(result.report_path, join(base, "index.html"));
       assert.equal(result.output, join(temp, "url.model.json"));
-      assert.equal(result.inventory_path, join(temp, "url.discovery.json"));
+      assert.equal(result.inventory_path, join(base, "url.discovery.json"));
+      assert.equal(result.inventory.artifact_root, ".");
+      assert.deepEqual(
+        JSON.parse(await readFile(result.inventory_path, "utf8")),
+        JSON.parse(JSON.stringify(result.inventory)),
+      );
       const report = await readFile(result.report_path, "utf8");
       assert.match(report, /See what discovery found/);
       assert.ok(report.includes("visit-0001/screenshot.png"));
-      assert.ok(report.includes("../url.model.json"));
+      assert.ok(report.includes("../../url.model.json"));
+      assert.ok(report.includes('"inventory":"url.discovery.json"'));
       assert.deepEqual((await readdir(join(base, visit.id))).sort(), [
         "network.json",
         "screenshot.png",
@@ -257,6 +268,18 @@ test(
       });
       assert.equal(Object.keys(listed.inventory.pages).length, 1);
       assert.equal(listed.inventory.transitions.length, 0);
+      assert.notEqual(dirname(listed.inventory_path), base);
+      assert.equal(
+        dirname(dirname(listed.inventory_path)),
+        join(temp, "artifact"),
+      );
+      assert.equal((await readdir(join(temp, "artifact"))).length, 2);
+      assert.ok(
+        !(await readdir(temp)).some(
+          (name) =>
+            name.endsWith(".discovery") || name.endsWith(".discovery.json"),
+        ),
+      );
     } finally {
       await server.close();
       await rm(temp, { recursive: true, force: true });

@@ -18,6 +18,15 @@ fn temp() -> PathBuf {
     path
 }
 fn invoke(path: &Path, mode: &str, config: Value, extra: &[&str]) -> std::process::Output {
+    invoke_output(path, mode, config, extra, Some(&path.join("reports")))
+}
+fn invoke_output(
+    path: &Path,
+    mode: &str,
+    config: Value,
+    extra: &[&str],
+    output: Option<&Path>,
+) -> std::process::Output {
     let model = path.join("model with spaces.json");
     let mut document: Value = serde_json::from_str(include_str!("fixtures/capacity.json")).unwrap();
     document["models"][0]["generator"] = json!("new_york_street_sweeper()");
@@ -35,10 +44,11 @@ fn invoke(path: &Path, mode: &str, config: Value, extra: &[&str]) -> std::proces
             "--adapter-arg=literal; $(do-not-execute)",
             "--adapter-arg",
             "--help",
-            "--output",
-        ])
-        .arg(path.join("reports"))
-        .args(["--config", "-"])
+        ]);
+    if let Some(output) = output {
+        cmd.arg("--output").arg(output);
+    }
+    cmd.args(["--config", "-"])
         .args(extra)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -51,6 +61,124 @@ fn invoke(path: &Path, mode: &str, config: Value, extra: &[&str]) -> std::proces
         .write_all(config.to_string().as_bytes())
         .unwrap();
     child.wait_with_output().unwrap()
+}
+
+#[test]
+fn default_output_is_model_local_with_unique_timestamped_runs_and_asset_folders() {
+    let path = temp().join("models with spaces");
+    fs::create_dir_all(&path).unwrap();
+    let original = path.join("model with spaces.json");
+    for _ in 0..2 {
+        let output = invoke_output(
+            &path,
+            "adapter",
+            json!({"options":{"input_mode":"none"}}),
+            &[],
+            None,
+        );
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    assert!(original.is_file());
+    let parent = path.join("artifact");
+    let runs: Vec<_> = fs::read_dir(&parent)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .collect();
+    assert_eq!(runs.len(), 2);
+    let timestamped =
+        regex::Regex::new(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z-\d+-\d+$").unwrap();
+    for run in runs {
+        assert!(timestamped.is_match(run.file_name().unwrap().to_str().unwrap()));
+        let report: Value =
+            serde_json::from_slice(&fs::read(run.join("report.json")).unwrap()).unwrap();
+        assert_eq!(report["directory"], run.to_str().unwrap());
+        assert_eq!(report["status"], "PASS");
+        for file in ["report.html", "junit.xml", "model.json", "plan.json"] {
+            assert!(run.join(file).is_file());
+        }
+        assert!(run.join("replays").is_dir());
+        let initialize = report["trace"][0]["calls"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|call| call["method"] == "target.initialize")
+            .unwrap();
+        assert_eq!(
+            initialize["params"]["config"]["directory"],
+            report["directory"]
+        );
+    }
+    assert!(!path.join("reports").exists());
+    assert!(!path.join("artifacts").exists());
+}
+
+#[test]
+fn planning_without_explicit_output_does_not_create_an_artifact_directory() {
+    let path = temp();
+    let output = invoke_output(
+        &path,
+        "would-panic-if-started",
+        json!({}),
+        &["--plan"],
+        None,
+    );
+    assert!(output.status.success());
+    assert!(!path.join("artifact").exists());
+}
+
+#[test]
+fn relative_models_write_beside_the_model_rather_than_the_invocation_directory() {
+    let path = temp();
+    let models = path.join("nested models");
+    fs::create_dir_all(&models).unwrap();
+    assert!(
+        invoke_output(&models, "unused", json!({}), &["--plan"], None)
+            .status
+            .success()
+    );
+    let output = Command::new(env!("CARGO_BIN_EXE_testwalker"))
+        .current_dir(&path)
+        .args([
+            "run",
+            "--model",
+            "nested models/model with spaces.json",
+            "--adapter",
+            env!("CARGO_BIN_EXE_testwalker-rpc-test-peer"),
+            "--adapter-arg",
+            "adapter",
+            "--input-mode",
+            "none",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(models.join("artifact").is_dir());
+    assert!(!path.join("artifact").exists());
+}
+
+#[test]
+fn bundled_self_test_defaults_to_artifact_in_the_invocation_directory() {
+    let path = temp();
+    let output = Command::new(env!("CARGO_BIN_EXE_testwalker"))
+        .current_dir(&path)
+        .arg("self-test")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(path.join("artifact").is_dir());
+    assert!(!path.join("artifacts").exists());
 }
 fn report(path: &Path) -> (PathBuf, Value) {
     let dir = fs::read_dir(path.join("reports"))
@@ -82,6 +210,7 @@ fn executable_adapter_runs_graph_hegel_hooks_and_replay_without_a_language_flag(
     assert_eq!(r["status"], "PASS");
     assert_eq!(r["coverage"]["edges"]["verified"], 4);
     assert_eq!(r["input_attempts"], 2);
+    assert!(!path.join("artifact").exists());
     let evidence = &r["trace"][0];
     assert_eq!(evidence["closed"], true);
     assert_eq!(evidence["args"][0], "literal; $(do-not-execute)");

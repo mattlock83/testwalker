@@ -1345,7 +1345,8 @@ export async function discoverUrls(
       inventory.transitions,
       inventory.review,
     );
-    inventory.artifact_root = basename(artifactRoot);
+    // The inventory and visit folders live together within the timestamped run.
+    inventory.artifact_root = ".";
     const reportPath = join(artifactRoot, "index.html");
     await writeDiscoveryReport(
       model,
@@ -1356,12 +1357,14 @@ export async function discoverUrls(
         modelPath: output,
       },
     );
-    await mkdir(dirname(output), { recursive: true });
+    await writeFile(
+      join(artifactStage, basename(inventoryPath)),
+      JSON.stringify(inventory, null, 2) + "\n",
+      { flag: "wx" },
+    );
+    await mkdir(dirname(artifactRoot), { recursive: true });
     await rename(artifactStage, artifactRoot);
     await writeFile(output, JSON.stringify(model, null, 2) + "\n", {
-      flag: "wx",
-    });
-    await writeFile(inventoryPath, JSON.stringify(inventory, null, 2) + "\n", {
       flag: "wx",
     });
     return {

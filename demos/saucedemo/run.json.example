@@ -1,0 +1,18 @@
+{
+  "target": {
+    "screenshots": true,
+    "limits": { "actions_per_journey": 25 }
+  },
+  "options": {
+    "input_mode": "none",
+    "max_steps": 10000,
+    "evaluator": "adapter"
+  },
+  "decision": {
+    "provider": "jev",
+    "api_key": "your-jev-key",
+    "model": "jev-latest",
+    "max_calls": 4000,
+    "threshold": 0.8
+  }
+}

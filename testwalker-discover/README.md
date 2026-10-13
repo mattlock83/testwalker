@@ -1,101 +1,95 @@
-# Testwalker discover
+# Testwalker discovery
 
-An independent TypeScript/JavaScript package that explores a website with Crawlee
-and Playwright, generates a GraphWalker model draft, and writes a static results
-viewer. It has no dependency on `@testwalker/web`, the Rust framework, Jev, or
-another decision API. Nothing is published.
+Discovery explores a website with Crawlee and Playwright, then writes a GraphWalker model draft and an HTML results viewer. It is a separate package and needs neither the Rust framework nor a Jev key.
 
-## Run locally
+The output records observed behavior. Review the navigation and add independent business rules before treating it as a test specification.
 
-Requires Node.js 22+, npm and Google Chrome. From the repository root:
+## Setup and first run
+
+Requires Node.js 22 or later, npm and Google Chrome. From the repository root:
 
 ```bash
 npm ci
 npm run build --workspace @testwalker/discover
-npx --no-install testwalker-discover discover-url \
-  --url https://www.saucedemo.com/ --output artifacts/sauce.model.json \
-  --depth 8 --max-pages 60 --max-actions 1200 --max-state-variants 2 \
-  --click-buttons --probe-empty-forms --settle-ms 600 \
-  --values demos/saucedemo/discovery/values.json
 ```
 
-The CLI prints paths to the model, inventory and `artifacts/sauce.discovery/index.html`.
-The GraphWalker draft is `sauce.model.json`; the separate observation inventory is
-`sauce.discovery.json`. Supplying `--output sauce.json` or `--output sauce` also
-writes `sauce.model.json`. Names use unique `v_`/`e_` identifiers without spaces.
-Business descriptions and intents keep the full readable text. Vertex coordinates
-are saved in `properties.x` and `properties.y` so Studio opens a spaced workflow
-layout instead of placing every state at the origin.
-Open that HTML directly in your browser. No server, key, CDN or internet connection
-is needed to view the results. Keep the report with its screenshots and network
-files when moving or sharing it.
+For a local example, start the Hello World site in one terminal:
 
-For a sitemap, only listed URLs are inspected and no forms are submitted:
+```bash
+npm run build --workspace @testwalker/web
+npx --no-install testwalker-web serve \
+  --directory demos/hello-world/site --port 4185
+```
+
+In another terminal, explore one interaction layer:
+
+```bash
+npx --no-install testwalker-discover discover-url \
+  --url http://127.0.0.1:4185/ --output models/hello-world.model.json \
+  --depth 1 --headed
+```
+
+The web package is used only to host this local example. For an already hosted site, use its URL directly; discovery itself has no web-adapter dependency.
+
+Choose a new output name for each run. Existing output files are not overwritten.
+
+## Output
+
+With `--output models/hello-world.model.json`, the tool writes:
+
+```text
+models/
+  hello-world.model.json
+  artifact/
+    2026-10-13T02-19-25.969Z-49708-0/
+      hello-world.discovery.json
+      index.html
+      visit-0001/
+        screenshot.png
+        network.json
+      visit-0002/
+        ...
+```
+
+The model stays at the requested path. The inventory, viewer and visit assets share a run folder under `artifact/` beside that model. Run names use a UTC timestamp, process ID and sequence number to avoid collisions. Asset files are created when capture is enabled and available. The CLI prints the exact model, inventory and report paths.
+
+A stem or `.json` output name is normalized to `.model.json`. The model and inventory are different files; supply the model to Testwalker after review.
+
+Open `index.html` directly in a browser. It shows URL-grouped or observed-state graphs, visits, screenshots, issues and JSON request/response previews. Keep the model and its `artifact/` run folder together when sharing them. Page HTML and DOM snapshots are not saved.
+
+## Sitemap mode
 
 ```bash
 npx --no-install testwalker-discover discover-sitemap \
-  --sitemap sitemap.xml --output artifacts/site.model.json
+  --sitemap /path/to/sitemap.xml --output models/site.model.json
 ```
 
-## Results viewer
+The input is a local XML `urlset` file. Expand sitemap indexes separately. All listed URLs must share an origin. Sitemap mode inspects only those URLs, follows no unlisted links and submits no forms. If the site has no sitemap, use URL mode.
 
-The viewer shows observed states and journeys, visits, failed discovery actions,
-deferred actions and configured limits. The default graph groups states by URL;
-switch to **Observed states** to inspect variants. Select a node or edge to filter
-its evidence. Search and category tabs expose screenshots, replayed routes,
-settling diagnostics and JSON request/response previews. Full model, inventory and
-network files are linked alongside the details.
+## Exploration options
 
-Only screenshots and JSON network exchanges are captured; page HTML and DOM
-snapshots are not saved. JSON previews are bounded to keep the report manageable:
-up to 50 exchanges per visit, 2,000 UTF-8 bytes per body and 2 MiB of body previews
-per report. Full network JSON remains in the original capture files. Captures
-over 8 MiB are linked without loading inline previews.
+URL mode follows in-scope links and submits native forms within `--depth`, default 1. Add `--click-buttons` to explore non-submit buttons and accessible custom options. Add `--probe-empty-forms` to observe rejection screens beside default submissions. These actions can change application data; use a suitable test environment.
 
-Discovery records behaviour for review. It does not decide whether business rules
-are correct or execute Hegel tests. Deferred actions describe an observed frontier,
-not an inventory of every possible application behaviour.
+Field samples come from observed values and HTML attributes where available, with defaults and optional `--values` overrides. Discovery records constraints as suggestions, not independent validation rules or Hegel campaigns. See [options, values and hooks](docs/discovery.md).
 
-## View existing or combined discovery runs
+Discovery can leave terminal or deferred states. A draft therefore may not support a complete GraphWalker traversal until reviewed. A successful crawl does not mean the generated model is complete or the website passed tests.
 
-No recrawl is needed:
+## Rebuild a viewer without crawling
 
 ```bash
 npx --no-install testwalker-discover report \
-  --inventory demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-explore.discovery.json \
-  --inventory demos/artifacts/discovery-saucedemo/regenerated-2026-10-12-workflow.discovery.json \
-  --model demos/saucedemo/model.json \
-  --output demos/artifacts/discovery-saucedemo/overview/index.html
+  --inventory models/artifact/RUN/hello-world.discovery.json \
+  --model models/hello-world.model.json \
+  --output models/artifact/RUN/rebuilt/index.html
 ```
 
-Repeated `--inventory` arguments combine runs sharing the same seeds. Without
-`--model`, the report builds a draft from the supplied observations. Output paths
-must be new; discovery and report generation never overwrite existing files.
+Replace `RUN` with the timestamped folder printed by discovery. Omitting `--output` places the viewer beside the first inventory; choose a new filename to rebuild an existing viewer. Repeat `--inventory` to combine runs with the same seeds. Without `--model`, the viewer builds a draft from the supplied observations. The output must be new.
 
-## Configuration and hooks
+## Configuration and development
 
-`--browser-config browser.json` accepts independent Playwright Chromium settings:
+`--browser-config` accepts discovery's own Playwright `launch` and `context` settings. Execution-adapter settings such as uploads, CDP and settling keys are not accepted in that file; discovery has separate CLI settling flags. See the [reference](docs/discovery.md#browser-and-evidence-options).
 
-```json
-{
-  "launch": { "channel": "chrome" },
-  "context": { "viewport": { "width": 1280, "height": 900 }, "ignoreHTTPSErrors": false }
-}
-```
-
-Discovery owns its browser and does not attach to CDP. Tune settling with
-`--settle-ms` and `--timeout-ms`, and observe the run with `--headed`.
-
-Public exports include `discoverUrl`, `discoverUrls`, `discoverSitemap`, `buildModel`,
-`writeDiscoveryReport`, `DiscoveryContext`, `DiscoveryOptions`, `DiscoveryError`
-and `BrowserSettings`. Hooks are explicitly loaded JS/TS modules with
-`before_visit`, `after_visit`, `before_submit` and `after_submit` functions.
-[Detailed discovery options and examples](docs/discovery.md).
-
-The generated models are inputs to GraphWalker or the separate Testwalker
-framework after review. No selectors or executable code are written into them.
-
-## Development
+The public API includes `discoverUrl`, `discoverUrls`, `discoverSitemap`, `buildModel` and `writeDiscoveryReport`; all exports are in [src/index.ts](src/index.ts). Explicit JS/TS hooks support visit and form setup.
 
 ```bash
 npm run check --workspace @testwalker/discover
@@ -103,5 +97,4 @@ npm test --workspace @testwalker/discover
 TESTWALKER_BROWSER_TESTS=1 npm test --workspace @testwalker/discover
 ```
 
-Tests and fixtures are entirely within this package and require no framework
-executable or decision key.
+These regression tests need no framework executable or decision key. The opt-in browser tests need Chrome.

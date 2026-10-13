@@ -26,7 +26,7 @@ No language flag or shell command parsing. Use repeated arguments for its option
   --target-arg VALUE     Repeat for target arguments (rpc)
   --cwd DIR             Adapter/target working directory
   --config FILE         Run JSON: target, options, optional decision provider; '-' reads stdin
-  --output DIR          Report parent directory (default artifacts)
+  --output DIR          Report parent directory (default: model directory/artifact)
   --timeout SECONDS     Adapter/target request deadline (default 120 for run, 30 for rpc)
   --seed N              Default 42
   --walks N             Default 1
@@ -100,7 +100,7 @@ pub fn execute(args: &[String]) -> Result<i32, Fault> {
     let mut executable = None;
     let mut executable_args = vec![];
     let mut cwd = None;
-    let mut output = PathBuf::from("artifacts");
+    let mut output = None;
     let mut config_path = None;
     let mut replay = None;
     let mut plan = false;
@@ -153,7 +153,7 @@ pub fn execute(args: &[String]) -> Result<i32, Fault> {
             "--target-arg" if !generic => executable_args.push(value),
             "--config" if generic => config_path = Some(value),
             "--cwd" => cwd = Some(PathBuf::from(value)),
-            "--output" => output = PathBuf::from(value),
+            "--output" => output = Some(PathBuf::from(value)),
             "--replay" => replay = Some(value),
             "--timeout" => timeout = number(name, &value)?,
             "--seed" => overrides["seed"] = json!(number::<u64>(name, &value)?),
@@ -229,8 +229,8 @@ pub fn execute(args: &[String]) -> Result<i32, Fault> {
             "Replay uses its saved model and input; do not override exploration or strategies",
         ));
     }
-    let document = if let Some(path) = model_path {
-        read(&path)?
+    let document = if let Some(path) = model_path.as_deref() {
+        read(path)?
     } else if self_test {
         decode(SELF_MODEL, "self-model")?
     } else {
@@ -249,6 +249,12 @@ pub fn execute(args: &[String]) -> Result<i32, Fault> {
         println!("{}", serde_json::to_string_pretty(&inventory).unwrap());
         return Ok(0);
     }
+    let output = output.unwrap_or_else(|| {
+        model_path
+            .as_deref()
+            .map(|path| PathBuf::from(path).with_file_name("artifact"))
+            .unwrap_or_else(|| PathBuf::from("artifact"))
+    });
     let executable = match executable {
         Some(value) => value,
         None if self_test => std::env::current_exe()

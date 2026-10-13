@@ -1,90 +1,104 @@
 # Trailhead
 
-A synthetic travel centre with **20 states, 148 journeys and three business data sets**: browse adventures/equipment/policies, manage a member profile, review/confirm a booking, and cancel it for a full refund. No real payments or customer records are involved.
+A synthetic travel centre with 20 states, 148 journeys and three input data sets. It covers adventure information, member profiles, planning/review, final booking, cancellation and refunds.
 
-The [model](model.json) is the business specification, with no selectors, scripts or page objects. The TypeScript [backend](app.ts) serves the demo, and explicitly loaded [hooks](hooks.ts) supply custom controls and independent ledger assertions.
+The [model](model.json) is the business specification. A TypeScript [backend](app.ts) stores the demo ledger, and [hooks](hooks.ts) reset fixtures, operate a bespoke pickup picker and verify backend side effects.
+
+## Shell scripts
+
+After [repository setup](../../README.md#build-and-run), run from the repository root:
+
+```bash
+./demos/trailhead/test.sh --headed
+./demos/trailhead/discover.sh --headed
+```
+
+Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. The local site is started and stopped automatically; discovery uses a free port. See [the script guide](../README.md#shell-scripts) for overrides.
 
 ## Run
 
-From the repository root after the [build/setup](../../README.md#build-and-run), with `decision.api_key` set in `demos/trailhead/run.local.json`:
+After [setup](../../README.md#build-and-run), run from the repository root. Create the configuration once and set `decision.api_key`:
 
 ```bash
-# A short scenario: 14 distinct journeys, plus two focused property inputs
-npx --no-install testwalker-web demo --directory demos/trailhead \
-  --app demos/trailhead/app.ts --hooks demos/trailhead/hooks.ts --port 4184 --headed \
+cp demos/trailhead/run.json.example demos/trailhead/run.local.json
+```
+
+Edit `decision.api_key` in the new file, then run:
+
+```bash
+npm run demo --workspace @testwalker/demo-trailhead -- --headed
+```
+
+The wrapper loads the backend and hooks and uses port 4184. Defaults cover the full graph and all 186 focused input phases across seven campaigns, with a 10000-call Jev allowance. Reports go to `demos/trailhead/artifact/`; the owned browser and server close afterward.
+
+Full graph with only two generated inputs:
+
+```bash
+npm run demo --workspace @testwalker/demo-trailhead -- --headed \
+  --input-mode generated --cases 1 --max-input-attempts 2 \
+  --no-shrink --max-calls 4000
+```
+
+For a short booking/cancellation/profile route:
+
+```bash
+npm run demo --workspace @testwalker/demo-trailhead -- --headed \
   --generator predefined_path --edge-coverage 0 --state-coverage 0 \
   --max-input-attempts 2 --no-shrink --max-calls 1000
 ```
 
-It selects the Marina pickup, rejects/corrects oversized party input, reviews/confirms a booking, rejects/corrects cancellation input, refunds it, then rejects/corrects a profile email. Zero coverage targets allow that deliberately short route; a pass does not claim all 148 edges.
+The zero coverage targets intentionally select a shorter scenario. A pass on that route does not mean all 148 journeys were verified. See [scope and results](../../testwalker-web/docs/testing.md).
 
-```bash
-# Full graph, just two broader generated inputs
-npm run demo --workspace @testwalker/demo-trailhead -- --headed \
-  --generator new_york_street_sweeper --edge-coverage 100 --state-coverage 100 --max-steps 1000 \
-  --input-mode generated --cases 1 --max-input-attempts 2 --no-shrink --max-calls 4000
-# Full graph and default focused Hegel partitions
-npm run demo --workspace @testwalker/demo-trailhead -- --headed --max-calls 10000
-```
-
-Focused mode offers 186 phases across seven source-state campaigns. `--cases` is per generated phase. All calls, including browser actions, are accounted for by Rust. Confidence defaults to 0.80. An uncertain Jev verdict stays INCONCLUSIVE for human review; an exact hook contradiction is FAIL. See [scope and triage](../../testwalker-web/docs/testing.md).
-
-## How the custom hook is called
+## What the hooks demonstrate
 
 ```mermaid
 sequenceDiagram
   participant R as Rust framework
-  participant A as TypeScript adapter
-  participant H as Trailhead hooks.ts
-  participant P as Playwright / website
-  R->>A: target.hook(before_reset)
-  A->>H: await before_reset(context)
-  H->>P: Reset synthetic backend ledger
-  R->>A: target.hook(before_transition)
-  A->>H: await before_transition(context)
-  H->>P: Open pickup widget and click shadow-DOM option
-  R->>A: target.execute(intent)
-  A->>P: Observe already completed hook destination
-  R->>A: target.observe / target.evaluate
-  A->>R: Nested decision.ask for independent Jev checks
-  R->>A: target.hook(after_state)
-  A->>H: await after_state(context)
-  H->>P: Check backend inventory / charge / refund
-  H-->>R: Success, or typed defect through adapter
-  R->>R: Credit verified coverage; write results
+  participant A as Web adapter
+  participant H as Trailhead hooks
+  participant S as Site / backend
+  R->>A: before_reset
+  A->>H: Reset hook
+  H->>S: Restore synthetic ledger and capacity
+  R->>A: before_transition
+  A->>H: Custom pickup hook when applicable
+  H->>S: Operate the shadow-DOM picker
+  R->>A: Execute and independently verify destination
+  R->>A: after_state
+  A->>H: Ledger assertion when applicable
+  H->>S: Read booking, inventory and refund data
+  H-->>A: Verified side effects or defect
+  A-->>R: Check result
 ```
 
-The pickup code operates the actual widget; it does not directly alter business state. It handles `choose_marina_pickup` and `choose_city_pickup`. Their selectors live only in the loaded hook. The adapter independently checks the destination before deciding whether further browser action is needed.
+The pickup hook selects an option by manipulating the real widget. App-specific selectors stay in the hook rather than the model. Jev still verifies the resulting state.
 
-`before_reset` restores fixtures for each walk and property attempt. `after_state` checks that review/rejection has no ledger side effects, confirmation creates one booking and reserves exactly the requested places, and cancellation creates one full refund and releases inventory. Gift rounding is independently asserted using exact decimal half-up cents. Grouped graph journeys share state; property attempts use fresh browser contexts plus reset/setup paths.
+Ledger assertions check that review does not reserve places, final confirmation reserves exactly the submitted quantity and charges the modeled amount, invalid submissions have no ledger effect, and cancellation restores capacity and issues one full refund.
 
-The hooks write `trailhead-hook-audit.json` alongside framework reports. They import only `@testwalker/web`, not another example or Rust source. The backend has its own in-memory ledger per server instance.
+## Demonstrate defect detection
 
-## Demonstrate a hidden backend bug
-
-The page can claim success while these exact assertions catch missing inventory or duplicate refunds:
+The backend has documented synthetic defect switches. These runs should FAIL at the ledger assertion:
 
 ```bash
-TRAILHEAD_DEMO_BUG=inventory npm run demo --workspace @testwalker/demo-trailhead -- --headed \
-  --generator predefined_path --edge-coverage 0 --state-coverage 0 --input-mode none --max-calls 1000
-TRAILHEAD_DEMO_BUG=refund npm run demo --workspace @testwalker/demo-trailhead -- --headed \
-  --generator predefined_path --edge-coverage 0 --state-coverage 0 --input-mode none --max-calls 1000
+TRAILHEAD_DEMO_BUG=inventory npm run demo --workspace @testwalker/demo-trailhead -- \
+  --generator predefined_path --edge-coverage 0 --state-coverage 0 \
+  --input-mode none --max-calls 1000
+
+TRAILHEAD_DEMO_BUG=refund npm run demo --workspace @testwalker/demo-trailhead -- \
+  --generator predefined_path --edge-coverage 0 --state-coverage 0 \
+  --input-mode none --max-calls 1000
 ```
 
-Remove the environment prefix for the healthy backend. For preview without Jev:
+Omit the environment prefix to use the healthy backend. Each test run resets its own fixture through the hook.
+
+## Plan, preview and regression checks
 
 ```bash
-npx --no-install testwalker-web serve --directory demos/trailhead/site --app demos/trailhead/app.ts --port 4184
-```
-
-## Regression checks
-
-```bash
-export PATH="$PWD/core/target/release:$PATH"
+npx --no-install testwalker-web plan --directory demos/trailhead
+npx --no-install testwalker-web serve --directory demos/trailhead/site \
+  --app demos/trailhead/app.ts --port 4184
 npm test --workspace @testwalker/demo-trailhead
 TESTWALKER_BROWSER_TESTS=1 npm test --workspace @testwalker/demo-trailhead
 ```
 
-These checks use Hegel through the public Rust RPC interface, fixture HTTP calls, deterministic hook assertions, injected defects, and optional real Chrome widget/validation evidence. No Jev key is required for regression tests. Model-driven runs above do require a key. The adapter's package contains no Trailhead code or assets.
-
-The direct Playwright/Jev adapter passed three full live runs at 0.80 confidence with seeds 42, 43 and 44: all 148 edges and 20 states, two generated Hegel input attempts, all five global rules, and the backend/picker hooks. They used 432, 428 and 420 decision calls respectively with `new_york_street_sweeper`, `--cases 1 --max-input-attempts 2 --no-shrink`. This verifies the full graph with two selected property inputs; it does not claim all available property phases. See the [repeated verification results and performance comparison](../README.md#repeated-live-verification).
+Stop preview before testing on its port, or append another `--port` to the demo. The [input strategy policy](input-strategies.json) demonstrates per-field Hegel tuning. For discovery examples, see [the separate discovery guide](discovery/README.md).
