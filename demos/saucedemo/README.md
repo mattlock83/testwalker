@@ -6,6 +6,14 @@
 independent business rules before property testing. The fresh model includes
 literal login and checkout examples; no Hegel campaigns are inferred.
 
+The existing draft was retested on 13 October without discovery. A continuous
+walk cannot be planned because 44 observed states have no outgoing edge. Its
+saved route batches were also executed; the latest run verified 9 / 135 edges
+before an ambiguous choice between product-details controls stopped execution
+at confidence 0.80. This is INCONCLUSIVE, with no confirmed website defect. See
+[the full-model verification record](../verification.json) and
+[the latest local report](../artifacts/saucedemo/2026-10-13T01-42-42.029Z-12717-0/report.html).
+
 Testwalker was run against this model at confidence 0.80. Native select
 observation and intent-driven selection now work: the blocked replay passes,
 and a focused run covering all four sorting choices passes all 13 planned cases.

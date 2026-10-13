@@ -344,15 +344,19 @@ where
     let result = catch_unwind(AssertUnwindSafe(|| {
         hegel::with_output_override(Arc::new(|line| eprintln!("{line}")), || {
             Hegel::new(|tc| {
-                if let Some(error) = &infrastructure {
-                    panic_any(CaseFailure(error.clone()));
-                }
+                // Replays must consume the same generator choices even after a
+                // provider/target fault. Keep one failure site so Hegel also sees
+                // the same failure origin, without calling the target again.
                 let data = draw(&tc, fields, phase);
                 let encoded = data.to_string();
                 if passed.contains(&encoded) {
                     return;
                 }
-                if let Err(error) = execute(data) {
+                let outcome = match &infrastructure {
+                    Some(error) => Err(error.clone()),
+                    None => execute(data),
+                };
+                if let Err(error) = outcome {
                     if error.status == "FAIL" {
                         last_failure = Some(error.clone());
                     } else {

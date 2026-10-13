@@ -72,10 +72,13 @@ node testwalker-web/dist/cli.js run --model demos/saucedemo/model.json \
   --url https://www.saucedemo.com/ --config demos/saucedemo/run-batch-1.local.json \
   --browser-config demos/saucedemo/browser.json \
   --framework "$PWD/core/target/debug/testwalker" --input-mode none \
+  --walks 100 \
   --max-steps 10000 --max-calls 4000 --output demos/artifacts/saucedemo
 ```
 
-Use `run-batch-2.local.json` for the second batch. The exact route references and
+Use `run-batch-2.local.json` with `--walks 17` for the second batch. Imported
+route counts must match `--walks`; the framework supports at most 100 walks per
+run, so these batches cannot be combined into one 117-walk run. The exact route references and
 source visits are recorded in `fresh-2026-10-12-01-routes.json` beside the inventories.
 
 ## Latest regeneration

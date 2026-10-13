@@ -69,6 +69,8 @@ fn adapter(mode: &str, args: &[String]) {
     let mut calls = vec![];
     let mut closed = false;
     let mut services = json!({});
+    let mut property_active = false;
+    let mut property_executed = false;
     while let Some(Ok(line)) = lines.next() {
         let request: Value = serde_json::from_str(&line).unwrap();
         let method = request["method"].as_str().unwrap();
@@ -96,6 +98,7 @@ fn adapter(mode: &str, args: &[String]) {
                 json!({})
             }
             "target.execute" => {
+                property_executed |= property_active;
                 let edge = &params["edge"];
                 let fields = params["fields"].as_object().unwrap();
                 let business = &edge["properties"]["business"];
@@ -117,12 +120,20 @@ fn adapter(mode: &str, args: &[String]) {
             "target.evaluate" => {
                 let model = model.as_ref().unwrap();
                 let checks = model.business["rules"].as_array().unwrap().iter().map(|r|json!({"rule":r,"scope":"global","status":"met"}))
-                    .chain(model.states[&state]["properties"]["business"]["rules"].as_array().unwrap().iter().map(|r|json!({"rule":r,"scope":"state","status":if mode=="adapter-uncertain" {"uncertain"} else {"met"}}))).collect::<Vec<_>>();
+                    .chain(model.states[&state]["properties"]["business"]["rules"].as_array().unwrap().iter().map(|r|json!({"rule":r,"scope":"state","status":if mode=="adapter-uncertain" || (mode=="adapter-property-uncertain" && property_executed) {"uncertain"} else {"met"}}))).collect::<Vec<_>>();
                 json!({"observed":if mode=="adapter-fail" {"wrong_state"} else {&state},"checks":checks})
             }
             "target.strategy" => params["default"].clone(),
             "target.audit" => json!([]),
-            "target.hook" | "run.event" => json!({}),
+            "run.event" => {
+                if params["type"] == "test.begin" {
+                    property_active = params["data"]["id"]
+                        .as_str()
+                        .is_some_and(|id| id.starts_with("property/"));
+                }
+                json!({})
+            }
+            "target.hook" => json!({}),
             "target.close" => {
                 closed = true;
                 json!({})

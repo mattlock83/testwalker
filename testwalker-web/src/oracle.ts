@@ -37,10 +37,11 @@ export function stateQuestion(descriptions: string[]): Json {
       UNKNOWN:
         "None matches, multiple states fit, or observed evidence is insufficient",
     },
-    "Identify the current business and UI state solely from observed heading, workflow stage, current feedback, " +
+    "Identify the current business and UI state solely from observed heading, workflow stage, current feedback, visible control configuration, " +
       "displayed read-only status and currently open or closed selection lists, menus and dialogs. " +
       "Visible options establish that a selection list is currently open; displayed read-only selections distinguish current UI states. " +
       "A native select's options describe available choices, including its selected labels; their presence does not mean a dropdown is open. " +
+      "The currently visible menu entries, Close controls and selected options can distinguish otherwise similar UI states. A remaining Open trigger does not mean its menu is closed if the menu entries and Close control are visible. " +
       "Controls offer future operations; they do not prove an outcome. Distinguish entry, review, confirmation and " +
       "rejection stages. If multiple descriptions fit choose UNKNOWN. " +
       VALIDATION +
@@ -94,6 +95,12 @@ function evidence(
   if (comparison)
     Object.assign(context, {
       submitted_business_data: input,
+      whitespace_trimmed_reference: Object.fromEntries(
+        Object.entries(input).map(([name, value]) => [
+          name,
+          typeof value === "string" ? value.trim() : value,
+        ]),
+      ),
       independent_input_violations: violations,
     });
   else {
@@ -129,6 +136,7 @@ function ruleQuestion(
       "Judge only the current visible state. A visible control offering a business operation " +
       "is evidence that the user can begin that operation; it does not prove its future outcome. " +
       "Submitted business data is reference data only for requirements explicitly comparing values. " +
+      "whitespace_trimmed_reference is derived solely from supplied data, not observed output; use it only when the requirement explicitly compares values after trimming surrounding whitespace. For exact untrimmed comparisons use submitted_business_data. " +
       "Rendered read_only_fields are observed output values, distinct from editable_fields. Use their exact value for explicit output comparisons, including line breaks; visual wrapping or whitespace collapsed in the accessibility tree does not change that value. " +
       "An available entry field can be empty or contain a default value; availability does not require it " +
       "to contain a previously submitted value. Global rules about submitted data, validation or later " +
@@ -405,7 +413,7 @@ export class Oracle {
       ...Object.fromEntries(
         names.map((name, i) => [
           `data_${i}`,
-          `Validation and acceptance/rejection of ${name} inputs.`,
+          `Validation and acceptance/rejection of ${name} inputs: ${Object.keys(datasets[name]).join(", ")}.`,
         ]),
       ),
     };
@@ -510,6 +518,7 @@ export class Oracle {
           : undefined,
         visible_text: (record.evidence?.text ?? "").slice(0, 1800),
         validation_alerts: record.evidence?.semantics?.alerts ?? [],
+        validation_fields: record.evidence?.semantics?.invalid_fields ?? [],
         verified_requirements: (record.checks ?? [])
           .filter((check: Json) => check.status === "met")
           .map((check: Json) => check.rule),
@@ -540,6 +549,7 @@ export class Oracle {
         `Requirement: ${rule}. Judge executed scenarios, not all possible future inputs. ` +
           "Inspect observations and exact verified requirements; a generic PASS label is not evidence. " +
           "A navigation transition does not submit retained business values again. " +
+          "For input validation requirements, use transition.data_set and affected input_violations/validation_fields to distinguish dictionaries and unrelated forms. " +
           "Absence is not support; choose not_applicable for absent scenarios. " +
           UNTRUSTED,
       );
@@ -584,6 +594,7 @@ export class Oracle {
                   `Requirement: ${rule}. Judge ONLY executed_scenarios[${index}]. ` +
                     "Use its visible evidence and exact verified requirements. A transition or generic PASS label is not proof. " +
                     "Retained values after navigation are not a new submission. Choose not_applicable for an unrelated form or absent scenario. " +
+                    "For validation requirements, match transition.data_set and the affected input_violations/validation_fields to the requirement's inputs. " +
                     UNTRUSTED,
                 ),
               ]),

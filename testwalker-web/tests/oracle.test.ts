@@ -308,6 +308,13 @@ test("Audit provenance distinguishes a new submission from values retained durin
         observed: "done",
         input: { Name: "" },
         violations: [{ field: "Name" }],
+        evidence: {
+          semantics: {
+            invalid_fields: [
+              { label: "Name", validation_messages: ["Name is required."] },
+            ],
+          },
+        },
       },
       { kind: "edge", id: "return" },
       {
@@ -335,6 +342,9 @@ test("Audit provenance distinguishes a new submission from values retained durin
   const scenarios = calls[0].evidence.executed_scenarios;
   assert.equal(scenarios[0].transition.type, "data_submission");
   assert.deepEqual(scenarios[0].submitted_values, { Name: "" });
+  assert.deepEqual(scenarios[0].validation_fields, [
+    { label: "Name", validation_messages: ["Name is required."] },
+  ]);
   assert.equal(scenarios[1].transition.type, "navigation");
   assert.equal(scenarios[1].submitted_values, undefined);
   assert.deepEqual(scenarios[1].retained_business_values, { Name: "" });
@@ -343,4 +353,107 @@ test("Audit provenance distinguishes a new submission from values retained durin
   assert.equal(scenarios[3].transition.type, "data_submission");
   assert.equal(scenarios[3].transition.data_set, null);
   assert.deepEqual(scenarios[3].submitted_values, { Name: "Alex" });
+});
+
+test("Comparison evidence keeps original inputs and marks trimmed references as derived, without treating them as observations", async () => {
+  const local = structuredClone(model);
+  local.models[0].vertices[1].properties.business.rules = [
+    "The displayed name matches the supplied name after trimming surrounding spaces.",
+  ];
+  const calls: Json[] = [];
+  const core = {
+    async request(method: string, params: Json = {}) {
+      if (method === "decision.answer")
+        return params.result.answers[params.name].choice;
+      calls.push(params);
+      return {
+        answers: Object.fromEntries(
+          Object.keys(params.questions).map((name) => [
+            name,
+            {
+              choice:
+                name === "state"
+                  ? "s1"
+                  : name.startsWith("kind_")
+                    ? "comparison"
+                    : "uncertain",
+            },
+          ]),
+        ),
+      };
+    },
+  };
+  const input = { Name: "  Alex  ", Notes: "  First\nSecond  " };
+  const result = await new Oracle(new Decisions(core), local).check(
+    { text: "No output available", semantics: {} },
+    "done",
+    input,
+  );
+  assert.equal(
+    result.checks[0].status,
+    "uncertain",
+    "Reference calculations cannot establish an observed result",
+  );
+  const comparison = calls.find(
+    (call) => call.evidence.submitted_business_data,
+  );
+  assert.ok(comparison);
+  assert.deepEqual(comparison.evidence.submitted_business_data, input);
+  assert.deepEqual(comparison.evidence.whitespace_trimmed_reference, {
+    Name: "Alex",
+    Notes: "First\nSecond",
+  });
+  assert.equal(input.Name, "  Alex  ");
+  assert.match(
+    comparison.questions.rule_0.instructions.interpretation,
+    /derived solely from supplied data, not observed output/,
+  );
+});
+
+test("Large audit scope choices identify dictionaries by their fields and retain all eligible outcomes", async () => {
+  const local = structuredClone(model);
+  local.models[0].properties.business["data sets"] = {
+    "Booking party": { Traveller: { type: "text" }, Email: { type: "email" } },
+  };
+  local.models[0].edges = [
+    {
+      id: "submit",
+      targetVertexId: "done",
+      properties: {
+        business: { "data set": "Booking party", "rejected at": "form" },
+      },
+    },
+  ];
+  const calls: Json[] = [];
+  const core = {
+    async request(method: string, params: Json = {}) {
+      if (method === "decision.answer")
+        return params.result.answers[params.name].choice;
+      calls.push(params);
+      return {
+        answers: Object.fromEntries(
+          Object.keys(params.questions).map((name) => [
+            name,
+            { choice: name.startsWith("scope_") ? "data_0" : "met" },
+          ]),
+        ),
+      };
+    },
+  };
+  const records = Array.from({ length: 12 }, (_, index) => ({
+    journey: "submit",
+    status: "PASS",
+    observed: index % 2 ? "done" : "form",
+    input: { Traveller: `Visitor ${index}` },
+    evidence: { text: "x".repeat(1800) },
+  }));
+  const result = await new Oracle(new Decisions(core), local).audit(records, [
+    "Invalid traveller details are rejected.",
+  ]);
+  assert.match(calls[0].questions.scope_0.criteria.data_0, /Traveller, Email/);
+  assert.deepEqual(
+    new Set(result[0].evidence_states),
+    new Set(["done", "form"]),
+  );
+  assert.equal(result[0].status, "met");
 });

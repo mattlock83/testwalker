@@ -1,0 +1,265 @@
+{
+  "verified_on": "2026-10-13",
+  "confidence_threshold": 0.8,
+  "model_regeneration": false,
+  "rust_core_changed": false,
+  "results": [
+    {
+      "demo": "hello-world",
+      "status": "PASS",
+      "model_hash": "f2c8734d58277021db61940119dd05d233114c3057621623a5af4483b36cbea5",
+      "model_unchanged": true,
+      "edges": {
+        "verified": 8,
+        "total": 8
+      },
+      "states": {
+        "verified": 4,
+        "total": 4
+      },
+      "global_requirements": {
+        "verified": 1,
+        "total": 1
+      },
+      "property_attempts": 10,
+      "property_phases": {
+        "completed": 10,
+        "total": 10,
+        "available": 10
+      },
+      "jev_calls": 42,
+      "tests": {
+        "PASS": 23,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "SKIPPED": 0
+      },
+      "report": "demos/artifacts/hello-world/2026-10-13T01-43-13.444Z-13295-0/report.html",
+      "junit": "demos/artifacts/hello-world/2026-10-13T01-43-13.444Z-13295-0/junit.xml",
+      "junit_outcomes": {
+        "failure_elements": 0,
+        "error_elements": 0,
+        "skipped_elements": 0
+      }
+    },
+    {
+      "demo": "booking",
+      "status": "PASS",
+      "model_hash": "f99318ebddace42a837710c7971acd7da3cfabb8ec58ae9250a9e9f6b8035d9a",
+      "model_unchanged": true,
+      "edges": {
+        "verified": 35,
+        "total": 35
+      },
+      "states": {
+        "verified": 8,
+        "total": 8
+      },
+      "global_requirements": {
+        "verified": 2,
+        "total": 2
+      },
+      "property_attempts": 50,
+      "property_phases": {
+        "completed": 50,
+        "total": 50,
+        "available": 50
+      },
+      "jev_calls": 102,
+      "tests": {
+        "PASS": 122,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "SKIPPED": 0
+      },
+      "report": "demos/artifacts/booking/2026-10-13T01-43-15.607Z-13372-0/report.html",
+      "junit": "demos/artifacts/booking/2026-10-13T01-43-15.607Z-13372-0/junit.xml",
+      "junit_outcomes": {
+        "failure_elements": 0,
+        "error_elements": 0,
+        "skipped_elements": 0
+      }
+    },
+    {
+      "demo": "feedback",
+      "status": "PASS",
+      "model_hash": "7a25f837dc3fabdd7f632bdfcfd8012b6c446e0cd981d39295090454d404303a",
+      "model_unchanged": true,
+      "edges": {
+        "verified": 4,
+        "total": 4
+      },
+      "states": {
+        "verified": 3,
+        "total": 3
+      },
+      "global_requirements": {
+        "verified": 4,
+        "total": 4
+      },
+      "property_attempts": 19,
+      "property_phases": {
+        "completed": 19,
+        "total": 19,
+        "available": 19
+      },
+      "jev_calls": 48,
+      "tests": {
+        "PASS": 24,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "SKIPPED": 0
+      },
+      "report": "demos/artifacts/feedback/2026-10-13T01-43-14.809Z-13352-0/report.html",
+      "junit": "demos/artifacts/feedback/2026-10-13T01-43-14.809Z-13352-0/junit.xml",
+      "junit_outcomes": {
+        "failure_elements": 0,
+        "error_elements": 0,
+        "skipped_elements": 0
+      }
+    },
+    {
+      "demo": "controls",
+      "status": "PASS",
+      "model_hash": "0cd50fb259f00b846d20b4a1d9ba889ce3e79986bc770afd33cc095ec0fd75d0",
+      "model_unchanged": true,
+      "edges": {
+        "verified": 85,
+        "total": 85
+      },
+      "states": {
+        "verified": 34,
+        "total": 34
+      },
+      "global_requirements": {
+        "verified": 1,
+        "total": 1
+      },
+      "property_attempts": 21,
+      "property_phases": {
+        "completed": 21,
+        "total": 21,
+        "available": 21
+      },
+      "jev_calls": 366,
+      "tests": {
+        "PASS": 159,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "SKIPPED": 0
+      },
+      "report": "demos/artifacts/controls/2026-10-13T01-39-38.348Z-9278-0/report.html",
+      "junit": "demos/artifacts/controls/2026-10-13T01-39-38.348Z-9278-0/junit.xml",
+      "junit_outcomes": {
+        "failure_elements": 0,
+        "error_elements": 0,
+        "skipped_elements": 0
+      }
+    },
+    {
+      "demo": "trailhead",
+      "status": "PASS",
+      "model_hash": "027530bf8fba735a3b8726c3fd47015cecea85753088f03b35d9cab42fc399c9",
+      "model_unchanged": true,
+      "edges": {
+        "verified": 148,
+        "total": 148
+      },
+      "states": {
+        "verified": 20,
+        "total": 20
+      },
+      "global_requirements": {
+        "verified": 5,
+        "total": 5
+      },
+      "property_attempts": 186,
+      "property_phases": {
+        "completed": 186,
+        "total": 186,
+        "available": 186
+      },
+      "jev_calls": 638,
+      "tests": {
+        "PASS": 539,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0,
+        "SKIPPED": 0
+      },
+      "report": "demos/artifacts/trailhead/2026-10-13T01-33-02.628Z-2107-0/report.html",
+      "junit": "demos/artifacts/trailhead/2026-10-13T01-33-02.628Z-2107-0/junit.xml",
+      "junit_outcomes": {
+        "failure_elements": 0,
+        "error_elements": 0,
+        "skipped_elements": 0
+      }
+    },
+    {
+      "demo": "saucedemo",
+      "status": "INCONCLUSIVE",
+      "model_hash": "f6354a06fa0a83d23755114703d1a1c1598e563aa7b3c73ca49e7dcc1cf89fcb",
+      "model_unchanged": true,
+      "edges": {
+        "verified": 9,
+        "total": 135
+      },
+      "states": {
+        "verified": 9,
+        "total": 63
+      },
+      "global_requirements": {
+        "verified": 1,
+        "total": 1
+      },
+      "property_attempts": 0,
+      "property_phases": {
+        "completed": 0,
+        "total": 0,
+        "available": 0
+      },
+      "jev_calls": 39,
+      "tests": {
+        "PASS": 14,
+        "FAIL": 0,
+        "INCONCLUSIVE": 1,
+        "SKIPPED": 415
+      },
+      "report": "demos/artifacts/saucedemo/2026-10-13T01-42-42.029Z-12717-0/report.html",
+      "junit": "demos/artifacts/saucedemo/2026-10-13T01-42-42.029Z-12717-0/junit.xml",
+      "junit_outcomes": {
+        "failure_elements": 0,
+        "error_elements": 2,
+        "skipped_elements": 415
+      },
+      "reason": "Jev could not confidently resolve action: choice=a3, confidence=0.46, threshold=0.80"
+    }
+  ],
+  "negative_checks": [
+    {
+      "defect": "inventory",
+      "expected": "FAIL",
+      "actual": "FAIL",
+      "report": "demos/artifacts/trailhead/2026-10-13T01-42-46.547Z-12814-0/report.html"
+    },
+    {
+      "defect": "refund",
+      "expected": "FAIL",
+      "actual": "FAIL",
+      "report": "demos/artifacts/trailhead/2026-10-13T01-43-53.309Z-14713-0/report.html"
+    }
+  ],
+  "remaining_issues": [
+    {
+      "demo": "saucedemo",
+      "issue": "The unchanged discovery draft has 44 terminal states. Continuous full traversal cannot be planned. Existing route batches were executed, but unresolved UI decisions prevent full verification."
+    }
+  ],
+  "resolved_issues": [
+    {
+      "component": "Rust/Hegel",
+      "issue": "An inconclusive property attempt could print a caught nondeterminism panic.",
+      "resolution": "Replay consumes generator choices and reuses a single failure site without repeating the target callback. Original inconclusive evidence and prior defects stopped by an input limit are preserved.",
+      "verification": "Rust regression subprocesses cover shrinking on/off, a preceding passing input, input-limit preservation and CLI report/replay/JUnit cleanup. This core correction was made after the recorded live demo runs."
+    }
+  ]
+}

@@ -63,6 +63,37 @@ Preview and [standalone discovery](../testwalker-discover/README.md) need no Jev
 
 ## Repeated live verification
 
+On 13 October 2026, the existing models were executed without discovery or Rust
+changes, at confidence 0.80. The complete focused input scope passed for each
+local demo:
+
+| Demo | Verified edges | Focused input attempts | Result |
+| --- | --- | --- | --- |
+| Hello World | 8 / 8 | 10 | PASS |
+| Booking | 35 / 35 | 50 | PASS |
+| Feedback | 4 / 4 | 19 | PASS |
+| Controls lab | 85 / 85 | 21 | PASS |
+| Trailhead | 148 / 148 | 186 | PASS |
+
+All five verified every state and global requirement, with no JUnit failures,
+errors or skips. Trailhead's injected inventory and refund defects separately
+produced the expected FAIL outcomes through its ledger hooks.
+[The verification inventory](verification.json) records reports and counts.
+
+The additional live Sauce Demo discovery draft remains INCONCLUSIVE: its 44
+terminal states prevent continuous traversal. Its existing route batches avoid
+that planning problem, but UI ambiguity stopped the latest execution at 9 / 135
+verified edges. No application defect was established. The draft model was
+preserved for review rather than regenerated or weakened.
+
+Trailhead's previous final audit mixed unrelated validation dictionaries after
+an uncertain scope decision. The adapter now includes field names in scope
+choices and preserves field-linked validation feedback. Controls additionally
+exposes read-only registration confirmations for whitespace comparisons. The
+threshold, models and Rust core were unchanged during these live runs. A
+subsequent authorized Rust correction removed the caught Hegel panic when
+replaying an inconclusive property result, without repeating target/API calls.
+
 On 11 October 2026, the direct Playwright/Jev executor passed three live Chrome runs of each demo, with seeds 42, 43 and 44 and confidence 0.80. Every run used `new_york_street_sweeper`, 100% edge/state coverage, `--max-steps 2000 --cases 1 --no-shrink`. These checks cover the full graphs with a small selected property scope, not every Hegel phase.
 
 | Demo | Passed runs | Verified edges / states per run | Property attempts per run | Jev calls per run |

@@ -135,6 +135,52 @@ fn adapter_outcomes_preserve_exit_codes_and_cleanup() {
         assert!(r["test_summary"]["SKIPPED"].as_u64().unwrap() > 0);
     }
 }
+
+#[test]
+fn inconclusive_property_preserves_report_and_cleanup_without_a_hegel_panic() {
+    for shrink in [false, true] {
+        let path = temp();
+        let output = invoke(
+            &path,
+            "adapter-property-uncertain",
+            json!({"options":{"input_mode":"generated","cases":20,"max_input_attempts":40,"shrink":shrink}}),
+            &[],
+        );
+        assert_eq!(output.status.code(), Some(2));
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            !stderr.contains("non-deterministic") && !stderr.contains("panicked at"),
+            "{stderr}"
+        );
+        let (dir, r) = report(&path);
+        assert_eq!(r["status"], "INCONCLUSIVE");
+        assert_eq!(r["coverage"]["edges"]["verified"], 4);
+        assert_eq!(r["input_attempts"], 1);
+        let cases = r["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), 1);
+        assert_eq!(cases[0]["status"], "INCONCLUSIVE");
+        assert_eq!(cases[0]["checks"][1]["status"], "uncertain");
+        assert!(cases[0]["input"]["Places"].is_number() || cases[0]["input"]["Places"].is_string());
+        assert!(
+            dir.join(cases[0]["replay_file"].as_str().unwrap())
+                .is_file()
+        );
+        assert!(dir.join("report.html").is_file());
+        let junit = fs::read_to_string(dir.join("junit.xml")).unwrap();
+        assert!(junit.contains("<error") && !junit.contains("<failure"));
+        assert_eq!(r["trace"][0]["closed"], true);
+        assert_eq!(
+            r["trace"][0]["calls"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|call| call["method"] == "target.hook"
+                    && call["params"]["event"] == "before_case")
+                .count(),
+            1
+        );
+    }
+}
 #[test]
 fn plan_does_not_start_adapter_or_require_a_key_and_cli_overrides_config_options() {
     let path = temp();

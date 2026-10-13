@@ -224,6 +224,8 @@ byId("registration").onsubmit = (e) => {
     status("registration-heading", "Registration accepted");
     status("registration-result", `Registered ${name} with ${email}.`);
     byId("registered-notes").hidden = false;
+    byId("name-result").value = name;
+    byId("email-result").value = email;
     byId("notes-result").value = notes || "(none)";
     byId("registration-error").hidden = true;
   }

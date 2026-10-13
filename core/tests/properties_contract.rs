@@ -220,3 +220,77 @@ fn custom_domains_cannot_change_partition_or_submit_discarded_inputs() {
     assert_eq!(error.status, "INCONCLUSIVE");
     assert!(error.message.contains("Hegel could not establish"));
 }
+
+#[test]
+fn inconclusive_replay_preserves_generator_choices_and_original_fault() {
+    const CHILD: &str = "TESTWALKER_PROPERTY_REPLAY_CHILD";
+    let Ok(mode) = std::env::var(CHILD) else {
+        // The old implementation returned the right Fault but also printed a caught
+        // Hegel nondeterminism panic. Capture a subprocess to check that diagnostic.
+        for mode in ["no_shrink", "shrink", "after_pass", "input_limit"] {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "inconclusive_replay_preserves_generator_choices_and_original_fault",
+                    "--nocapture",
+                ])
+                .env(CHILD, mode)
+                .output()
+                .unwrap();
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            assert!(output.status.success(), "{mode}: {stderr}");
+            assert!(
+                !stderr.contains("non-deterministic") && !stderr.contains("panicked at"),
+                "{mode} emitted an unexpected panic: {stderr}"
+            );
+        }
+        return;
+    };
+    let model = model();
+    let fields = model.data_sets["Reservation"].as_object().unwrap();
+    let phase = json!({"kind":"generated","field":"Places","max_examples":20,"domain":{"kind":"integer","minimum":0,"maximum":100}});
+    let mut calls = 0;
+    let mut recorded = Value::Null;
+    let error = exercise(fields, &phase, 42, mode != "no_shrink", |data| {
+        calls += 1;
+        if mode == "after_pass" && calls == 1 {
+            return Ok(json!({"status":"PASS"}));
+        }
+        if mode == "input_limit" && calls == 1 {
+            recorded = data.clone();
+            return Err(Fault::defect(
+                "Recorded defect",
+                json!({"case":{"input":data}}),
+            ));
+        }
+        if mode == "input_limit" {
+            return Err(Fault {
+                status: "INCONCLUSIVE".into(),
+                message: "Input allowance exhausted".into(),
+                result: json!({"input_limit":true}),
+            });
+        }
+        recorded = data.clone();
+        Err(Fault {
+            status: "INCONCLUSIVE".into(),
+            message: "Decision confidence is insufficient".into(),
+            result: json!({"case":{"input":data,"evidence":{"message":"Unresolved state"}}}),
+        })
+    })
+    .unwrap_err();
+    assert_eq!(error.result["case"]["input"], recorded);
+    if mode == "input_limit" {
+        assert_eq!(calls, 2);
+        assert_eq!(error.status, "FAIL");
+        assert_eq!(error.message, "Recorded defect");
+        assert_eq!(error.result["case"]["minimization_limited"], true);
+    } else {
+        assert_eq!(calls, if mode == "after_pass" { 2 } else { 1 });
+        assert_eq!(error.status, "INCONCLUSIVE");
+        assert_eq!(error.message, "Decision confidence is insufficient");
+        assert_eq!(
+            error.result["case"]["evidence"]["message"],
+            "Unresolved state"
+        );
+    }
+}
