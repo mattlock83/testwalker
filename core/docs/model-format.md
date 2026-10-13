@@ -78,7 +78,7 @@ Global requirements can be deferred while their evidence is unavailable. Full-ru
 
 Describe what can be established at the current checkpoint. For example, “A link to visitor information is available” checks the studio page; the journey to the visitor page verifies that the link reaches the required information. “The visitor can find information” ambiguously mixes those two checks.
 
-An uncertain verdict from a batch gets at most one focused evaluation of the same requirement and observed evidence. This keeps the configured confidence threshold and never overrides a known failure. Reports retain both answers; persistent uncertainty stops the run.
+An uncertain verdict from a batch gets at most one focused evaluation of the same requirement and observed evidence. This keeps the configured confidence threshold and never overrides a known failure. Reports retain both answers; persistent uncertainty makes the affected case inconclusive. Fail-fast stops the run; [keep-going](continuation.md) can continue independent cases through verified setup.
 
 Keep each statement atomic: prefer separate customer-name, email and quantity checks over one compound “all details match” rule. The framework inserts the literal submitted values into Jev’s questions automatically; no model templates are needed. Constraints already expressed by the data dictionary need not be duplicated as universal prose rules.
 

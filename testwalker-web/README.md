@@ -43,7 +43,7 @@ npx --no-install testwalker-web serve \
   --directory demos/hello-world/site --port 4185
 ```
 
-Stop a preview server before using its port for a demo, or choose another `--port`. The direct demo CLI defaults to port 4173; the npm demo wrappers select the ports listed in [the demo guide](../demos/README.md).
+Stop a preview server before using its port for a demo, or choose another `--port`. The direct demo CLI defaults to port 4173; the demo scripts select the ports listed in [the demo guide](../demos/README.md).
 
 ## Run and browser configuration
 
@@ -54,7 +54,7 @@ There are two separate JSON files:
 | `run.local.json`, selected with `--config`       | Jev key, call allowance, confidence threshold, execution options, screenshots and action allowance. |
 | `browser.json`, selected with `--browser-config` | Chromium launch/context settings, settling and named upload fixtures.                               |
 
-The launcher passes provider configuration to Rust through stdin. `--max-calls` changes the whole-run Jev allowance; `--threshold` changes required confidence, default 0.80. `--max-actions` bounds control operations in one journey, default 25. Graph, input and replay flags pass to Rust; see [scope and debugging](docs/testing.md).
+The launcher passes provider configuration to Rust through stdin. `--max-calls` changes the whole-run Jev allowance; `--threshold` changes required confidence, default 0.80. `--max-actions` bounds control operations in one journey, default 25. Graph, input, `--keep-going` and replay flags pass to Rust; see [scope and debugging](docs/testing.md).
 
 Browser example:
 

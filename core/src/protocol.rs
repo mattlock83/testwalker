@@ -534,24 +534,26 @@ impl<R: BufRead, W: Write> Target for Peer<R, W> {
             ]
             .contains(&method)
         {
-            return Err(Fault::unknown("Run cancelled"));
+            return Err(Fault::unknown("Run cancelled").run_fatal());
         }
         if method.starts_with("decision.") {
             return self.method(method, &params);
         }
         self.sequence += 1;
         let id = format!("core/{}", self.sequence);
-        self.write(&json!({"jsonrpc":"2.0","id":id,"method":method,"params":params}))?;
+        self.write(&json!({"jsonrpc":"2.0","id":id,"method":method,"params":params}))
+            .map_err(Fault::run_fatal)?;
         loop {
             let message = self
-                .read()?
-                .ok_or_else(|| Fault::unknown("The target adapter disconnected"))?;
+                .read()
+                .map_err(Fault::run_fatal)?
+                .ok_or_else(|| Fault::unknown("The target adapter disconnected").run_fatal())?;
             if message.get("method").is_some() {
                 self.handle(&message)?;
                 continue;
             }
             if message["jsonrpc"] != "2.0" || message["id"] != id {
-                return Err(Fault::unknown("Mismatched JSON-RPC adapter response"));
+                return Err(Fault::unknown("Mismatched JSON-RPC adapter response").run_fatal());
             }
             if let Some(error) = message.get("error") {
                 let mut fault: Fault = serde_json::from_value(error["data"].clone())
@@ -566,7 +568,7 @@ impl<R: BufRead, W: Write> Target for Peer<R, W> {
             return message
                 .get("result")
                 .cloned()
-                .ok_or_else(|| Fault::unknown("Missing JSON-RPC adapter result"));
+                .ok_or_else(|| Fault::unknown("Missing JSON-RPC adapter result").run_fatal());
         }
     }
 }

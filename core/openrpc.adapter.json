@@ -1124,7 +1124,7 @@
             },
             {
               "name": "source",
-              "value": "focused: Places — minimum -1"
+              "value": "focused: Places \u2014 minimum -1"
             },
             {
               "name": "phase",
@@ -1132,7 +1132,7 @@
                 "id": "focused/0/2",
                 "kind": "generated",
                 "field": "Places",
-                "source": "focused: Places — minimum -1",
+                "source": "focused: Places \u2014 minimum -1",
                 "max_examples": 1,
                 "partition": "minimum -1",
                 "strategy": {
@@ -2323,6 +2323,9 @@
           },
           "attachments": {
             "$ref": "#/components/schemas/JsonValue"
+          },
+          "hook_range": {
+            "$ref": "#/components/schemas/IndexRange"
           }
         },
         "required": [],

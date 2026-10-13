@@ -33,6 +33,7 @@ export class WebAdapter {
   private byId: Record<string, Json> = {};
   private active?: Json;
   private traceStart = 0;
+  private hookStart = 0;
   private screenshotCount = 0;
   private screenshots = true;
   private closed = false;
@@ -194,6 +195,7 @@ export class WebAdapter {
       case "test.begin":
         this.active = this.byId[data.id];
         this.traceStart = this.browser?.trace.length ?? 0;
+        this.hookStart = this.hooks.events.length;
         if (this.active)
           Object.assign(this.active, snapshot, { attempt_indices: [] });
         break;
@@ -217,6 +219,7 @@ export class WebAdapter {
       case "test.end": {
         const attachments: Json = {
           trace_range: [this.traceStart, this.browser?.trace.length ?? 0],
+          hook_range: [this.hookStart, this.hooks.events.length],
         };
         if (this.active?.kind === "graph" && data.status !== "SKIPPED")
           Object.assign(attachments, await this.screenshot());

@@ -24,6 +24,17 @@ pub struct Fault {
 }
 
 impl Fault {
+    /// A shared infrastructure failure makes further selected work unsafe or impossible.
+    pub fn run_fatal(mut self) -> Self {
+        if !self.result.is_object() {
+            self.result = json!({"detail":self.result});
+        }
+        self.result["run_fatal"] = json!(true);
+        self
+    }
+    pub fn is_run_fatal(&self) -> bool {
+        self.result["run_fatal"] == true
+    }
     pub fn unknown(message: impl Into<String>) -> Self {
         Self {
             status: "INCONCLUSIVE".into(),

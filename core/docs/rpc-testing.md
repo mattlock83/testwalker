@@ -172,7 +172,7 @@ testwalker self-test \
 
 For custom APIs, repeat `rpc --model ... --target ...` and add `--replay`. Replay checks the model fingerprint and executes the saved case with its setup route. Do not combine replay with exploration or input-strategy overrides.
 
-A wrong identified state, broken deterministic requirement or malformed target response is a failure. Unknown state, unavailable target or timeout can be inconclusive. Remaining selected cases are skipped with the stopping reason. Exit codes are `0` for PASS, `1` for FAIL and `2` for INCONCLUSIVE.
+A wrong identified state, broken deterministic requirement or malformed target response is a failure. Unknown state, unavailable target or timeout can be inconclusive. Fail-fast is the default: remaining selected cases are skipped with the stopping reason. With `--keep-going`, independent cases can continue; blocked prerequisites and shared infrastructure stops are reported separately. See [the continuation policy](continuation.md). Exit codes are `0` for PASS, `1` for FAIL and `2` for INCONCLUSIVE.
 
 Self-testing adds useful sequence and boundary coverage, but cannot establish correctness by itself: driver and subject share implementation code and could share a defect. Keep the separate unit, protocol and adapter tests as independent checks. In particular, direct protocol tests cover notifications and malformed transport details that do not fit a request/response graph journey.
 

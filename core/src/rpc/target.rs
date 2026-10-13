@@ -178,7 +178,7 @@ impl RpcTarget {
         self.trace.push(entry);
         response.map_err(|mut error| {
             error.result = json!({"request":message,"evidence":self.callbacks.observation});
-            error
+            error.run_fatal()
         })
     }
     fn context(&self, observation: &Value) -> Value {

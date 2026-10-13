@@ -4,17 +4,6 @@ A synthetic travel centre with 20 states, 148 journeys and three input data sets
 
 The [model](model.json) is the business specification. A TypeScript [backend](app.ts) stores the demo ledger, and [hooks](hooks.ts) reset fixtures, operate a bespoke pickup picker and verify backend side effects.
 
-## Shell scripts
-
-After [repository setup](../../README.md#build-and-run), run from the repository root:
-
-```bash
-./demos/trailhead/test.sh --headed
-./demos/trailhead/discover.sh --headed
-```
-
-Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. The local site is started and stopped automatically; discovery uses a free port. See [the script guide](../README.md#shell-scripts) for overrides.
-
 ## Run
 
 After [setup](../../README.md#build-and-run), run from the repository root. Create the configuration once and set `decision.api_key`:
@@ -26,23 +15,25 @@ cp demos/trailhead/run.json.example demos/trailhead/run.local.json
 Edit `decision.api_key` in the new file, then run:
 
 ```bash
-npm run demo --workspace @testwalker/demo-trailhead -- --headed
+./demos/trailhead/test.sh --headed
 ```
 
-The wrapper loads the backend and hooks and uses port 4184. Defaults cover the full graph and all 186 focused input phases across seven campaigns, with a 10000-call Jev allowance. Reports go to `demos/trailhead/artifact/`; the owned browser and server close afterward.
+The script loads the backend and hooks and uses port 4184. Defaults cover the full graph and all 186 focused input phases across seven campaigns, with a 10000-call Jev allowance. Reports go to `demos/trailhead/artifact/`; the owned browser and server close afterward.
 
 Full graph with only two generated inputs:
 
 ```bash
-npm run demo --workspace @testwalker/demo-trailhead -- --headed \
+./demos/trailhead/test.sh --headed \
   --input-mode generated --cases 1 --max-input-attempts 2 \
   --no-shrink --max-calls 4000
 ```
 
+Add `--keep-going` to collect independent results after case failures. Shared infrastructure failures still stop execution; see [the continuation policy](../../core/docs/continuation.md).
+
 For a short booking/cancellation/profile route:
 
 ```bash
-npm run demo --workspace @testwalker/demo-trailhead -- --headed \
+./demos/trailhead/test.sh --headed \
   --generator predefined_path --edge-coverage 0 --state-coverage 0 \
   --max-input-attempts 2 --no-shrink --max-calls 1000
 ```
@@ -80,16 +71,26 @@ Ledger assertions check that review does not reserve places, final confirmation 
 The backend has documented synthetic defect switches. These runs should FAIL at the ledger assertion:
 
 ```bash
-TRAILHEAD_DEMO_BUG=inventory npm run demo --workspace @testwalker/demo-trailhead -- \
+TRAILHEAD_DEMO_BUG=inventory ./demos/trailhead/test.sh \
   --generator predefined_path --edge-coverage 0 --state-coverage 0 \
   --input-mode none --max-calls 1000
 
-TRAILHEAD_DEMO_BUG=refund npm run demo --workspace @testwalker/demo-trailhead -- \
+TRAILHEAD_DEMO_BUG=refund ./demos/trailhead/test.sh \
   --generator predefined_path --edge-coverage 0 --state-coverage 0 \
   --input-mode none --max-calls 1000
 ```
 
 Omit the environment prefix to use the healthy backend. Each test run resets its own fixture through the hook.
+
+## Discover a model draft
+
+Discovery needs no Jev key or Rust executable. After building the Node packages, run from the repository root:
+
+```bash
+./demos/trailhead/discover.sh --headed
+```
+
+The script starts and stops the local site automatically, using a free port. It writes a new `discovered-<timestamp>-<pid>.model.json` beside the existing model, with its viewer and captures under `artifact/`. Review the draft before executing it; the existing model is unchanged. Both `test.sh` and `discover.sh` accept CLI options; see [the script guide](../README.md#shell-scripts) for overrides.
 
 ## Plan, preview and regression checks
 

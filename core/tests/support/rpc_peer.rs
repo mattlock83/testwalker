@@ -104,7 +104,11 @@ fn adapter(mode: &str, args: &[String]) {
                 let business = &edge["properties"]["business"];
                 state = if fields.is_empty() {
                     edge["targetVertexId"].as_str().unwrap().to_owned()
-                } else if violations(fields, &params["input"]).is_empty() {
+                } else if violations(fields, &params["input"]).is_empty()
+                    || (mode == "adapter-property-fail"
+                        && property_active
+                        && params["input"]["Places"] == 5)
+                {
                     business
                         .get("accepted at")
                         .unwrap_or(&edge["targetVertexId"])

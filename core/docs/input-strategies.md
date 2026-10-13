@@ -2,7 +2,7 @@
 
 The Rust core translates business constraints into test partitions; Hegel generates and shrinks their inputs. JavaScript/TypeScript providers return declarative domains for Hegel to execute.
 
-The default `--input-mode focused --cases 1` checks each selected constraint separately, changing one field while the others stay valid. Required blanks, whitespace, numeric and length neighbours, malformed formats and unlisted choices are covered. Passing duplicates within a phase are not resubmitted. Failures are reproduced and shrunk; uncertain outcomes stop without being shrunk into defects.
+The default `--input-mode focused --cases 1` checks each selected constraint separately, changing one field while the others stay valid. Required blanks, whitespace, numeric and length neighbours, malformed formats and unlisted choices are covered. Passing duplicates within a phase are not resubmitted. Failures are reproduced and shrunk; uncertain outcomes end the affected phase without being shrunk into defects. With [keep-going](continuation.md), independent phases can continue. If uncertainty interrupts minimization of an already observed defect, that defect remains FAIL.
 
 From the repository root after [setup](../../README.md#build-and-run), with Trailhead's local run configuration prepared:
 

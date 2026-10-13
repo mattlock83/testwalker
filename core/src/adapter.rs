@@ -119,7 +119,7 @@ impl ExecutableAdapter {
             .request(method, Some(params), &mut self.services)
             .map_err(|mut error| {
                 error.status = "INCONCLUSIVE".into();
-                error
+                error.run_fatal()
             })?;
         if let Some(error) = response.get("error") {
             let mut fault =

@@ -6,17 +6,6 @@ This folder contains a discovery-generated [model](model.json) of the external [
 
 There are no independently authored data sets or Hegel campaigns. `--input-mode none` skips additional property testing while fixed graph form inputs still execute.
 
-## Shell scripts
-
-After [repository setup](../../README.md#build-and-run), run from the repository root:
-
-```bash
-./demos/saucedemo/test.sh --headed
-./demos/saucedemo/discover.sh --headed
-```
-
-Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. Both scripts use the hosted demo site; discovery loads the synthetic values in `discovery/values.json`. The existing draft still needs review before full test execution. See [the script guide](../README.md#shell-scripts) for overrides.
-
 ## Inspect and review
 
 After [setup](../../README.md#build-and-run), inspect the draft without a key or browser:
@@ -41,13 +30,21 @@ cp demos/saucedemo/run.json.example demos/saucedemo/run.local.json
 Edit `decision.api_key`, then run:
 
 ```bash
-npx --no-install testwalker-web run \
-  --model demos/saucedemo/model.json --url https://www.saucedemo.com/ \
-  --config demos/saucedemo/run.local.json \
-  --browser-config demos/saucedemo/browser.json --headed \
-  --input-mode none --max-steps 10000 --max-calls 4000
+./demos/saucedemo/test.sh --headed
+# To use a separately saved, reviewed model:
+./demos/saucedemo/test.sh --model /absolute/path/to/reviewed.model.json --headed
 ```
 
 Use the reviewed model's path if saved separately. The original checked-in draft still has the limitations above. The command uses the existing external site; it does not host a local server or perform discovery.
+
+## Discover a model draft
+
+Discovery needs no Jev key or Rust executable. After building the Node packages, run from the repository root:
+
+```bash
+./demos/saucedemo/discover.sh --headed
+```
+
+The script explores the hosted demo using the synthetic values in `discovery/values.json`. It writes a new `discovered-<timestamp>-<pid>.model.json` beside the existing model, with its viewer and captures under `artifact/`. Review the draft before executing it; the existing model is unchanged. Both `test.sh` and `discover.sh` accept CLI options; see [the script guide](../README.md#shell-scripts) for overrides.
 
 For collection commands and synthetic field values, see [Sauce Demo discovery](discovery/README.md). For a complete local example, use [Controls](../controls/README.md) or [Trailhead](../trailhead/README.md).

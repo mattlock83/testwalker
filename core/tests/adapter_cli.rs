@@ -329,6 +329,56 @@ fn plan_does_not_start_adapter_or_require_a_key_and_cli_overrides_config_options
     assert!(!path.join("reports").exists());
     assert!(!String::from_utf8_lossy(&output.stdout).contains("synthetic-secret"));
 }
+
+#[test]
+fn keep_going_cli_and_configuration_preserve_multiple_case_results_and_cleanup() {
+    for (configured, flags, keep_going) in [
+        (false, vec!["--keep-going"], true),
+        (true, vec![], true),
+        (false, vec![], false),
+    ] {
+        let path = temp();
+        let output = invoke(
+            &path,
+            "adapter-property-fail",
+            json!({"options":{"input_mode":"boundaries","shrink":false,"keep_going":configured}}),
+            &flags,
+        );
+        assert_eq!(
+            output.status.code(),
+            Some(1),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let (dir, result) = report(&path);
+        assert_eq!(result["scope"]["keep_going"], keep_going);
+        assert_eq!(result["counterexample"]["input"]["Places"], 5);
+        assert_eq!(result["trace"][0]["closed"], true);
+        assert!(
+            result["tests"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|t| t["kind"] == "graph")
+                .all(|t| t["status"] == "PASS")
+        );
+        if keep_going {
+            assert_eq!(result["test_summary"]["SKIPPED"], 0);
+        } else {
+            assert!(result["test_summary"]["SKIPPED"].as_u64().unwrap() > 0);
+        }
+        let xml = fs::read_to_string(dir.join("junit.xml")).unwrap();
+        assert!(xml.contains("<failure") && dir.join("report.html").is_file());
+        for case in result["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|c| c["status"] == "FAIL")
+        {
+            assert!(dir.join(case["replay_file"].as_str().unwrap()).is_file());
+        }
+    }
+}
 #[test]
 fn invalid_config_and_options_do_not_start_external_code() {
     for config in [

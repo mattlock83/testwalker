@@ -27,7 +27,7 @@ If the local file already exists, edit it rather than overwriting it. The files 
 
 ## Shell scripts
 
-Each demo folder has two executable scripts. After the repository build, run them from any directory:
+Each demo folder has two executable scripts. After the repository build, run these commands from the repository root:
 
 ```bash
 ./demos/trailhead/test.sh --headed
@@ -37,7 +37,7 @@ Each demo folder has two executable scripts. After the repository build, run the
 - `test.sh` executes the existing `model.json` through Testwalker, using the demo's local Jev configuration. Local sites start and stop automatically; Trailhead includes its backend and lifecycle hooks. Sauce Demo uses the hosted site and its existing draft may remain inconclusive.
 - `discover.sh` needs no Jev key or Rust executable. It starts and stops each local site, or uses the hosted Sauce Demo with its synthetic input values. Local discovery chooses a free port by default; `--port N` selects one. Discovery enables button and empty-form exploration with a bounded scope suited to each demo.
 
-Scripts forward CLI options, so you can select a model or input scope for testing and change discovery depth, limits or output. Relative option paths resolve from your current working directory. For example:
+The scripts locate their own demo files, so they also work from another directory when invoked by absolute path. Scripts forward CLI options, so you can select a model or input scope for testing and change discovery depth, limits or output. Relative option paths resolve from your current working directory. For example:
 
 ```bash
 ./demos/trailhead/test.sh --input-mode generated --cases 1 \
@@ -48,32 +48,26 @@ Scripts forward CLI options, so you can select a model or input scope for testin
 
 Discovery defaults to a new `discovered-<timestamp>-<pid>.model.json` beside the demo's authored model. Its inventory, viewer and visit assets go under the same folder's `artifact/<timestamped run>/`. Review each new draft before testing it; discovery leaves the authored model unchanged. Use `--help` on either script for CLI options.
 
-The npm wrappers set the right directory and port. Trailhead's wrapper also loads its backend and hooks:
+Local test scripts start and stop their site and owned browser. A live preview on the same port causes an address-in-use error; stop it or append `--port 0` to choose a free port. Sauce Demo uses the external website; see its guide for the draft's limitations.
 
-```bash
-npm run demo --workspace @testwalker/demo-hello-world -- --headed
-npm run demo --workspace @testwalker/demo-booking -- --headed
-npm run demo --workspace @testwalker/demo-feedback -- --headed
-npm run demo --workspace @testwalker/demo-controls -- --headed
-npm run demo --workspace @testwalker/demo-trailhead -- --headed
-```
-
-Run one command at a time. These start and stop their site and owned browser. A live preview on the same port causes an address-in-use error; stop it or append `--port 4190`. Npm executes inside the demo folder, so use absolute paths when appending your own `--model`, `--config`, `--replay` or strategy files. Sauce Demo has no local site; its `test.sh` targets the external website. See its guide for the draft's limitations.
+The optional npm equivalent is `npm run demo --workspace @testwalker/demo-trailhead -- --headed`. Npm executes inside the demo folder, so use absolute paths for custom model, configuration or replay files.
 
 The demo models request full graph coverage. Input scope comes from the run configuration: the small demos use focused Hegel checks, while Controls selects six phases by default. To select all focused partitions:
 
 ```bash
-npm run demo --workspace @testwalker/demo-controls -- --headed \
+./demos/controls/test.sh --headed \
   --max-input-attempts 1000
 ```
 
 To explore Trailhead with only two generated property inputs:
 
 ```bash
-npm run demo --workspace @testwalker/demo-trailhead -- --headed \
+./demos/trailhead/test.sh --headed \
   --input-mode generated --cases 1 --max-input-attempts 2 \
   --no-shrink --max-calls 4000
 ```
+
+Add `--keep-going` to continue independent cases after failures; see [recovery and dependency skips](../core/docs/continuation.md). The default stops at the first failed or inconclusive check.
 
 `--input-mode none` disables extra property tests but keeps fixed graph form inputs. `--max-calls` is the Jev allowance. See [scope and results](../testwalker-web/docs/testing.md).
 
@@ -96,7 +90,7 @@ Use Ctrl+C to stop preview. Trailhead additionally needs `--app demos/trailhead/
 
 ## Results and regression tests
 
-Each run prints its report and JUnit paths under `demos/DEMO/artifact/`. Those generated directories are not checked in. Use [the testing guide](../testwalker-web/docs/testing.md#results-and-reports) for reports and replay.
+Each run prints its report and JUnit paths. With the default model they are under `demos/DEMO/artifact/<timestamped run>/`. A custom `--model` writes beside that model instead; `--output DIR` overrides the artifact parent. Those generated directories are not checked in. Use [the testing guide](../testwalker-web/docs/testing.md#results-and-reports) for reports and replay.
 
 The checked-in [verification inventory](verification.json) records measured runs, scopes and local artifact paths; it is a test record, not a guarantee for future executions. It also records expected failures for Trailhead's injected defects and Sauce Demo's unresolved draft.
 

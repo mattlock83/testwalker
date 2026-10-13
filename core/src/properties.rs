@@ -357,9 +357,10 @@ where
                     None => execute(data),
                 };
                 if let Err(error) = outcome {
-                    if error.status == "FAIL" {
+                    if error.status == "FAIL" && !error.is_run_fatal() {
                         last_failure = Some(error.clone());
-                    } else {
+                    }
+                    if error.status != "FAIL" || error.is_run_fatal() {
                         infrastructure = Some(error.clone());
                     }
                     panic_any(CaseFailure(error));
@@ -371,14 +372,23 @@ where
         });
     }));
     if let Some(error) = infrastructure {
-        if error.result["input_limit"] == true
-            && let Some(mut failure) = last_failure
-        {
+        if let Some(mut failure) = last_failure {
             failure.result["case"]["minimization_limited"] = json!(true);
-            failure.result["case"]["minimization_note"] = json!(
-                "The input limit stopped reproduction or shrinking; the recorded failing input is retained without a minimality guarantee."
-            );
-            return Err(failure);
+            failure.result["case"]["minimization_note"] = if error.result["input_limit"] == true {
+                json!(
+                    "The input limit stopped reproduction or shrinking; the recorded failing input is retained without a minimality guarantee."
+                )
+            } else {
+                json!(
+                    "A later uncertain or infrastructure outcome stopped reproduction or shrinking; the recorded failing input is retained without a minimality guarantee."
+                )
+            };
+            failure.result["minimization_stop"] = json!({"status":error.status,"reason":error.message,"run_fatal":error.is_run_fatal()});
+            return Err(if error.is_run_fatal() {
+                failure.run_fatal()
+            } else {
+                failure
+            });
         }
         return Err(error);
     }

@@ -39,6 +39,7 @@ The adapter implements target operations and returns evidence. The framework own
 ## Reference
 
 - [CLI and run configuration](docs/cli.md)
+- [Keep-going execution and dependency skips](docs/continuation.md)
 - [Architecture and execution lifecycle](docs/architecture.md)
 - [Business model format](docs/model-format.md)
 - [Hegel input strategies](docs/input-strategies.md)

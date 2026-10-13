@@ -29,8 +29,7 @@ Keep `run.local.json` out of version control. If it already exists, edit it rath
 Start your first test run:
 
 ```bash
-npx --no-install testwalker-web demo \
-  --directory demos/hello-world --port 4185 --headed
+./demos/hello-world/test.sh --headed
 ```
 
 This starts the website and browser, executes the model and input checks, and closes both afterward. Open the printed `Report:` path to view results, screenshots and individual replay cases. Reports are saved under `demos/hello-world/artifact/`.
@@ -59,7 +58,9 @@ GraphWalker decides which journeys to execute. Jev identifies controls and check
 | FAIL         | An executed check found a contradiction with the specification.                 |
 | INCONCLUSIVE | Evidence or execution was insufficient to verify the selected work.             |
 
-See [testing and debugging](testwalker-web/docs/testing.md) for scope, budgets and skipped cases.
+The default is fail-fast: a failed or inconclusive check stops execution. Add `--keep-going` to continue independent cases after recording that result. Dependent cases can be **SKIPPED**; this is a case status, not an overall run outcome. Shared infrastructure failures still stop the run.
+
+See [testing and debugging](testwalker-web/docs/testing.md) for scope, budgets and replay, and [the continuation policy](core/docs/continuation.md) for recovery and dependency skips.
 
 ## Choose a starting point
 

@@ -2,17 +2,6 @@
 
 A self-contained plain HTML site and selector-free [model](model.json) covering common browser controls. It has 34 states and 85 journeys, with no custom runtime hooks.
 
-## Shell scripts
-
-After [repository setup](../../README.md#build-and-run), run from the repository root:
-
-```bash
-./demos/controls/test.sh --headed
-./demos/controls/discover.sh --headed
-```
-
-Testing uses the existing model and `run.local.json` with your Jev key. Discovery needs no key and writes a new timestamped draft beside the existing model, with its viewer and captures under `artifact/`. Both scripts accept extra CLI options. The local site is started and stopped automatically; discovery uses a free port. See [the script guide](../README.md#shell-scripts) for overrides.
-
 ## Run
 
 After [setup](../../README.md#build-and-run), run from the repository root. Create the local configuration once and set `decision.api_key`:
@@ -24,15 +13,15 @@ cp demos/controls/run.json.example demos/controls/run.local.json
 Edit `decision.api_key` in the new file, then run:
 
 ```bash
-npm run demo --workspace @testwalker/demo-controls -- --headed
+./demos/controls/test.sh --headed
 ```
 
-The wrapper uses port 4187 and closes its server and browser afterward. Reports go to `demos/controls/artifact/`.
+The script uses port 4187 and closes its server and browser afterward. Reports go to `demos/controls/artifact/`.
 
 The default selects the full graph and six focused Name-validation phases. Select all 21 Name, Email and Notes phases with:
 
 ```bash
-npm run demo --workspace @testwalker/demo-controls -- --headed \
+./demos/controls/test.sh --headed \
   --max-input-attempts 1000
 ```
 
@@ -57,6 +46,16 @@ Use `--input-mode none` for graph-only execution. Fixed date, slider and colour 
 Uploads refer to fixture aliases in [browser.json](browser.json), backed by the included synthetic files. The model contains no file paths or selectors. Native dates use literal values instead of OS popup automation. Colour and continuous native range values use trusted native setters with input/change events; other slider operations use keyboard interaction.
 
 The event history records actual browser events separately from current results. Opaque widgets without usable labels/roles/targets require hooks in an application integration; this demo does not need them.
+
+## Discover a model draft
+
+Discovery needs no Jev key or Rust executable. After building the Node packages, run from the repository root:
+
+```bash
+./demos/controls/discover.sh --headed
+```
+
+The script starts and stops the local site automatically, using a free port. It writes a new `discovered-<timestamp>-<pid>.model.json` beside the existing model, with its viewer and captures under `artifact/`. Review the draft before executing it; the existing model is unchanged. Both `test.sh` and `discover.sh` accept CLI options; see [the script guide](../README.md#shell-scripts) for overrides.
 
 ## Plan, preview and regression checks
 

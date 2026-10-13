@@ -92,6 +92,7 @@ testwalker-web serve --directory SITE [--app APP.ts] [--port 4173]
 Native execution: --framework EXECUTABLE, --browser-config BROWSER.json, --max-calls N,
 --threshold N (default 0.80), --strategy-provider INPUTS.ts, --output DIRECTORY.
 Graph/Hegel/replay flags pass to Rust, e.g. --max-input-attempts 2 --generator new_york_street_sweeper.
+Use --keep-going to continue independent cases after a failure; shared infrastructure errors still stop.
 All tests, verdicts, HTML/JSON/JUnit and replay are owned by Rust.
 Default output: artifact/<timestamped run>/ beside the supplied model.
 `;

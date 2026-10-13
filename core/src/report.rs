@@ -214,8 +214,10 @@ fn select(report: &Value, test: &Value, indices: &str, field: &str) -> Vec<Value
 }
 
 fn range(report: &Value, test: &Value, indices: &str, field: &str) -> Value {
-    let items = array(&report[field]);
-    let bounds = array(&test[indices]);
+    slice_range(array(&report[field]), &test[indices])
+}
+fn slice_range(items: &[Value], indices: &Value) -> Value {
+    let bounds = array(indices);
     let bound = |index| {
         bounds
             .get(index)
@@ -252,6 +254,10 @@ fn evidence(report: &Value, test: &Value) -> Value {
             "global_audit",
             "hooks",
             "cleanup_errors",
+            "cleanup_failures",
+            "failures",
+            "terminal_stop",
+            "recoveries",
         ] {
             details[key] = report[key].clone();
         }
@@ -260,13 +266,17 @@ fn evidence(report: &Value, test: &Value) -> Value {
         details["attempts"] = json!(select(report, test, "attempt_indices", "cases"));
     }
     if test["status"] != "PASS" {
-        details["stop"] = report["stop"].clone();
+        details["stop"] = test.get("stop").unwrap_or(&report["stop"]).clone();
         details["failure"] = if test["status"] == "SKIPPED" {
             Value::Null
         } else {
-            report["failure"].clone()
+            test.get("failure").unwrap_or(&report["failure"]).clone()
         };
-        details["blocked_by"] = json!(
+        details["blocked_by"] = test.get("blocked_by").cloned().unwrap_or_else(|| {
+            if report["scope"]["keep_going"] == true {
+                return json!([]);
+            }
+            json!(
             array(&report["tests"])
                 .iter()
                 .filter(|item| item["status"] == "FAIL" || item["status"] == "INCONCLUSIVE")
@@ -274,11 +284,15 @@ fn evidence(report: &Value, test: &Value) -> Value {
                     |item| json!({"id":item["id"],"status":item["status"],"reason":item["reason"]})
                 )
                 .collect::<Vec<_>>()
-        );
+        )
+        });
         details["actions"] = range(report, test, "trace_range", "trace");
         details["decisions"] = range(report, test, "decision_range", "decisions");
+        let scoped = test
+            .get("hook_range")
+            .map(|bounds| slice_range(array(&report["hooks"]["events"]), bounds));
         details["hook_errors"] = json!(
-            array(&report["hooks"]["events"])
+            array(scoped.as_ref().unwrap_or(&report["hooks"]["events"]))
                 .iter()
                 .filter(|event| {
                     event.get("error").is_some_and(|e| !e.is_null())

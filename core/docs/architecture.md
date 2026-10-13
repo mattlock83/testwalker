@@ -55,7 +55,9 @@ The graph walk shares application state between journeys. Property attempts rese
 
 Jev resolves browser actions, then independently identifies the observed state and checks requirements. Rust applies the final policy: a contradiction is FAIL, insufficient evidence is INCONCLUSIVE, and PASS requires the selected checks, requested coverage and every global requirement. The RPC target uses exact predicates instead of Jev for its checks.
 
-Failures can be reproduced and shrunk. Inconclusive target/provider errors stop the campaign and preserve the original case. Hegel replay consumes the same generator choices without repeating a latched target call.
+Opt-in [keep-going execution](continuation.md) contains case failures, recovers later graph cases through verified modeled setup and continues independent property phases. Shared infrastructure failures still stop execution.
+
+Failures can be reproduced and shrunk. An inconclusive property outcome ends the affected phase; keep-going can continue independent phases. Shared provider failures stop the run. If uncertainty interrupts minimization after a definite defect, the original counterexample remains FAIL. Hegel replay consumes the same generator choices without repeating a latched target call.
 
 ## Executable and transport boundary
 

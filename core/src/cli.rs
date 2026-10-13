@@ -41,6 +41,7 @@ No language flag or shell command parsing. Use repeated arguments for its option
   --custom-strategies   Ask the adapter for declarative input domains
   --no-shrink           Disable shrinking
   --keep-target-open    Ask the adapter to retain its target for debugging
+  --keep-going          Continue independent tests after case failures
   --evaluator MODE      adapter (default) or core (uses configured decision provider)
   --replay FILE         Replay an individual saved test recipe
   --plan                Print inventory without launching an adapter or calling a provider
@@ -123,6 +124,10 @@ pub fn execute(args: &[String]) -> Result<i32, Fault> {
             }
             "--keep-target-open" => {
                 overrides["keep_target_open"] = json!(true);
+                continue;
+            }
+            "--keep-going" => {
+                overrides["keep_going"] = json!(true);
                 continue;
             }
             "--custom-strategies" => {

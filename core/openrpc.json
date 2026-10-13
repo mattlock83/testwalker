@@ -3782,6 +3782,11 @@
             },
             "default": null,
             "description": "Optional imported walks. Length must equal walks; each route must fit max_steps and be a valid connected route."
+          },
+          "keep_going": {
+            "type": "boolean",
+            "default": false,
+            "description": "Continue independent selected graph cases and property phases after case failures. Recovery resets and verifies modeled setup, skips blocked fixed prerequisites, and retains every verdict. Shared infrastructure failures still stop the run."
           }
         },
         "additionalProperties": false,
@@ -3901,13 +3906,21 @@
           "seed": {
             "type": "integer",
             "minimum": 1
+          },
+          "setup_path": {
+            "type": "array",
+            "maxItems": 10000,
+            "items": {
+              "type": "string"
+            },
+            "description": "Recorded modeled setup journey IDs, connected from the model start to the replay case source. When present, replay preserves this route, including recovery alternatives."
           }
         },
         "required": [
           "model_hash"
         ],
         "additionalProperties": true,
-        "description": "Pass a saved replay_recipe unchanged. Graph-start replay uses kind=graph and journey=null. Other cases name the journey; data cases supply the complete literal input. The model hash must match. Unknown report metadata is retained/ignored rather than used to alter execution. Replay seed metadata does not override options.seed."
+        "description": "Pass a saved replay_recipe unchanged. Graph-start replay uses kind=graph and journey=null. Other cases name the journey; data cases supply the complete literal input. The model hash must match. Unknown report metadata is retained/ignored rather than used to alter execution. Replay seed metadata does not override options.seed. Optional setup_path is validated and executed instead of calculating a new nominal setup route."
       },
       "TestRecord": {
         "type": "object",
@@ -4221,7 +4234,7 @@
           "result"
         ],
         "additionalProperties": false,
-        "description": "Structured Testwalker fault in JSON-RPC error.data. result may be null or contain partial_report, case/counterexample, or uncertain_decision details."
+        "description": "Structured Testwalker fault in JSON-RPC error.data. result may be null or contain partial_report, case/counterexample, or uncertain_decision details. result.run_fatal=true marks a shared infrastructure failure that stops keep-going execution; other uncertain or broken case outcomes may permit independent work."
       },
       "ConfidenceThreshold": {
         "type": "number",

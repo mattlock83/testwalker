@@ -98,12 +98,16 @@ function loadDecisionChunk(index) {
   return decisionLoads.get(index);
 }
 async function decisionEvidence(start, end) {
-  if (!report.decision_chunks) return (report.decisions || []).slice(start, end);
+  if (!report.decision_chunks)
+    return (report.decisions || []).slice(start, end);
   if (end <= start) return [];
   const size = report.decision_chunks.size;
-  const first = Math.floor(start / size), last = Math.floor((end - 1) / size);
+  const first = Math.floor(start / size),
+    last = Math.floor((end - 1) / size);
   const chunks = await Promise.all(
-    Array.from({ length: last - first + 1 }, (_, i) => loadDecisionChunk(first + i)),
+    Array.from({ length: last - first + 1 }, (_, i) =>
+      loadDecisionChunk(first + i),
+    ),
   );
   return chunks.flat().slice(start - first * size, end - first * size);
 }
@@ -392,9 +396,10 @@ function renderDetail() {
   let record = t;
   if (attempts.length) {
     if (attemptIndex === null || attemptIndex >= attempts.length) {
-      const lastFailure = t.status === "FAIL"
-        ? attempts.map((attempt) => attempt.status).lastIndexOf("FAIL")
-        : -1;
+      const lastFailure =
+        t.status === "FAIL"
+          ? attempts.map((attempt) => attempt.status).lastIndexOf("FAIL")
+          : -1;
       attemptIndex = lastFailure >= 0 ? lastFailure : attempts.length - 1;
     }
     record = attempts[attemptIndex];
@@ -514,9 +519,14 @@ function renderDetail() {
   if (t.status === "SKIPPED")
     details(parent, "Why this case was skipped", {
       reason: t.reason,
-      stop: report.stop,
+      stop: t.stop || report.terminal_stop || report.stop,
+      blocked_by: t.blocked_by,
       upstream: tests
         .filter((x) => ["FAIL", "INCONCLUSIVE"].includes(x.status))
+        .filter(
+          (x) =>
+            !t.blocked_by || t.blocked_by.some((block) => block.id === x.id),
+        )
         .map((x) => ({ id: x.id, reason: x.reason })),
     });
   const trace = t.trace_range || [0, 0],
@@ -539,12 +549,10 @@ const propertyPhases = report.coverage?.["property phases"];
 if (propertyPhases) {
   const progress = $("property-progress");
   progress.hidden = false;
-  progress.textContent =
-    `Selected property phases passed: ${propertyPhases.completed}/${propertyPhases.total}`;
+  progress.textContent = `Selected property phases passed: ${propertyPhases.completed}/${propertyPhases.total}`;
   const campaigns = report.coverage?.properties;
   if (campaigns)
-    progress.textContent +=
-      ` · Full property campaigns completed: ${campaigns.completed}/${campaigns.total}`;
+    progress.textContent += ` · Full property campaigns completed: ${campaigns.completed}/${campaigns.total}`;
 }
 const count = (status) => tests.filter((t) => t.status === status).length;
 for (const [value, label] of [
@@ -567,11 +575,26 @@ if (report.error) {
   $("stop").textContent = `${report.status}: ${report.error}`;
 }
 $("stop-detail").textContent = json(
-  report.stop || {
-    status: report.status,
-    message: "No early stop recorded.",
-    cleanup_errors: report.cleanup_errors || [],
-  },
+  report.failures?.length
+    ? {
+        terminal_stop:
+          report.terminal_stop ||
+          "Selected work finished; individual failures were retained.",
+        primary_failure: report.stop,
+        failures: report.failures.map((failure) => ({
+          test_id: failure.test_id,
+          status: failure.error.status,
+          reason: failure.error.message,
+          stop: failure.stop,
+        })),
+        recoveries: report.recoveries,
+      }
+    : report.terminal_stop ||
+        report.stop || {
+          status: report.status,
+          message: "No early stop recorded.",
+          cleanup_errors: report.cleanup_errors || [],
+        },
 );
 $("run-detail").textContent = json({
   coverage: report.coverage,

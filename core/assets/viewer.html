@@ -57,16 +57,17 @@
             ></svg>
           </div>
           <div class="legend">
-            <span><i class="dot" style="background:var(--pass)"></i>Passed</span
+            <span
+              ><i class="dot" style="background: var(--pass)"></i>Passed</span
             ><span
-              ><i class="dot" style="background:var(--fail)"></i>Failed</span
+              ><i class="dot" style="background: var(--fail)"></i>Failed</span
             ><span
-              ><i class="dot" style="background:var(--error)"></i
+              ><i class="dot" style="background: var(--error)"></i
               >Inconclusive</span
             ><span
-              ><i class="dot" style="background:var(--skip)"></i>Skipped</span
+              ><i class="dot" style="background: var(--skip)"></i>Skipped</span
             ><span
-              ><i class="dot" style="background:#d1dce2"></i>Unselected</span
+              ><i class="dot" style="background: #d1dce2"></i>Unselected</span
             >
           </div>
           <div id="graph-note" class="graph-note">
@@ -110,7 +111,7 @@
         </div>
       </div>
       <details class="run-evidence">
-        <summary>Where execution stopped</summary>
+        <summary>Run failures, recovery and stopping details</summary>
         <pre id="stop-detail"></pre>
       </details>
       <details class="run-evidence">
@@ -126,23 +127,24 @@
           ><a id="replay-link" href="replay.json" hidden>Replay input</a>
         </nav>
         <p>
-          Graph paths and boundary inputs are planned in advance. Hegel
-          draws and shrinking happen during execution. Screenshots show the
-          captured viewport; skipped cases have no screenshot.
-          Jev transcripts load when expanded. Keep the evidence and screenshots
-          folders beside this HTML file when moving or sharing the report.
+          Graph paths and boundary inputs are planned in advance. Hegel draws
+          and shrinking happen during execution. Screenshots show the captured
+          viewport; skipped cases have no screenshot. Jev transcripts load when
+          expanded. Keep the evidence and screenshots folders beside this HTML
+          file when moving or sharing the report.
         </p>
       </footer>
     </main>
     <noscript
       >Enable JavaScript to explore the graph and cases. The report JSON and
-      complete execution evidence remain available through the Report JSON link.</noscript
+      complete execution evidence remain available through the Report JSON
+      link.</noscript
     >
     <script id="run-data" type="application/json">
       __REPORT_JSON__
     </script>
     <script>
-      __VIEWER_SCRIPT__
+      __VIEWER_SCRIPT__;
     </script>
   </body>
 </html>

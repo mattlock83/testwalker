@@ -7,6 +7,10 @@ import {
 } from "../src/extensions.js";
 import { WebAdapter } from "../src/adapter.js";
 import { Defect, Inconclusive } from "../src/types.js";
+import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 test("Async hook errors retain definite defects separately from unavailable infrastructure", async () => {
   for (const [error, status] of [
@@ -25,6 +29,41 @@ test("Async hook errors retain definite defects separately from unavailable infr
         fault instanceof Inconclusive && fault.status === status,
     );
     assert.equal(hooks.events[0].status, status);
+  }
+});
+
+test("Hook faults retain their declared verdict across separate SDK module instances", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "testwalker-sdk-copy-"));
+  try {
+    const copy = join(temp, "types-copy.mjs");
+    await writeFile(
+      copy,
+      await readFile(new URL("../dist/types.js", import.meta.url)),
+    );
+    const sdk = await import(pathToFileURL(copy).href);
+    assert.notEqual(sdk.Defect, Defect);
+    for (const [error, status] of [
+      [new sdk.Defect("Definite hook failure"), "FAIL"],
+      [new sdk.Inconclusive("Unknown hook outcome"), "INCONCLUSIVE"],
+    ]) {
+      const hooks = new Hooks({
+        after_case: () => {
+          throw error;
+        },
+      });
+      await assert.rejects(
+        hooks.fire("after_case", { phase: "property" } as HookContext),
+        (fault: unknown) =>
+          fault instanceof Inconclusive && fault.status === status,
+      );
+      assert.equal(error instanceof Defect, status === "FAIL");
+    }
+    assert.equal(
+      { status: "FAIL", message: "Unbranded error" } instanceof Defect,
+      false,
+    );
+  } finally {
+    await rm(temp, { recursive: true, force: true });
   }
 });
 
@@ -78,4 +117,48 @@ test("Custom strategies return JSON domains while retaining native defaults and 
     ),
     /nonfinite/,
   );
+});
+
+test("Case attachments separate hook evidence across failures in different phases", async () => {
+  const adapter = new WebAdapter({ request: async () => {} });
+  (adapter as any).model = { models: [{ vertices: [], edges: [] }] };
+  (adapter as any).hooks = new Hooks({
+    after_case: (ctx: HookContext) => {
+      ctx.check(false, ctx.data.Name);
+    },
+  });
+  await adapter.call("run.event", {
+    type: "planned",
+    data: {
+      tests: [
+        { id: "first", kind: "property" },
+        { id: "second", kind: "property" },
+      ],
+      steps: [],
+      cases: [],
+    },
+  });
+  const ranges = [];
+  for (const id of ["first", "second"]) {
+    await adapter.call("run.event", { type: "test.begin", data: { id } });
+    await assert.rejects(
+      adapter.call("target.hook", {
+        event: "after_case",
+        context: { phase: "property", data: { Name: id } },
+      }),
+      Defect,
+    );
+    ranges.push(
+      (
+        await adapter.call("run.event", {
+          type: "test.end",
+          data: { id, status: "FAIL" },
+        })
+      ).hook_range,
+    );
+  }
+  assert.deepEqual(ranges, [
+    [0, 1],
+    [1, 2],
+  ]);
 });

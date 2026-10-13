@@ -40,7 +40,7 @@ fn metadata(model: &Model, options: &Options, target: &Value, directory: Option<
         .unwrap_or(json!({}));
     for (key, value) in json!({"generated_cases":options.cases,"input_mode":options.input_mode,
         "input_strategies":options.input_strategies,"shrink":options.shrink,"input_attempts":options.max_input_attempts,
-        "walks":options.walks,"graph_steps":options.max_steps,"property_engine":"hegel",
+        "walks":options.walks,"graph_steps":options.max_steps,"property_engine":"hegel","keep_going":options.keep_going,
         "screenshots":target["screenshots"].as_bool().unwrap_or(false)}).as_object().unwrap() {
         limits[key] = value.clone();
     }

@@ -19,7 +19,17 @@ export interface Model extends Json {
   }>;
 }
 export type Verdict = "PASS" | "FAIL" | "INCONCLUSIVE";
+// Hooks loaded through tsx may import another module instance of this SDK.
+const FAULT = Symbol.for("testwalker.web.fault");
 export class Inconclusive extends Error {
+  readonly [FAULT] = true;
+  static [Symbol.hasInstance](value: unknown): boolean {
+    if (!value || typeof value !== "object") return false;
+    const fault = value as Inconclusive;
+    return (
+      fault[FAULT] === true && ["FAIL", "INCONCLUSIVE"].includes(fault.status)
+    );
+  }
   readonly status: Verdict = "INCONCLUSIVE";
   constructor(
     message: string,
@@ -29,6 +39,12 @@ export class Inconclusive extends Error {
   }
 }
 export class Defect extends Inconclusive {
+  static override [Symbol.hasInstance](value: unknown): boolean {
+    return (
+      Inconclusive[Symbol.hasInstance](value) &&
+      (value as Inconclusive).status === "FAIL"
+    );
+  }
   override readonly status: Verdict = "FAIL";
 }
 export function message(error: unknown): string {

@@ -48,7 +48,7 @@ impl DecisionProvider for JevProvider {
     fn ask(&mut self, evidence: &Value, questions: &Value) -> Result<Value, Fault> {
         if self.api_key.trim().is_empty() {
             return Err(Fault::unknown(
-                "Supply TYPESAFE_API_KEY in the properties file",
+                "Set decision.api_key to your Jev API key in the run configuration (run.local.json)",
             ));
         }
         self.post(
@@ -135,10 +135,13 @@ impl Decisions {
             audit["cache_hit"] = json!(true);
             Ok(cached.clone())
         } else if self.calls >= self.max_calls {
-            Err(Fault::unknown("The model-call budget is exhausted"))
+            Err(Fault::unknown("The model-call budget is exhausted").run_fatal())
         } else {
             self.calls += 1;
-            let response = self.provider.ask(evidence, questions);
+            let response = self
+                .provider
+                .ask(evidence, questions)
+                .map_err(Fault::run_fatal);
             if let Ok(value) = &response {
                 self.input_tokens += value["usage"]["input_tokens"].as_u64().unwrap_or(0);
                 self.output_tokens += value["usage"]["output_tokens"].as_u64().unwrap_or(0);
@@ -233,10 +236,13 @@ impl Decisions {
             return Ok(value.clone());
         }
         if self.calls >= self.max_calls {
-            return Err(Fault::unknown("The model-call budget is exhausted"));
+            return Err(Fault::unknown("The model-call budget is exhausted").run_fatal());
         }
         self.calls += 1;
-        let result = self.provider.post(url, key, body)?;
+        let result = self
+            .provider
+            .post(url, key, body)
+            .map_err(Fault::run_fatal)?;
         self.input_tokens += result["usage"]["input_tokens"].as_u64().unwrap_or(0);
         self.output_tokens += result["usage"]["output_tokens"].as_u64().unwrap_or(0);
         if cache {

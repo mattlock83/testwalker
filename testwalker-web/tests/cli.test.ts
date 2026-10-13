@@ -91,6 +91,7 @@ test("Web CLI delegates model-local output defaults to Rust and preserves explic
           config,
           "--framework",
           framework,
+          "--keep-going",
           ...(output ? ["--output", output] : []),
         ],
         { cwd: temp, encoding: "utf8" },
@@ -98,6 +99,7 @@ test("Web CLI delegates model-local output defaults to Rust and preserves explic
       assert.equal(run.status, 0, run.stderr);
       const args: string[] = JSON.parse(run.stdout);
       assert.equal(args[args.indexOf("--model") + 1], model);
+      assert.ok(args.includes("--keep-going"));
       const index = args.indexOf("--output");
       if (output) assert.equal(args[index + 1], join(temp, output));
       else

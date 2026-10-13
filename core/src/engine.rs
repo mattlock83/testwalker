@@ -6,7 +6,10 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use std::{collections::HashSet, time::Instant};
+use std::{
+    collections::{HashMap, HashSet},
+    time::Instant,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -21,6 +24,7 @@ pub struct Options {
     pub shrink: bool,
     pub max_input_attempts: usize,
     pub keep_target_open: bool,
+    pub keep_going: bool,
     pub evaluator: String,
     /// Optional imported, already planned walks. Canonicalized against the model.
     pub paths: Option<Vec<Vec<Value>>>,
@@ -38,6 +42,7 @@ impl Default for Options {
             shrink: true,
             max_input_attempts: 1000,
             keep_target_open: false,
+            keep_going: false,
             evaluator: "core".into(),
             paths: None,
         }
@@ -189,9 +194,9 @@ fn plan(model: &Model, options: &Options, replay: Option<&Value>) -> Result<Plan
         "runtime":{"core":"rust","protocol":"2.0","graph":"graphwalker-rs","properties":"hegel"},
         "exploration":{"generator":model.graph["generator"],"required":model.business["coverage"]},
         "graph":{"start":model.start(),"states":model.states.values().map(|s|{let mut v=business(s).clone();v["id"]=s["id"].clone();v["name"]=s["name"].clone();v}).collect::<Vec<_>>(),"edges":model.edges.values().map(|e|json!({"id":e["id"],"name":e["name"],"source":e["sourceVertexId"],"target":e["targetVertexId"],"intent":business(e)["intent"]})).collect::<Vec<_>>()},
-        "tests":[],"steps":[],"cases":[],"walks":[],
+        "tests":[],"steps":[],"cases":[],"walks":[],"failures":[],"recoveries":[],
         "planning":{"complete":false,"graph_count":"exact for successfully planned walks","generated_count":"phases only; draws and shrinking are determined at runtime","unselected_properties":[]},
-        "scope":{"input_mode":options.input_mode,"available_campaigns":0,"selected_campaigns":0,"walks_requested":options.walks}
+        "scope":{"input_mode":options.input_mode,"available_campaigns":0,"selected_campaigns":0,"walks_requested":options.walks,"keep_going":options.keep_going}
     });
     let mut paths = Vec::new();
     let mut campaigns = Vec::new();
@@ -272,6 +277,7 @@ fn plan(model: &Model, options: &Options, replay: Option<&Value>) -> Result<Plan
     report["scope"]["selected_campaigns"] = json!(campaigns.len());
     report["scope"]["property_selection"] = selection;
     if let Some(case) = replay {
+        saved_setup(model, case)?;
         if case["model_hash"] != model.digest {
             return Err(Fault::unknown(
                 "Replay model hash differs; use the original saved model.json",
@@ -345,6 +351,41 @@ fn plan(model: &Model, options: &Options, replay: Option<&Value>) -> Result<Plan
         campaigns,
     })
 }
+fn saved_setup(model: &Model, recipe: &Value) -> Result<Option<Vec<Value>>, Fault> {
+    let Some(ids) = recipe.get("setup_path") else {
+        return Ok(None);
+    };
+    let ids = ids
+        .as_array()
+        .filter(|ids| ids.len() <= 10000)
+        .ok_or_else(|| {
+            Fault::unknown("Replay setup_path must contain at most 10000 journey IDs")
+        })?;
+    let mut source = model.start();
+    let mut route = Vec::new();
+    for id in ids {
+        let edge = id
+            .as_str()
+            .and_then(|id| model.edges.get(id))
+            .ok_or_else(|| Fault::unknown("Replay setup references an unknown journey"))?;
+        if edge["sourceVertexId"] != source {
+            return Err(Fault::unknown("Replay setup route is disconnected"));
+        }
+        source = string(&edge["targetVertexId"]);
+        route.push(edge.clone());
+    }
+    let expected = recipe["journey"]
+        .as_str()
+        .and_then(|id| model.edges.get(id))
+        .map(|edge| string(&edge["sourceVertexId"]))
+        .unwrap_or(model.start());
+    if source != expected {
+        return Err(Fault::unknown(
+            "Replay setup does not reach the case source",
+        ));
+    }
+    Ok(Some(route))
+}
 fn increment(object: &mut Value, key: &str, n: usize) {
     object[key] = json!(object[key].as_u64().unwrap_or(0) + n as u64);
 }
@@ -379,12 +420,17 @@ struct Execution<'a, T: Target> {
     activity: Value,
     checkpoint: Option<Value>,
     isolated_checkpoints: bool,
+    blocked: HashMap<String, Value>,
+    blocked_start: Option<Value>,
+    setup_path: Vec<Value>,
+    replay_setup: Option<Vec<Value>>,
 }
 
 impl<T: Target> Execution<'_, T> {
     fn event(&mut self, kind: &str, data: Value) -> Result<Value, Fault> {
         self.target
             .call("run.event", json!({"type":kind,"data":data}))
+            .map_err(Fault::run_fatal)
     }
     fn context(&self, element: Value, invalid: Value, result: Value) -> Value {
         json!({"phase":self.phase,"walk":self.walk,"element":element,"data":self.data,"invalid":invalid,"result":result})
@@ -410,9 +456,14 @@ impl<T: Target> Execution<'_, T> {
             Err(error) => context["error"] = json!(error),
         }
         let after = self.hook(&format!("after_{name}"), context);
-        match result {
-            Err(error) => Err(error),
-            Ok(value) => after.map(|()| value),
+        match (result, after) {
+            (Err(error), Err(cleanup)) => {
+                let fatal = cleanup.is_run_fatal();
+                record_cleanup_error(&mut self.report, cleanup);
+                Err(if fatal { error.run_fatal() } else { error })
+            }
+            (Err(error), _) => Err(error),
+            (Ok(value), after) => after.map(|()| value),
         }
     }
     fn reset(&mut self) -> Result<(), Fault> {
@@ -423,6 +474,7 @@ impl<T: Target> Execution<'_, T> {
             self.context(Value::Null, json!([]), Value::Null),
             |s| s.target.call("target.reset", json!({})).map(|_| ()),
         )
+        .map_err(Fault::run_fatal)
     }
     fn execute(&mut self, edge: &Value, input: Option<Value>) -> Result<(), Fault> {
         let fields = self.model.execution_fields(edge)?;
@@ -527,8 +579,126 @@ impl<T: Target> Execution<'_, T> {
         }
         Ok(())
     }
+    fn record_failure(&mut self, error: &Fault) {
+        let id = self
+            .active
+            .map(|index| self.report["tests"][index]["id"].clone());
+        let mut stop = self.activity.clone();
+        stop["test_id"] = json!(id);
+        stop["reason"] = json!(error.message);
+        stop["exception"] = json!(if error.status == "FAIL" {
+            "Defect"
+        } else {
+            "Inconclusive"
+        });
+        if let Some(traceback) = error.result.get("traceback") {
+            stop["traceback"] = traceback.clone();
+        }
+        if let Some(index) = self.active {
+            self.report["tests"][index]["failure"] = error.result.clone();
+            self.report["tests"][index]["stop"] = stop.clone();
+        }
+        let duplicate = id.is_none()
+            && self.report["failures"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|entry| entry["error"] == json!(error));
+        if !duplicate {
+            self.report["failures"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!({"test_id":id,"stop":stop,"error":error}));
+        }
+        if !["FAIL", "INCONCLUSIVE"].contains(&string(&self.report["status"]))
+            || (error.status == "FAIL" && self.report["status"] != "FAIL")
+        {
+            self.report["status"] = json!(error.status);
+            self.report["error"] = json!(error.message);
+            self.report["stop"] = stop.clone();
+            self.report["failure"] = error.result.clone();
+            if error.status == "FAIL" && !error.result["case"].is_null() {
+                self.report["counterexample"] = error.result["case"].clone();
+            }
+        }
+        if error.is_run_fatal() && (!duplicate || self.report["terminal_stop"].is_null()) {
+            if let Some(reason) = error.result["minimization_stop"]["reason"].as_str() {
+                stop["reason"] = json!(reason);
+            }
+            self.report["terminal_stop"] = stop;
+        }
+    }
+    fn failed(&mut self, error: &Fault) -> Result<(), Fault> {
+        self.record_failure(error);
+        self.finish(&error.status, Some(&error.message))
+    }
+    fn skip(&mut self, id: &str, block: &Value) -> Result<(), Fault> {
+        self.begin(id)?;
+        let index = self.active.unwrap();
+        self.report["tests"][index]["blocked_by"] = block["blocked_by"].clone();
+        self.report["tests"][index]["stop"] = block.clone();
+        self.finish("SKIPPED", block["reason"].as_str())
+    }
+    fn scenario(&self, edge: &Value) -> String {
+        json!([edge["id"], self.model.example(edge).unwrap_or(Value::Null)]).to_string()
+    }
+    fn block(&mut self, edge: Option<&Value>, error: &Fault) {
+        let block = json!({"id":self.active.map(|i|self.report["tests"][i]["id"].clone()),"status":error.status,"reason":error.message,"journey":edge.map(|e|e["id"].clone()),"input":edge.and_then(|e|self.model.example(e).ok())});
+        if let Some(edge) = edge {
+            self.blocked.entry(self.scenario(edge)).or_insert(block);
+        } else {
+            self.blocked_start.get_or_insert(block);
+        }
+    }
+    fn setup_route(&self, edge: &Value) -> Result<Vec<Value>, Fault> {
+        if let Some(route) = &self.replay_setup {
+            return Ok(route.clone());
+        }
+        if !self.options.keep_going {
+            return self.model.setup(string(&edge["sourceVertexId"]));
+        }
+        let route = self
+            .model
+            .setup_where(string(&edge["sourceVertexId"]), |step| {
+                !self.blocked.contains_key(&self.scenario(step))
+            });
+        if self.blocked_start.is_none() && route.is_ok() {
+            return route;
+        }
+        let mut blockers = self.blocked_start.iter().cloned().collect::<Vec<_>>();
+        if blockers.is_empty() {
+            for step in self.model.setup(string(&edge["sourceVertexId"]))? {
+                if let Some(block) = self.blocked.get(&self.scenario(&step)) {
+                    blockers.push(block.clone());
+                }
+            }
+        }
+        if blockers.is_empty() {
+            return route;
+        }
+        Err(Fault {
+            status: "INCONCLUSIVE".into(),
+            message: "No verified setup route avoids the failed prerequisites".into(),
+            result: json!({"dependency_blocked":true,"reason":"Blocked by failed setup prerequisites","blocked_by":blockers}),
+        })
+    }
+    fn setup_check(
+        &mut self,
+        state: &str,
+        invalid: Vec<Value>,
+        edge: Option<&Value>,
+    ) -> Result<Value, Fault> {
+        self.check(state, invalid).map_err(|error| {
+            if self.options.keep_going && !error.is_run_fatal() {
+                self.block(edge, &error);
+            }
+            error
+        })
+    }
     fn setup(&mut self, edge: &Value) -> Result<(), Fault> {
         self.phase = "setup";
+        let route = self.setup_route(edge)?;
+        self.setup_path = route.iter().map(|e| e["id"].clone()).collect();
         let setup = (|| {
             if let Some(checkpoint) = &self.checkpoint {
                 self.target
@@ -539,26 +709,33 @@ impl<T: Target> Execution<'_, T> {
                 return Ok(());
             }
             self.reset()?;
-            self.check(self.model.start(), vec![])?;
-            for step in self.model.setup(string(&edge["sourceVertexId"]))? {
-                self.execute(&step, None)?;
+            self.setup_check(self.model.start(), vec![], None)?;
+            for step in route {
+                self.execute(&step, None).map_err(|error| {
+                    if self.options.keep_going && !error.is_run_fatal() {
+                        self.block(Some(&step), &error);
+                    }
+                    error
+                })?;
                 let invalid = if business(&step).get("data set").is_some() {
                     violations(self.model.fields(&step)?, &self.data)
                 } else {
                     vec![]
                 };
-                self.check(string(&step["targetVertexId"]), invalid)?;
+                self.setup_check(string(&step["targetVertexId"]), invalid, Some(&step))?;
             }
             Ok(())
         })();
         self.phase = "property";
         setup.map_err(|error: Fault| {
             if error.status == "FAIL" {
-                Fault {
+                let fatal = error.is_run_fatal();
+                let fault = Fault {
                     status: "INCONCLUSIVE".into(),
                     message: "The property setup journey did not reach its required state".into(),
                     result: json!({"setup_error":error}),
-                }
+                };
+                if fatal { fault.run_fatal() } else { fault }
             } else {
                 error
             }
@@ -567,7 +744,7 @@ impl<T: Target> Execution<'_, T> {
     fn attempt(&mut self, edge: &Value, data: Value, source: &str) -> Result<Value, Fault> {
         if self.input_attempts >= self.options.max_input_attempts {
             let mut error = Fault::unknown("Property execution exceeded its selected input scope");
-            error.result = json!({"input_limit":true,"attempted":false});
+            error.result = json!({"input_limit":true,"attempted":false,"run_fatal":true});
             return Err(error);
         }
         self.input_attempts += 1;
@@ -587,7 +764,7 @@ impl<T: Target> Execution<'_, T> {
             };
             s.check(string(expected), invalid.clone())
         });
-        let mut entry = json!({"input":data,"source":source,"violations":invalid,"journey":edge["id"],"setup_path":self.model.setup(string(&edge["sourceVertexId"]))?.iter().map(|e|e["id"].clone()).collect::<Vec<_>>(),"replay_recipe":{"kind":"property","model_hash":self.model.digest,"journey":edge["id"],"input":data,"seed":self.options.seed}});
+        let mut entry = json!({"input":data,"source":source,"violations":invalid,"journey":edge["id"],"setup_path":self.setup_path,"replay_recipe":{"kind":"property","model_hash":self.model.digest,"journey":edge["id"],"input":data,"seed":self.options.seed,"setup_path":self.setup_path}});
         match &result {
             Ok(value) => merge(&mut entry, value),
             Err(error) => {
@@ -606,48 +783,170 @@ impl<T: Target> Execution<'_, T> {
                 .unwrap()
                 .push(json!(case_index));
         }
-        let captured = self.event("case", entry.clone())?;
-        enrich(&mut entry, &captured);
+        let index = self.report["cases"].as_array().unwrap().len();
         self.report["cases"]
             .as_array_mut()
             .unwrap()
             .push(entry.clone());
+        let captured = self.event("case", entry.clone())?;
+        enrich(&mut entry, &captured);
+        self.report["cases"][index] = entry.clone();
         result.map_err(|mut error| {
+            let fatal = error.is_run_fatal();
             error.result = json!({"observation":error.result,"case":entry});
+            if fatal {
+                error = error.run_fatal();
+            }
             error
         })
+    }
+    fn graph_step(&mut self, item: &Value, invalid: Vec<Value>) -> Result<Value, Fault> {
+        let kind = if item.get("sourceVertexId").is_some() {
+            "edge"
+        } else {
+            "state"
+        };
+        self.activity = json!({"phase":"graph execution","walk":self.walk,"element":item});
+        let test = self.active.unwrap();
+        let index = self.report["steps"].as_array().unwrap().len();
+        let mut entry = json!({"id":item["id"],"name":item["name"],"kind":kind,"walk":self.walk,"test_id":self.report["tests"][test]["id"]});
+        self.report["tests"][test]["step_indices"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!(index));
+        self.report["steps"]
+            .as_array_mut()
+            .unwrap()
+            .push(entry.clone());
+        self.event("step", entry.clone())?;
+        let result = if kind == "edge" {
+            self.execute(item, None)
+                .map(|()| json!({"status":"EXECUTED"}))
+        } else {
+            self.check(string(&item["id"]), invalid)
+        };
+        match &result {
+            Ok(value) => merge(&mut entry, value),
+            Err(error) => {
+                merge(&mut entry, &error.result);
+                entry["status"] = json!(error.status);
+                entry["error"] = json!(error.message);
+            }
+        }
+        self.report["steps"][index] = entry.clone();
+        self.event("step.result", json!({"index":index,"entry":entry}))?;
+        result
     }
     fn walk(&mut self, path: &[Value], walk: usize) -> Result<(), Fault> {
         self.walk = Some(walk);
         self.phase = "graph";
         self.activity =
             json!({"phase":"graph reset","walk":walk,"seed":self.options.seed+walk as u64-1});
-        self.scoped("walk",self.context(Value::Null,json!([]),Value::Null),|s| {
-            s.reset()?;
-            let mut pending:Option<&Value>=None;
-            for (position,item) in path.iter().enumerate() {
-                if position==0 || item["kind"]=="edge" {s.begin(&format!("graph/{walk}/{position}/{}",string(&item["id"])))?;}
-                s.activity=json!({"phase":"graph execution","walk":walk,"element":item});
-                let test=s.active.unwrap();let index=s.report["steps"].as_array().unwrap().len();
-                let mut entry=json!({"id":item["id"],"name":item["name"],"kind":item["kind"],"walk":walk,"test_id":s.report["tests"][test]["id"]});
-                s.report["tests"][test]["step_indices"].as_array_mut().unwrap().push(json!(index));
-                s.report["steps"].as_array_mut().unwrap().push(entry.clone());s.event("step",entry.clone())?;
-                if item["kind"]=="edge" {
-                    s.execute(item,None)?;pending=Some(item);entry["status"]=json!("EXECUTED");
-                } else {
-                    let invalid=if let Some(edge)=pending.filter(|e|business(e).get("data set").is_some()) {violations(s.model.fields(edge)?,&s.data)}else{vec![]};
-                    match s.check(string(&item["id"]),invalid) {
-                        Ok(result)=>merge(&mut entry,&result),
-                        Err(error)=>{if error.result.is_object() {merge(&mut entry,&error.result);}entry["status"]=json!(error.status);s.report["steps"][index]=entry.clone();s.event("step.result",json!({"index":index,"entry":entry}))?;return Err(error);}
-                    }
-                    s.seen_states.insert(string(&item["id"]).into());
-                    if let Some(edge)=pending.take() {s.seen_edges.insert(string(&edge["id"]).into());}
+        self.scoped(
+            "walk",
+            self.context(Value::Null, json!([]), Value::Null),
+            |s| s.walk_cases(path, walk),
+        )
+    }
+    fn walk_cases(&mut self, path: &[Value], walk: usize) -> Result<(), Fault> {
+        self.reset()?;
+        let mut known = true;
+        for (position, item) in path
+            .iter()
+            .enumerate()
+            .filter(|(p, e)| *p == 0 || e["kind"] == "edge")
+        {
+            let id = format!("graph/{walk}/{position}/{}", string(&item["id"]));
+            let edge = (position != 0).then_some(item);
+            if self.options.keep_going {
+                let blocker = self
+                    .blocked_start
+                    .clone()
+                    .or_else(|| edge.and_then(|e| self.blocked.get(&self.scenario(e)).cloned()));
+                if let Some(blocker) = blocker {
+                    self.skip(&id, &json!({"reason":"Blocked by a failed fixed graph prerequisite","blocked_by":[blocker]}))?;
+                    known = false;
+                    continue;
                 }
-                s.report["steps"][index]=entry.clone();s.event("step.result",json!({"index":index,"entry":entry}))?;
-                if item["kind"]=="state" {s.finish("PASS",None)?;}
             }
-            Ok(())
-        })
+            if let Some(edge) = edge.filter(|_| !known) {
+                if let Err(block) = self.setup_route(edge) {
+                    if block.result["dependency_blocked"] == true {
+                        self.skip(&id, &block.result)?;
+                        continue;
+                    }
+                    return Err(block);
+                }
+                self.begin(&id)?;
+                self.activity = json!({"phase":"graph recovery","walk":walk,"element":item});
+                let setup_path = self
+                    .setup_route(edge)?
+                    .iter()
+                    .map(|e| e["id"].clone())
+                    .collect::<Vec<_>>();
+                let recovery = self.setup(edge);
+                self.report["recoveries"].as_array_mut().unwrap().push(json!({"test_id":id,"source":item["sourceVertexId"],"setup_path":setup_path,"status":if recovery.is_ok(){"PASS"}else{"INCONCLUSIVE"},"error":recovery.as_ref().err()}));
+                self.phase = "graph";
+                if let Err(error) = recovery {
+                    self.failed(&error)?;
+                    if error.is_run_fatal() {
+                        return Err(error);
+                    }
+                    continue;
+                }
+                let index = self.active.unwrap();
+                self.report["tests"][index]["replay_recipe"]["setup_path"] = json!(self.setup_path);
+            } else {
+                self.begin(&id)?;
+            }
+            self.phase = "graph";
+            let expected = if let Some(edge) = edge {
+                string(&edge["targetVertexId"])
+            } else {
+                string(&item["id"])
+            };
+            let mut checked = edge.is_none();
+            let result = (|| {
+                if let Some(edge) = edge {
+                    self.graph_step(edge, vec![])?;
+                    checked = true;
+                    let invalid = if business(edge).get("data set").is_some() {
+                        violations(self.model.fields(edge)?, &self.data)
+                    } else {
+                        vec![]
+                    };
+                    self.graph_step(&self.model.states[expected].clone(), invalid)
+                } else {
+                    self.graph_step(item, vec![])
+                }
+            })();
+            match result {
+                Ok(_) => {
+                    known = true;
+                    self.seen_states.insert(expected.into());
+                    if let Some(edge) = edge {
+                        self.seen_edges.insert(string(&edge["id"]).into());
+                    }
+                    self.finish("PASS", None)?;
+                }
+                Err(error) => {
+                    if !self.options.keep_going {
+                        return Err(error);
+                    }
+                    known = checked
+                        && error.result["observed"] == expected
+                        && error.result["checks"].is_array();
+                    if !known && !error.is_run_fatal() {
+                        self.block(edge, &error);
+                    }
+                    self.failed(&error)?;
+                    if error.is_run_fatal() {
+                        return Err(error);
+                    }
+                }
+            }
+        }
+        Ok(())
     }
     fn coverage(&self, campaign_total: usize) -> Value {
         let mut edges = self.seen_edges.iter().cloned().collect::<Vec<_>>();
@@ -670,6 +969,7 @@ fn enrich(destination: &mut Value, attachments: &Value) {
         "screenshot_error",
         "trace_range",
         "decision_range",
+        "hook_range",
         "attachments",
     ] {
         if let Some(value) = attachments.get(key) {
@@ -893,6 +1193,14 @@ pub fn run<T: Target>(
         activity: json!({"phase":"run setup"}),
         checkpoint: None,
         isolated_checkpoints: false,
+        blocked: HashMap::new(),
+        blocked_start: None,
+        setup_path: vec![],
+        replay_setup: replay
+            .as_ref()
+            .map(|recipe| saved_setup(model, recipe))
+            .transpose()?
+            .flatten(),
     };
     let outcome = (|| {
         execution.event("planned", execution.report.clone())?;
@@ -940,39 +1248,72 @@ pub fn run<T: Target>(
             execution.finish("PASS", None)?;
         } else {
             for (i, path) in paths.iter().enumerate() {
-                execution.walk(path, i + 1)?;
+                if let Err(error) = execution.walk(path, i + 1) {
+                    if !execution.options.keep_going || error.is_run_fatal() {
+                        return Err(error);
+                    }
+                    execution.failed(&error)?;
+                }
             }
             execution.walk = None;
             for campaign in &campaigns {
                 execution.checkpoint = None;
+                let mut passed = true;
                 for phase in &campaign.phases {
                     let id = format!(
                         "property/{}/{}",
                         string(&campaign.edge["id"]),
                         string(&phase["id"])
                     );
-                    execution.begin(&id)?;
-                    if execution.isolated_checkpoints && execution.checkpoint.is_none() {
-                        execution.setup(&campaign.edge)?;
-                        let handle = execution.target.call(
-                            "target.checkpoint",
-                            json!({"state":campaign.edge["sourceVertexId"]}),
-                        )?;
-                        execution.checkpoint = Some(
-                            json!({"handle":handle,"data":execution.data,"fields":execution.fields}),
-                        );
+                    if execution.options.keep_going
+                        && let Err(block) = execution.setup_route(&campaign.edge)
+                    {
+                        if block.result["dependency_blocked"] != true {
+                            return Err(block);
+                        }
+                        execution.skip(&id, &block.result)?;
+                        passed = false;
+                        continue;
                     }
+                    execution.begin(&id)?;
                     execution.activity = json!({"phase":"property campaign","element":{"id":campaign.edge["id"],"kind":"edge"},"data_set":business(&campaign.edge)["data set"]});
-                    properties::exercise(
-                        model.fields(&campaign.edge)?,
-                        phase,
-                        execution.options.seed,
-                        execution.options.shrink,
-                        |data| execution.attempt(&campaign.edge, data, string(&phase["source"])),
-                    )?;
-                    execution.finish("PASS", None)?;
+                    let result = (|| {
+                        if execution.isolated_checkpoints && execution.checkpoint.is_none() {
+                            execution.setup(&campaign.edge)?;
+                            let handle = execution.target.call(
+                                "target.checkpoint",
+                                json!({"state":campaign.edge["sourceVertexId"]}),
+                            )?;
+                            execution.checkpoint = Some(
+                                json!({"handle":handle,"data":execution.data,"fields":execution.fields}),
+                            );
+                        }
+                        properties::exercise(
+                            model.fields(&campaign.edge)?,
+                            phase,
+                            execution.options.seed,
+                            execution.options.shrink,
+                            |data| {
+                                execution.attempt(&campaign.edge, data, string(&phase["source"]))
+                            },
+                        )
+                    })();
+                    match result {
+                        Ok(()) => execution.finish("PASS", None)?,
+                        Err(error) => {
+                            if !execution.options.keep_going {
+                                return Err(error);
+                            }
+                            execution.checkpoint = None;
+                            passed = false;
+                            execution.failed(&error)?;
+                            if error.is_run_fatal() {
+                                return Err(error);
+                            }
+                        }
+                    }
                 }
-                if campaign.complete_scope {
+                if campaign.complete_scope && passed {
                     execution.completed_campaigns += 1;
                 }
             }
@@ -980,16 +1321,22 @@ pub fn run<T: Target>(
             if 100.0 * execution.seen_edges.len() as f64 / (model.edges.len() as f64)
                 < model.business["coverage"]["edges"].as_f64().unwrap()
             {
-                return Err(Fault::unknown(
-                    "Required verified edge coverage was not achieved",
-                ));
+                let error = Fault::unknown("Required verified edge coverage was not achieved");
+                if execution.options.keep_going {
+                    execution.record_failure(&error);
+                } else {
+                    return Err(error);
+                }
             }
             if 100.0 * execution.seen_states.len() as f64 / (model.states.len() as f64)
                 < model.business["coverage"]["states"].as_f64().unwrap()
             {
-                return Err(Fault::unknown(
-                    "Required verified state coverage was not achieved",
-                ));
+                let error = Fault::unknown("Required verified state coverage was not achieved");
+                if execution.options.keep_going {
+                    execution.record_failure(&error);
+                } else {
+                    return Err(error);
+                }
             }
             execution.activity = json!({"phase":"global requirements"});
             let mut unverified = model.business["rules"]
@@ -1018,10 +1365,15 @@ pub fn run<T: Target>(
                 if let Some(checks) = audit.as_array() {
                     execution.report["global_audit"] = audit.clone();
                     if checks.iter().any(|c| c["status"] == "broken") {
-                        return Err(Fault::defect(
+                        let error = Fault::defect(
                             "Observed scenarios violate a global business requirement",
-                            audit,
-                        ));
+                            audit.clone(),
+                        );
+                        if execution.options.keep_going {
+                            execution.record_failure(&error);
+                        } else {
+                            return Err(error);
+                        }
                     }
                     for check in checks.iter().filter(|c| c["status"] == "met") {
                         execution
@@ -1029,39 +1381,62 @@ pub fn run<T: Target>(
                             .insert(string(&check["rule"]).into());
                     }
                 }
-                unverified.retain(|r| !execution.verified_rules.contains(string(r)));
+                unverified.retain(|r| {
+                    !execution.verified_rules.contains(string(r))
+                        && !audit.as_array().is_some_and(|checks| {
+                            checks
+                                .iter()
+                                .any(|c| c["rule"] == *r && c["status"] == "broken")
+                        })
+                });
             }
             if !unverified.is_empty() {
-                return Err(Fault::unknown(format!(
+                let error = Fault::unknown(format!(
                     "Global requirements never verified: {}",
                     unverified.iter().map(string).collect::<Vec<_>>().join("; ")
-                )));
+                ));
+                if execution.options.keep_going {
+                    execution.record_failure(&error);
+                } else {
+                    return Err(error);
+                }
             }
         }
         Ok(())
     })();
-    execution.report["status"] = json!("PASS");
     if let Err(error) = &outcome {
-        execution.report["status"] = json!(error.status);
-        execution.report["error"] = json!(error.message);
-        execution.report["stop"] = execution.activity.clone();
-        execution.report["stop"]["exception"] = json!(if error.status == "FAIL" {
-            "Defect"
-        } else {
-            "Inconclusive"
-        });
-        execution.report["stop"]["reason"] = json!(error.message);
-        if let Some(traceback) = error.result.get("traceback") {
-            execution.report["stop"]["traceback"] = traceback.clone();
-        }
-        if !error.result.is_null() {
-            execution.report["failure"] = error.result.clone();
-        }
-        if error.status == "FAIL" && !error.result["case"].is_null() {
-            execution.report["counterexample"] = error.result["case"].clone();
+        execution.record_failure(error);
+        if !execution.options.keep_going || error.is_run_fatal() {
+            let mut terminal = if execution.report["terminal_stop"].is_object() {
+                execution.report["terminal_stop"].clone()
+            } else {
+                execution.activity.clone()
+            };
+            if terminal["reason"].is_null() {
+                terminal["reason"] = json!(error.message);
+            }
+            terminal["test_id"] = execution
+                .active
+                .map(|i| execution.report["tests"][i]["id"].clone())
+                .unwrap_or_else(|| execution.report["terminal_stop"]["test_id"].clone());
+            execution.report["terminal_stop"] = terminal;
         }
         if let Err(cleanup) = execution.finish(&error.status, Some(&error.message)) {
             cleanup_error(&mut execution.report, cleanup);
+        }
+    }
+    if execution.report["status"] == "RUNNING" {
+        execution.report["status"] = json!("PASS");
+    }
+    if execution.report["status"] != "FAIL" {
+        let defect = execution.report["cleanup_failures"]
+            .as_array()
+            .and_then(|faults| faults.iter().find(|fault| fault["status"] == "FAIL"))
+            .cloned();
+        if let Some(defect) = defect {
+            execution.report["status"] = json!("FAIL");
+            execution.report["error"] = defect["message"].clone();
+            execution.report["failure"] = defect["result"].clone();
         }
     }
     execution.report["input_attempts"] = json!(execution.input_attempts);
@@ -1079,10 +1454,12 @@ pub fn run<T: Target>(
     ) {
         cleanup_error(&mut execution.report, error);
     }
-    let reason = execution.report["error"]
+    let reason = execution.report["terminal_stop"]["reason"]
         .as_str()
+        .or(execution.report["error"].as_str())
         .unwrap_or("Run ended before this planned test was reached")
         .to_owned();
+    let terminal = execution.report["terminal_stop"].clone();
     for test in execution.report["tests"]
         .as_array_mut()
         .unwrap()
@@ -1091,6 +1468,10 @@ pub fn run<T: Target>(
     {
         test["status"] = json!("SKIPPED");
         test["reason"] = json!(format!("Not reached: {reason}"));
+        test["stop"] = terminal.clone();
+        if !terminal["test_id"].is_null() {
+            test["blocked_by"] = json!([{ "id":terminal["test_id"],"reason":reason }]);
+        }
     }
     let mut summary = json!({});
     for status in ["PASS", "FAIL", "INCONCLUSIVE", "SKIPPED"] {
@@ -1106,7 +1487,7 @@ pub fn run<T: Target>(
     execution.report["test_summary"] = summary;
     Ok(execution.report)
 }
-fn cleanup_error(report: &mut Value, error: Fault) {
+fn record_cleanup_error(report: &mut Value, error: Fault) {
     if report.get("cleanup_errors").is_none() {
         report["cleanup_errors"] = json!([]);
     }
@@ -1114,7 +1495,17 @@ fn cleanup_error(report: &mut Value, error: Fault) {
         .as_array_mut()
         .unwrap()
         .push(json!(error.message));
-    if report["status"] == "PASS" {
+    if !report["cleanup_failures"].is_array() {
+        report["cleanup_failures"] = json!([]);
+    }
+    report["cleanup_failures"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!(error));
+}
+fn cleanup_error(report: &mut Value, error: Fault) {
+    record_cleanup_error(report, error.clone());
+    if report["status"] == "PASS" || (error.status == "FAIL" && report["status"] != "FAIL") {
         report["status"] = json!(error.status);
         report["error"] = json!(error.message);
     }

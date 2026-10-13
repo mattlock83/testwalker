@@ -13,25 +13,24 @@ npm ci
 npm run build --workspace @testwalker/discover
 ```
 
-For a local example, start the Hello World site in one terminal:
-
-```bash
-npm run build --workspace @testwalker/web
-npx --no-install testwalker-web serve \
-  --directory demos/hello-world/site --port 4185
-```
-
-In another terminal, explore one interaction layer:
+To explore an already hosted site, replace the URL below with its address:
 
 ```bash
 npx --no-install testwalker-discover discover-url \
-  --url http://127.0.0.1:4185/ --output models/hello-world.model.json \
+  --url https://your-test-site.example/ --output models/site.model.json \
   --depth 1 --headed
 ```
 
-The web package is used only to host this local example. For an already hosted site, use its URL directly; discovery itself has no web-adapter dependency.
+For a working local example, build the web package to host Hello World, then run its discovery script:
 
-Choose a new output name for each run. Existing output files are not overwritten.
+```bash
+npm run build --workspace @testwalker/web
+./demos/hello-world/discover.sh --headed
+```
+
+The script starts the site on a free port, explores it, saves a timestamped model draft and closes the server. It also explores buttons and empty form submissions. No separate server terminal or Rust build is needed. The web package only hosts this example; discovery itself has no web-adapter dependency.
+
+For direct CLI commands, choose a new output name for each run; existing output files are not overwritten. Demo scripts choose a new timestamped filename automatically.
 
 ## Output
 

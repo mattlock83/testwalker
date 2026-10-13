@@ -46,7 +46,7 @@ The OpenRPC contract is the complete schema reference. Main methods are:
 | `property.exercise`                                                         | Run Hegel independently of a graph, with `property.evaluate` callbacks.            |
 | `core.shutdown`                                                             | Exit when no run is active.                                                        |
 
-Worker execution options include `seed`, `walks`, `max_steps`, `cases`, `input_mode`, `input_strategies`, `custom_strategies`, `shrink`, `max_input_attempts`, `keep_target_open`, `evaluator` and optional imported `paths`. Unknown options are rejected. Direct worker defaults include `max_steps:200` and `evaluator:"core"`; the native CLI defaults to 1000 and `adapter` instead.
+Worker execution options include `seed`, `walks`, `max_steps`, `cases`, `input_mode`, `input_strategies`, `custom_strategies`, `shrink`, `max_input_attempts`, `keep_target_open`, `keep_going`, `evaluator` and optional imported `paths`. Unknown options are rejected. Direct worker defaults include `max_steps:200` and `evaluator:"core"`; the native CLI defaults to 1000 and `adapter` instead.
 
 Planning does not call custom strategy providers. During execution, custom domains are bound before target initialization and included in the authoritative planned event.
 
@@ -91,7 +91,7 @@ Checkpoint callbacks are enabled only by `capabilities.isolated_checkpoints:true
 
 Supply `output` to persist a worker run or replay. Rust creates a unique child directory and saves the effective model and plan. It announces the directory in the `planned` event and `target.initialize.config.directory`. Without `output`, worker results remain in memory and `directory` is null.
 
-Event types are `planned`, `test.begin`, `step`, `step.result`, `case` and `test.end`. Returns from `case` or `test.end` may include `screenshot`, `screenshot_at`, `screenshot_error`, `trace_range`, `decision_range` and `attachments`. Core inputs and verdicts remain authoritative.
+Event types are `planned`, `test.begin`, `step`, `step.result`, `case` and `test.end`. Returns from `case` or `test.end` may include `screenshot`, `screenshot_at`, `screenshot_error`, `trace_range`, `decision_range`, `hook_range` and `attachments`. Core inputs and verdicts remain authoritative.
 
 After cleanup, Rust writes HTML, JSON, JUnit and replay files. The adapter may capture evidence into that directory but does not format reports. See [report contents](../../testwalker-web/docs/testing.md#results-and-reports).
 
@@ -102,3 +102,7 @@ First-page metadata may contain loaded hook metadata, usage, browser retention o
 Provider transcripts can be omitted from a large RPC response with a `decision_audit` reference. Fetch them through `decision.audit` until `next_offset` is null. Framework-written reports retain the transcript, and the HTML viewer loads chunks on demand.
 
 For a complete browser-free integration, see [the built-in RPC target and self-test](rpc-testing.md). For JS/TS browser extensions, see [web hooks](../../testwalker-web/docs/hooks.md).
+
+## Continuation policy
+
+`options.keep_going` defaults to false. When enabled, Rust retains each failed/inconclusive case and continues independent work after verified reset/setup. Adapter faults may set `result.run_fatal: true` for shared infrastructure failures; transport, provider, reset and event persistence failures are marked by the native host. A business contradiction or uncertain state must not use that marker merely to request fail-fast. See [the continuation guide](continuation.md). Recorded replay recipes may include `setup_path`, a connected list of modeled journey IDs from the start to the case source; replay preserves that actual setup route.

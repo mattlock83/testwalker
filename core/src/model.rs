@@ -338,6 +338,13 @@ impl Model {
         string(&self.graph["startElementId"])
     }
     pub fn setup(&self, target: &str) -> Result<Vec<Value>, Fault> {
+        self.setup_where(target, |_| true)
+    }
+    pub fn setup_where(
+        &self,
+        target: &str,
+        allowed: impl Fn(&Value) -> bool,
+    ) -> Result<Vec<Value>, Fault> {
         let mut queue = VecDeque::from([(self.start().to_owned(), Vec::new())]);
         let mut seen = HashSet::new();
         while let Some((state, path)) = queue.pop_front() {
@@ -350,7 +357,7 @@ impl Model {
             for edge in self
                 .edges
                 .values()
-                .filter(|e| string(&e["sourceVertexId"]) == state)
+                .filter(|e| string(&e["sourceVertexId"]) == state && allowed(e))
             {
                 let mut next = path.clone();
                 next.push(edge.clone());

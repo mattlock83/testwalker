@@ -12,8 +12,7 @@ Run `testwalker --help` for the command-line reference. Build and PATH setup are
 
 ```bash
 testwalker run --model /path/to/model.json \
-  --adapter /path/to/adapter --config /path/to/run.json \
-  --output artifacts
+  --adapter /path/to/adapter --config /path/to/run.json
 ```
 
 An adapter implements the [target protocol](protocol.md). It may be a binary or executable script. To run a script through its runtime, supply that runtime as the executable and the script as an argument:
@@ -84,10 +83,13 @@ These are CLI defaults when configuration does not override them. Direct worker 
 | `--no-shrink`                             | Disable shrinking; failure reproduction can still occur.                               |
 | `--timeout SECONDS`                       | Deadline per callback; 120 for adapter runs, 30 for RPC targets.                       |
 | `--output DIR`                            | Report parent; defaults to `artifact/` beside the supplied model.                      |
+| `--keep-going`                            | Continue independent selected work after failures; off by default.                     |
 
 Input strategies and scope selection are described in [Hegel strategies](input-strategies.md). `decision.max_calls` bounds provider calls; the web CLI also exposes it as `--max-calls`. It is separate from the input-attempt allowance.
 
 An input limit selects work before execution. Unselected phases are outside scope. A provider or action limit that blocks selected work makes the run inconclusive. Reaching the input allowance during failure minimization preserves the observed defect, with a note that it may not be minimal.
+
+See [keep-going execution](continuation.md) for graph recovery, dependency skips, property-phase isolation and run-wide stops.
 
 ## Graph walk modes
 
