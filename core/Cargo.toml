@@ -2,6 +2,7 @@
 default-run = "testwalker"
 name = "testwalker-core"
 version = "4.0.0"
+publish = false
 edition = "2024"
 rust-version = "1.88"
 description = "Target-independent graph and property testing with a JSON-RPC adapter boundary"
@@ -22,7 +23,7 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 [dev-dependencies]
 jsonschema = { version = "0.58", default-features = false }
 
-# A Rust subprocess fixture; it is not distributed in browser wheels.
+# A Rust subprocess fixture; it is not included in the local Node package.
 [[bin]]
 name = "testwalker-rpc-test-peer"
 path = "tests/support/rpc_peer.rs"

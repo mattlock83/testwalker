@@ -45,7 +45,7 @@ Stop preview with Ctrl+C before testing on the same port.
 
 ## Regression checks
 
-With Rust executables on PATH:
+After the local package build:
 
 ```bash
 npm test --workspace @testwalker/demo-hello-world

@@ -40,4 +40,4 @@ npx --no-install testwalker-web serve --directory demos/booking/site --port 4183
 npm test --workspace @testwalker/demo-booking
 ```
 
-Planning and preview need no Jev key. Stop preview before testing on its port. Regression tests use installed Rust executables and deterministic checks. See [test scope and results](../../testwalker-web/docs/testing.md).
+Planning and preview need no Jev key. Stop preview before testing on its port. Regression tests use packaged Rust executables and deterministic checks. See [test scope and results](../../testwalker-web/docs/testing.md).

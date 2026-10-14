@@ -40,4 +40,4 @@ npx --no-install testwalker-web serve --directory demos/feedback/site --port 418
 npm test --workspace @testwalker/demo-feedback
 ```
 
-Planning and preview need no Jev key. Stop preview before testing on the same port. Regression tests use installed Rust executables. See [scope, reports and replay](../../testwalker-web/docs/testing.md).
+Planning and preview need no Jev key. Stop preview before testing on the same port. Regression tests use packaged Rust executables. See [scope, reports and replay](../../testwalker-web/docs/testing.md).

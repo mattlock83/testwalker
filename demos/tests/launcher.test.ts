@@ -5,7 +5,7 @@ import { mkdtemp, readFile, writeFile, chmod, rm } from "node:fs/promises";
 import { createServer } from "node:net";
 import { once } from "node:events";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const demos = fileURLToPath(new URL("..", import.meta.url));
@@ -173,7 +173,8 @@ const fs = require('node:fs');
           assert.ok(observed.args.includes(join(demos, site, "model.json")));
           assert.ok(
             observed.args.includes(
-              "--adapter-arg=" + resolve("testwalker-web/dist/main.js"),
+              "--adapter-arg=" +
+                fileURLToPath(import.meta.resolve("@testwalker/web/adapter")),
             ),
           );
           assert.equal(

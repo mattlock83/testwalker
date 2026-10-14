@@ -11,12 +11,11 @@ For the web demos, install Rust 1.88 or later, Node.js 22 or later, npm and Goog
 Run these commands from the repository root:
 
 ```bash
-cargo build --release --locked --manifest-path core/Cargo.toml \
-  --bin testwalker --bin testwalker-core
 npm ci
 npm run build
-export PATH="$PWD/core/target/release:$PATH"
 ```
+
+The build prepares local `@testwalker/core`, `@testwalker/web` and `@testwalker/discover` packages. npm links them into `node_modules`; demos use package imports and the bundled Rust executables, with no PATH setup. Nothing is published. See [local packages](docs/local-packages.md) for archive creation and standalone installation.
 
 Create the Hello World run configuration, then edit `decision.api_key` to contain your Jev key:
 
@@ -87,11 +86,11 @@ The core builds with Cargo alone. The web and discovery packages build with npm.
 
 ## Development checks
 
-From the repository root, with the executables on PATH as above:
+After the build, run from the repository root:
 
 ```bash
 cargo test --locked --manifest-path core/Cargo.toml
-testwalker self-test
+npx --no-install testwalker self-test
 npm run check
 npm test
 ```

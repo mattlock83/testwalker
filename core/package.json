@@ -1,0 +1,35 @@
+{
+  "name": "@testwalker/core",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Local native Testwalker framework executables and Node path helpers",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./node/index.d.ts",
+      "import": "./node/index.js"
+    }
+  },
+  "bin": {
+    "testwalker": "./node/bin/testwalker.js",
+    "testwalker-core": "./node/bin/testwalker-core.js"
+  },
+  "files": [
+    "node/index.js",
+    "node/index.d.ts",
+    "node/bin",
+    "native",
+    "README.md",
+    "docs",
+    "openrpc.json",
+    "openrpc.adapter.json",
+    "models"
+  ],
+  "scripts": {
+    "build": "node node/build.mjs",
+    "test": "node --test node/tests/*.test.mjs"
+  }
+}

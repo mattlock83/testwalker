@@ -1,0 +1,15 @@
+{
+  "name": "@testwalker/demos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@testwalker/web": "4.0.0",
+    "@testwalker/discover": "1.0.0"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}

@@ -16,6 +16,12 @@ testwalker self-test
 
 The self-test uses [models/rpc-selftest.json](models/rpc-selftest.json) to test a separate worker through JSON-RPC. It uses deterministic assertions and needs no browser, Node.js or API key.
 
+## Local Node package
+
+The same Rust CLI and worker can be consumed as the private local `@testwalker/core` package. From the repository root, `npm ci && npm run build` builds the Rust executables and Node packages. `npx --no-install testwalker self-test` then runs the packaged CLI without PATH setup. The Rust implementation still builds directly with Cargo as above.
+
+The Node module exports `frameworkPath()` and `workerPath()` to resolve the bundled native executables. It does not implement the test engine or compile Rust at runtime. [Local package archives](../docs/local-packages.md) include binaries for the build machine's platform and architecture. Nothing is published.
+
 ## Executables
 
 | Command                | Purpose                                                                            |

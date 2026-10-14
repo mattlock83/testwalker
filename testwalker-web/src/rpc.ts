@@ -1,3 +1,4 @@
+import { workerPath } from "@testwalker/core";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import type { Readable, Writable } from "node:stream";
@@ -165,7 +166,7 @@ export class CoreClient implements Rpc {
   readonly child: ChildProcessWithoutNullStreams;
   readonly peer: JsonRpcPeer;
   constructor(
-    executable = process.env.TESTWALKER_CORE_BIN ?? "testwalker-core",
+    executable = process.env.TESTWALKER_CORE_BIN ?? workerPath(),
     handler?: Handler,
   ) {
     this.child = spawn(executable, [], { stdio: ["pipe", "pipe", "pipe"] });

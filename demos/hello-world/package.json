@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "test": "node --import tsx --test tests/*.test.ts",
-    "demo": "bash run.sh"
+    "demo": "bash run.sh",
+    "discover": "bash discover.sh"
   },
   "dependencies": {
-    "@testwalker/web": "*"
+    "@testwalker/web": "4.0.0",
+    "@testwalker/discover": "1.0.0"
   }
 }

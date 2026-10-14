@@ -4,9 +4,8 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { serve } from "../testwalker-web/dist/server.js";
+import { serve } from "@testwalker/web";
 
-const repo = fileURLToPath(new URL("..", import.meta.url));
 const [directory, ...args] = process.argv.slice(2);
 const signals = { SIGINT: 130, SIGTERM: 143 };
 let server, child, stopped;
@@ -65,7 +64,7 @@ try {
       process.execPath,
       [
         process.env.TESTWALKER_DISCOVER_CLI ??
-          join(repo, "testwalker-discover/bin/cli.js"),
+          fileURLToPath(new URL("./discover-cli.mjs", import.meta.url)),
         "discover-url",
         ...(help ? [] : ["--url", hosting.url]),
         ...forwarded,

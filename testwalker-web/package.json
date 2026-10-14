@@ -11,7 +11,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./adapter": "./bin/adapter.js"
   },
   "bin": {
     "testwalker-web": "./bin/cli.js",
@@ -31,7 +36,8 @@
   },
   "dependencies": {
     "playwright": "1.64.0",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "@testwalker/core": "4.0.0"
   },
   "devDependencies": {
     "@types/node": "24.0.0",

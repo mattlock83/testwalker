@@ -1,0 +1,13 @@
+{
+  "name": "@testwalker/demo-saucedemo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "bash test.sh",
+    "discover": "bash discover.sh"
+  },
+  "dependencies": {
+    "@testwalker/web": "4.0.0",
+    "@testwalker/discover": "1.0.0"
+  }
+}

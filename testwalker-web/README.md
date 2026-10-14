@@ -4,9 +4,11 @@ The web adapter executes business models against websites using Playwright and J
 
 ## Setup
 
-Follow the repository's [build and run guide](../README.md#build-and-run). Web execution needs Google Chrome, the built Rust executable and a Jev API key. Run commands below from the repository root with `core/target/release` on PATH.
+Follow the repository's [build and run guide](../README.md#build-and-run). Web execution needs Google Chrome, the built Rust executable and a Jev API key. Run commands below from the repository root after building the local workspace packages.
 
-The framework executable is selected by `--framework /absolute/path/to/testwalker`, `TESTWALKER_BIN`, or PATH. Public `CoreClient` utilities use `TESTWALKER_CORE_BIN` or `testwalker-core` on PATH.
+The framework executable is selected by `--framework /absolute/path/to/testwalker`, `TESTWALKER_BIN`, or the bundled `@testwalker/core` executable. Public `CoreClient` utilities use `TESTWALKER_CORE_BIN` or the packaged worker. Neither default searches PATH or runs Cargo.
+
+The public modules are `@testwalker/web` for hooks/browser helpers and `@testwalker/web/cli` for the launcher's `main(argv)` function. See [local packages](../docs/local-packages.md) for local archives and installation outside the checkout.
 
 ## Test an existing website
 

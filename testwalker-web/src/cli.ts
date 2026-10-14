@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { frameworkPath } from "@testwalker/core";
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { realpathSync } from "node:fs";
@@ -187,7 +188,9 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     const args = ["run", "--model", model, "--config", "-", ...native];
     if (planning) args.push("--plan");
     else {
-      const adapter = fileURLToPath(new URL("./main.js", import.meta.url));
+      const adapter = fileURLToPath(
+        import.meta.resolve("@testwalker/web/adapter"),
+      );
       args.push("--adapter", process.execPath, "--adapter-arg=" + adapter);
       const browserConfig =
         v["browser-config"] ??
@@ -210,7 +213,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       if (v["strategy-provider"]) args.push("--custom-strategies");
     }
     return await childRun(
-      v.framework ?? process.env.TESTWALKER_BIN ?? "testwalker",
+      v.framework ?? process.env.TESTWALKER_BIN ?? frameworkPath(),
       args,
       config,
     );

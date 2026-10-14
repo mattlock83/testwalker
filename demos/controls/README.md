@@ -66,6 +66,6 @@ npm test --workspace @testwalker/demo-controls
 TESTWALKER_BROWSER_TESTS=1 npm test --workspace @testwalker/demo-controls
 ```
 
-Stop preview before testing on its port. Regression tests consume the public adapter API and installed Rust executable, without a Jev key. Browser checks need Chrome.
+Stop preview before testing on its port. Regression tests consume the public adapter API and packaged Rust executable, without a Jev key. Browser checks need Chrome.
 
 The checked-in [verification record](verification.json) contains a measured full-graph, 21-input run; its report paths refer to ignored local artifacts. See [testing and debugging](../../testwalker-web/docs/testing.md) for current run reports.

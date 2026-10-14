@@ -85,6 +85,6 @@ Paths below are relative to the repository root.
 | `testwalker-web/src/extensions.ts`                                                                                                | Explicit hooks and custom input domain providers.                               |
 | `testwalker-discover/src/`                                                                                                        | Independent website exploration, model export and viewer.                       |
 
-The core builds with Cargo alone. The Node packages consume installed executables through JSON-RPC and do not compile Rust. Demo sites and their models live outside the packages in `demos/`.
+The Rust core builds with Cargo alone. Its optional `@testwalker/core` Node package bundles the compiled CLI and worker, exposing executable paths and npm commands. The root npm build builds that native package before the web and discovery packages. Runtime consumers never compile Rust. The web package calls its bundled executables through JSON-RPC; discovery has no Rust dependency. Demo sites and models live in `demos/` and import the packages through `node_modules`. See [local packaging](../../docs/local-packages.md).
 
 Continue with [the CLI](cli.md), [the adapter contract](protocol.md), or [RPC testing](rpc-testing.md).
