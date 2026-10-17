@@ -111,7 +111,7 @@ All decision calls use the framework's provider budget, confidence gate, cache a
 - [Lifecycle hooks](docs/hooks.md): backend reset, custom controls and deterministic assertions.
 - [Input strategies](../core/docs/input-strategies.md): JSON policies and custom Hegel domains.
 - [Adapter protocol](../core/docs/protocol.md): executable integration contract.
-- [Discovery](../testwalker-discover/README.md): separate model-draft tool.
+- [web-discover](https://github.com/mattlock83/web-discover): separate model-draft tool.
 
 From the repository root:
 

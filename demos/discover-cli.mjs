@@ -1,4 +1,4 @@
-import { main } from "@testwalker/discover/cli";
+import { main } from "web-discover/cli";
 
 try {
   process.exitCode = await main();

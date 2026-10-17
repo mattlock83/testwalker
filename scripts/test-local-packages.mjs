@@ -17,13 +17,15 @@ try {
   );
   const packages = Object.fromEntries(
     Object.entries(workspaceLock.packages).filter(
-      ([path, entry]) => path.startsWith("node_modules/") && !entry.link,
+      ([path, entry]) =>
+        path.startsWith("node_modules/") &&
+        path !== "node_modules/web-discover" &&
+        !entry.link,
     ),
   );
   for (const [name, directory] of [
     ["@testwalker/core", "core"],
     ["@testwalker/web", "testwalker-web"],
-    ["@testwalker/discover", "testwalker-discover"],
   ]) {
     const pkg = JSON.parse(
       await readFile(join(root, directory, "package.json"), "utf8"),
@@ -75,33 +77,24 @@ import assert from 'node:assert/strict';
 import {frameworkPath, workerPath} from '@testwalker/core';
 import {CoreClient, Hooks, serve} from '@testwalker/web';
 import {main as web} from '@testwalker/web/cli';
-import {buildModel} from '@testwalker/discover';
-import {main as discover} from '@testwalker/discover/cli';
 assert.equal(typeof Hooks, 'function'); assert.equal(typeof serve, 'function');
-assert.equal(typeof buildModel, 'function'); assert.equal(typeof discover, 'function');
 assert.ok(frameworkPath().startsWith(process.cwd())); assert.ok(workerPath().startsWith(process.cwd()));
 const core = new CoreClient();
 try { assert.ok(await core.request('core.info')); } finally { await core.close(); }
 assert.equal(await web(['plan', '--model', './model.json']), 0);
-assert.equal(await discover(['--help']), 0);
 `,
   );
   await copyFile(
     join(root, "demos/hello-world/model.json"),
     join(temp, "model.json"),
   );
-  const output = execFileSync(process.execPath, ["probe.mjs"], {
+  execFileSync(process.execPath, ["probe.mjs"], {
     cwd: temp,
     env,
     encoding: "utf8",
     maxBuffer: 32 * 1024 * 1024,
   });
-  assert.match(output, /no Jev or Rust needed/);
-  for (const command of [
-    "testwalker",
-    "testwalker-web",
-    "testwalker-discover",
-  ]) {
+  for (const command of ["testwalker", "testwalker-web"]) {
     const help = execFileSync(
       process.execPath,
       [join(temp, "node_modules/.bin", command), "--help"],

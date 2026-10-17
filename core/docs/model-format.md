@@ -173,7 +173,7 @@ Generated values are inserted literally. Before submission, the framework verifi
 
 ## External authoring and validation
 
-Author models separately in GraphWalker, through its editor or MCP. The separate [discovery utility](../../testwalker-discover/README.md) can bootstrap a draft from observed pages; refine its navigation and add independent business expectations before testing. The exported JSON must carry this business metadata.
+Author models separately in GraphWalker, through its editor or MCP. The separate [web-discover utility](https://github.com/mattlock83/web-discover) can bootstrap a draft from observed pages; refine its navigation and add independent business expectations before testing. The exported JSON must carry this business metadata.
 
 For stdio JSON-RPC targets, add the optional `properties.rpc` profile alongside `properties.business`. It binds journeys to requests and business requirements to deterministic response predicates. See [RPC models and self-testing](rpc-testing.md); web models continue to use business metadata alone.
 

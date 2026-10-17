@@ -1,6 +1,6 @@
 # Discover Sauce Demo
 
-The independent [discovery tool](../../../testwalker-discover/README.md) can explore the external demo site with synthetic input values, without Jev or Rust. Commands run from the repository root after the Node build.
+The independent [web-discover tool](https://github.com/mattlock83/web-discover) can explore the external demo site with synthetic input values, without Jev or Rust. Commands run from the repository root after the Node build.
 
 For the automatic launcher, run `./demos/saucedemo/discover.sh --headed` from the repository root. It loads the included synthetic values and explores the hosted site and saves a new timestamped model. Additional discovery flags override its defaults. The manual commands below are useful when you manage the site or output paths yourself.
 
@@ -9,7 +9,7 @@ For the automatic launcher, run `./demos/saucedemo/discover.sh --headed` from th
 The included [values.json](values.json) supplies the demo login and synthetic checkout names/postcode:
 
 ```bash
-npx --no-install testwalker-discover discover-url \
+npx --no-install web-discover discover-url \
   --url https://www.saucedemo.com/ \
   --output demos/saucedemo/sauce-draft.model.json \
   --values demos/saucedemo/discovery/values.json \
@@ -25,7 +25,7 @@ This command can perform synthetic demo checkout and replay earlier submissions.
 For a smaller menu/sorting sample, reduce depth and exclude item-addition buttons:
 
 ```bash
-npx --no-install testwalker-discover discover-url \
+npx --no-install web-discover discover-url \
   --url https://www.saucedemo.com/ \
   --output demos/saucedemo/sauce-menu.model.json \
   --values demos/saucedemo/discovery/values.json \
@@ -38,7 +38,7 @@ npx --no-install testwalker-discover discover-url \
 The viewer can combine inventories with identical seed lists. Replace `DRAFT_RUN` and `MENU_RUN` with the timestamped run folders printed by discovery:
 
 ```bash
-npx --no-install testwalker-discover report \
+npx --no-install web-discover report \
   --inventory demos/saucedemo/artifact/DRAFT_RUN/sauce-draft.discovery.json \
   --inventory demos/saucedemo/artifact/MENU_RUN/sauce-menu.discovery.json \
   --output artifacts/sauce-overview/index.html
@@ -60,4 +60,4 @@ The checked-in [model](../model.json) is a previous discovery draft with 63 stat
 
 Review state distinctions, outgoing routes, acceptance/rejection states and independent business rules before expecting full graph execution. Fixed observed inputs are replay examples, not validation specifications. Add reviewed data sets to enable Hegel campaigns.
 
-[comparison.json](comparison.json) and [summary.json](summary.json) retain historical collection records. Their artifact paths refer to ignored local runs, not files required by a fresh checkout. The discovery package's [reference](../../../testwalker-discover/docs/discovery.md) describes current behavior and limits.
+[comparison.json](comparison.json) and [summary.json](summary.json) retain historical collection records. Their artifact paths refer to ignored local runs, not files required by a fresh checkout. The discovery package's [reference](https://github.com/mattlock83/web-discover/blob/main/docs/discovery.md) describes current behavior and limits.

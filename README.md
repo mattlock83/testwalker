@@ -15,7 +15,7 @@ npm ci
 npm run build
 ```
 
-The build prepares local `@testwalker/core`, `@testwalker/web` and `@testwalker/discover` packages. npm links them into `node_modules`; demos use package imports and the bundled Rust executables, with no PATH setup. Nothing is published. See [local packages](docs/local-packages.md) for archive creation and standalone installation.
+The build prepares local `@testwalker/core` and `@testwalker/web` packages. npm links them into `node_modules`; demos use package imports and the bundled Rust executables, with no PATH setup. Discovery demos use the separate [web-discover](https://github.com/mattlock83/web-discover) tool, installed from its repository by `npm ci`. See [local packages](docs/local-packages.md) for archive creation and standalone installation.
 
 Create the Hello World run configuration, then edit `decision.api_key` to contain your Jev key:
 
@@ -69,7 +69,7 @@ See [testing and debugging](testwalker-web/docs/testing.md) for scope, budgets a
 | Test your own website                     | [Web adapter](testwalker-web/README.md)                                              |
 | Write or refine a model                   | [Business model format](core/docs/model-format.md)                                   |
 | Tune input generation                     | [Hegel strategies](core/docs/input-strategies.md)                                    |
-| Discover pages and create a draft         | [Discovery tool](testwalker-discover/README.md)                                      |
+| Discover pages and create a draft         | [web-discover](https://github.com/mattlock83/web-discover)                             |
 | Build an adapter in another language      | [Architecture](core/docs/architecture.md), [adapter protocol](core/docs/protocol.md) |
 | Test a JSON-RPC service without a browser | [RPC testing](core/docs/rpc-testing.md)                                              |
 
@@ -79,10 +79,9 @@ See [testing and debugging](testwalker-web/docs/testing.md) for scope, budgets a
 | ---------------------- | ---------------------------------------------------------------------------------------- |
 | `core/`                | Rust CLI, worker, graph/property engine, reports, OpenRPC contracts and self-test model. |
 | `testwalker-web/`      | TypeScript web adapter, browser configuration and lifecycle extensions.                  |
-| `testwalker-discover/` | Independent Crawlee/Playwright discovery and static results viewer.                      |
 | `demos/`               | Local sites, their models and tests, plus the external Sauce Demo draft.                 |
 
-The core builds with Cargo alone. The web and discovery packages build with npm. Discovery requires neither Rust nor Jev. Model authoring happens outside the runner, for example in GraphWalker Studio.
+The core builds with Cargo alone. The web package builds with npm. [web-discover](https://github.com/mattlock83/web-discover) is maintained in its own repository and requires neither Rust nor Jev. Model authoring happens outside the runner, for example in GraphWalker Studio.
 
 ## Development checks
 

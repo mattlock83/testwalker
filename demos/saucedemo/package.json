@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "@testwalker/web": "4.0.0",
-    "@testwalker/discover": "1.0.0"
+    "web-discover": "github:mattlock83/web-discover#0cf2db2454e545fbe95897d187eda6a57b8a5ff3"
   }
 }

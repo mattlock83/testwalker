@@ -1,6 +1,6 @@
 # Discover Trailhead
 
-This example explores the local synthetic site with the independent [discovery tool](../../../testwalker-discover/README.md). Discovery uses Crawlee and Playwright without a decision key; it does not run the authored Trailhead regression model.
+This example explores the local synthetic site with the independent [web-discover tool](https://github.com/mattlock83/web-discover). Discovery uses Crawlee and Playwright without a decision key; it does not run the authored Trailhead regression model.
 
 For the automatic launcher, run `./demos/trailhead/discover.sh --headed` from the repository root. It starts and stops Trailhead's backend and website and saves a new timestamped model. Additional discovery flags override its defaults. The manual commands below are useful when you manage the site or output paths yourself.
 
@@ -16,7 +16,7 @@ npx --no-install testwalker-web serve --directory demos/trailhead/site \
 In another terminal, choose a new output name and collect navigation, controls and empty-form outcomes:
 
 ```bash
-npx --no-install testwalker-discover discover-url \
+npx --no-install web-discover discover-url \
   --url http://127.0.0.1:4191/ \
   --output demos/trailhead/trailhead-draft.model.json \
   --depth 10 --max-pages 100 --max-actions 4000 \
@@ -38,7 +38,7 @@ node demos/trailhead/discovery/compare.mjs \
   demos/trailhead/artifact/RUN/trailhead-draft.discovery.json
 ```
 
-Replace `RUN` with the discovery run folder printed by the CLI. These are discovery metrics, not test PASS/FAIL or verified GraphWalker coverage. Older local artifacts may have formats different from current capture output; the current tool's [reference](../../../testwalker-discover/docs/discovery.md) is authoritative.
+Replace `RUN` with the discovery run folder printed by the CLI. These are discovery metrics, not test PASS/FAIL or verified GraphWalker coverage. Older local artifacts may have formats different from current capture output; the current tool's [reference](https://github.com/mattlock83/web-discover/blob/main/docs/discovery.md) is authoritative.
 
 ## Review the generated model
 

@@ -5,11 +5,7 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const destination = fileURLToPath(new URL("../.packages/", import.meta.url));
 mkdirSync(destination, { recursive: true });
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-for (const name of [
-  "@testwalker/core",
-  "@testwalker/web",
-  "@testwalker/discover",
-]) {
+for (const name of ["@testwalker/core", "@testwalker/web"]) {
   const result = JSON.parse(
     execFileSync(
       npm,
