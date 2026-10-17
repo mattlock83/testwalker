@@ -134,7 +134,8 @@ test("Discovery script help starts no local site and needs no provider configura
       encoding: "utf8",
     });
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /no Jev or Rust needed/);
+    assert.match(result.stdout, /Web Discover/);
+    assert.match(result.stdout, /web-discover discover-url --url URL/);
     assert.ok(!result.stdout.includes("Website:"));
   }
 });

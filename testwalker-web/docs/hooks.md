@@ -49,4 +49,4 @@ The browser context starts fresh for each property attempt, then the framework r
 
 When using `page.evaluate` in a `.ts` hook, avoid sending functions containing transpiler-generated helpers to the browser. Use Playwright locators, or a self-contained JavaScript expression with safely serialized literal arguments; Trailhead illustrates the latter.
 
-Custom Hegel domains are separate exports named `input_strategy(context, defaultDomain)`, also sync or async. See [input strategies](../../core/docs/input-strategies.md). The independent discovery tool has its own hooks, documented in [discovery configuration](../../testwalker-discover/docs/discovery.md#values-and-hooks).
+Custom Hegel domains are separate exports named `input_strategy(context, defaultDomain)`, also sync or async. See [input strategies](../../core/docs/input-strategies.md). The independent web-discover tool has its own hooks, documented in [discovery configuration](https://github.com/mattlock83/web-discover/blob/main/docs/discovery.md#values-and-hooks).

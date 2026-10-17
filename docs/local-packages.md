@@ -1,12 +1,11 @@
 # Local packages
 
-The repository has three private npm packages. Demos declare them as dependencies and import their public APIs through `node_modules`. npm workspaces link the packages locally; nothing is downloaded from a registry for the Testwalker packages and nothing is published.
+The repository has two private npm packages. Demos declare them as dependencies and import their public APIs through `node_modules`. npm workspaces link the Testwalker packages locally. Discovery is provided by [web-discover](https://github.com/mattlock83/web-discover), a separate repository installed as a Git dependency for the demos.
 
 | Package                | Contents                                                                   | Public entry points                                                                               |
 | ---------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `@testwalker/core`     | Compiled Rust CLI and JSON-RPC worker for the build machine.               | `frameworkPath()`, `workerPath()`; `testwalker` and `testwalker-core` commands.                   |
 | `@testwalker/web`      | Playwright/Jev adapter and browser helpers. Depends on `@testwalker/core`. | `@testwalker/web`, `@testwalker/web/cli`; `testwalker-web` and `testwalker-web-adapter` commands. |
-| `@testwalker/discover` | Crawlee/Playwright discovery and viewer. No Rust or Jev dependency.        | `@testwalker/discover`, `@testwalker/discover/cli`; `testwalker-discover` command.                |
 
 ## Build and use in this repository
 
@@ -20,10 +19,9 @@ npm run build
 
 Prepare the key file using [the first-run guide](../README.md#build-and-run) before testing. `npm run build` first builds the two release Rust executables and copies them into `core/native/`, then builds the TypeScript packages. Generated binaries are ignored by Git. Demos never import another package's `src/` or `dist/` path and never reach into Cargo's `target/` directory. No PATH setup is required.
 
-For discovery alone, build the discovery package. Local demo hosting also needs the web package's build, but does not need the native package to be built:
+`npm ci` installs and builds the pinned web-discover dependency. Discovery alone requires neither Rust nor a decision key. Local demo hosting needs the web package's build:
 
 ```bash
-npm run build --workspace @testwalker/discover
 npm run build --workspace @testwalker/web
 ./demos/hello-world/discover.sh --headed
 ```
@@ -44,7 +42,7 @@ export function after_state(context) {
 }
 ```
 
-An executable launcher can use `main` from `@testwalker/web/cli` or `@testwalker/discover/cli`. It passes an argument array and receives an exit code. Importing the CLI does not start a run. Native integrations can import `frameworkPath()` or `workerPath()` from `@testwalker/core` and launch those binaries over the existing JSON-RPC protocol.
+An executable launcher can use `main` from `@testwalker/web/cli` or `web-discover/cli`. It passes an argument array and receives an exit code. Importing the CLI does not start a run. Native integrations can import `frameworkPath()` or `workerPath()` from `@testwalker/core` and launch those binaries over the existing JSON-RPC protocol.
 
 ## Create local archives
 
@@ -58,10 +56,9 @@ This builds the packages, then runs `npm pack` for each. It writes:
 .packages/
   testwalker-core-4.0.0.tgz
   testwalker-web-4.0.0.tgz
-  testwalker-discover-1.0.0.tgz
 ```
 
-The archives contain runtime code, declarations and documentation; the core archive also contains its two native executables. Source trees, Cargo build directories, demo sites, credentials and reports are excluded. All package manifests use `private: true`, and the Cargo package has `publish = false`. Packaging does not publish or build on installation.
+The archives contain runtime code, declarations and documentation; the core archive also contains its two native executables. Source trees, Cargo build directories, demo sites, credentials and reports are excluded. Both Testwalker package manifests use `private: true`, and the Cargo package has `publish = false`. Packaging does not publish or build on installation. web-discover is distributed separately from [its repository](https://github.com/mattlock83/web-discover).
 
 Core archives are specific to the operating system and CPU architecture where they were built. Build again on the destination platform instead of reusing an incompatible archive; the package checks for a mismatch before execution. The archive command replaces its previous archives with newly built versions.
 
@@ -71,11 +68,10 @@ Supply both core and web archives together so npm resolves the web package's cor
 
 ```bash
 npm install /absolute/path/to/testwalker/.packages/testwalker-core-4.0.0.tgz \
-  /absolute/path/to/testwalker/.packages/testwalker-web-4.0.0.tgz \
-  /absolute/path/to/testwalker/.packages/testwalker-discover-1.0.0.tgz
+  /absolute/path/to/testwalker/.packages/testwalker-web-4.0.0.tgz
 ```
 
-This installs the local Testwalker archives and their normal npm dependencies. Rust and the original checkout are not needed to run a compatible core archive. Chrome and a Jev key are still required for web execution. Discovery can be installed by itself when that is all you need. npm scripts expose the installed CLI commands, and application code imports the same package names as the demos.
+This installs the local Testwalker archives and their normal npm dependencies. Rust and the original checkout are not needed to run a compatible core archive. Chrome and a Jev key are still required for web execution. To use discovery independently, follow [web-discover's installation guide](https://github.com/mattlock83/web-discover#setup-and-first-run). npm scripts expose the installed CLI commands, and application code imports the same package names as the demos.
 
 ## Verify package isolation
 

@@ -44,7 +44,7 @@ testwalker self-test --walks 3 --input-mode all --cases 10
 testwalker self-test --output artifacts/self-test
 ```
 
-`self-test` defaults to the bundled model and the same native executable as the driver. Use `--model` or `--target` to override either. The executable you launch is the driver. `cargo run --release --manifest-path core/Cargo.toml -- self-test` also works from the repository root. The Node `testwalker-web` CLI runs browser tests; discovery has its own `testwalker-discover` command.
+`self-test` defaults to the bundled model and the same native executable as the driver. Use `--model` or `--target` to override either. The executable you launch is the driver. `cargo run --release --manifest-path core/Cargo.toml -- self-test` also works from the repository root. The Node `testwalker-web` CLI runs browser tests; discovery has its own [`web-discover`](https://github.com/mattlock83/web-discover) command.
 
 ## Test another executable
 

@@ -2,7 +2,7 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { createHash } from "node:crypto";
-import { buildModel } from "@testwalker/discover";
+import { buildModel } from "web-discover";
 
 const [output, summaryOutput, ...inputs] = process.argv.slice(2);
 if (!output || !summaryOutput || !inputs.length)

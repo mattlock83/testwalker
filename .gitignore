@@ -19,7 +19,6 @@ __pycache__/
 build/
 target/
 testwalker-web/dist/
-testwalker-discover/dist/
 
 # Locally built native package payloads and package archives.
 core/native/

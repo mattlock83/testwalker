@@ -12,7 +12,7 @@ Testwalker separates the framework from the system being tested. A model declare
 | Decision provider | Interpret evidence where needed. The shipped provider is Jev; Rust owns credentials, budgets, caching and transcripts. |
 | Web adapter       | Operate Playwright, capture browser evidence, prepare Jev questions and invoke explicit JS/TS hooks.                   |
 | RPC target        | Send JSON-RPC requests and evaluate exact response predicates, without a decision API.                                 |
-| Discovery package | Explore websites and create draft models independently of execution.                                                   |
+| [web-discover](https://github.com/mattlock83/web-discover) | Explore websites and create draft models independently of execution, from a separate repository. |
 
 ```mermaid
 sequenceDiagram
@@ -83,8 +83,7 @@ Paths below are relative to the repository root.
 | `testwalker-web/src/cli.ts`, `testwalker-web/src/main.ts`, `testwalker-web/src/adapter.ts`, `testwalker-web/src/rpc.ts`           | Web launcher and adapter transport.                                             |
 | `testwalker-web/src/browser.ts`, `testwalker-web/src/controls.ts`, `testwalker-web/src/inputs.ts`, `testwalker-web/src/oracle.ts` | Browser operations, observations and decision questions.                        |
 | `testwalker-web/src/extensions.ts`                                                                                                | Explicit hooks and custom input domain providers.                               |
-| `testwalker-discover/src/`                                                                                                        | Independent website exploration, model export and viewer.                       |
 
-The Rust core builds with Cargo alone. Its optional `@testwalker/core` Node package bundles the compiled CLI and worker, exposing executable paths and npm commands. The root npm build builds that native package before the web and discovery packages. Runtime consumers never compile Rust. The web package calls its bundled executables through JSON-RPC; discovery has no Rust dependency. Demo sites and models live in `demos/` and import the packages through `node_modules`. See [local packaging](../../docs/local-packages.md).
+The Rust core builds with Cargo alone. Its optional `@testwalker/core` Node package bundles the compiled CLI and worker, exposing executable paths and npm commands. The root npm build builds that native package before the web package. Runtime consumers never compile Rust. The web package calls its bundled executables through JSON-RPC. The separate [web-discover](https://github.com/mattlock83/web-discover) dependency is installed and built by `npm ci` for discovery demos and has no Rust dependency. Demo sites and models live in `demos/` and import the packages through `node_modules`. See [local packaging](../../docs/local-packages.md).
 
 Continue with [the CLI](cli.md), [the adapter contract](protocol.md), or [RPC testing](rpc-testing.md).

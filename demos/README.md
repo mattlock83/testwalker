@@ -4,7 +4,7 @@ Start with Hello World, then use Controls to see supported browser interactions 
 
 ## Setup
 
-Complete [the repository build](../README.md#build-and-run). Demo packages import `@testwalker/web` and `@testwalker/discover` from `node_modules`; the web package uses the native executables bundled in `@testwalker/core`. No PATH setup or direct source imports are needed. Commands below run from the repository root.
+Complete [the repository build](../README.md#build-and-run). Demo packages import `@testwalker/web` and the independent [web-discover](https://github.com/mattlock83/web-discover) package from `node_modules`; the web package uses the native executables bundled in `@testwalker/core`. `npm ci` installs web-discover from its pinned Git repository revision. No PATH setup or direct source imports are needed. Commands below run from the repository root.
 
 For each demo, copy its configuration once and set `decision.api_key` to your Jev key. For example:
 

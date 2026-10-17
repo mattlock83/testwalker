@@ -5,7 +5,6 @@
   "workspaces": [
     "core",
     "testwalker-web",
-    "testwalker-discover",
     "demos",
     "demos/hello-world",
     "demos/controls",
@@ -15,10 +14,10 @@
     "demos/saucedemo"
   ],
   "scripts": {
-    "build": "npm run build --workspace @testwalker/core && npm run build --workspace @testwalker/web && npm run build --workspace @testwalker/discover",
-    "check": "npm run check --workspace @testwalker/web && npm run check --workspace @testwalker/discover",
+    "build": "npm run build --workspace @testwalker/core && npm run build --workspace @testwalker/web",
+    "check": "npm run check --workspace @testwalker/web",
     "test": "npm run test --workspaces --if-present",
-    "format": "prettier --write \"core/node/**/*.{js,mjs,d.ts}\" \"scripts/*.mjs\" \"testwalker-{web,discover}/bin/*.js\" \"testwalker-{web,discover}/{src,tests}/**/*.ts\" \"demos/**/*.{ts,mjs}\"",
+    "format": "prettier --write \"core/node/**/*.{js,mjs,d.ts}\" \"scripts/*.mjs\" \"testwalker-web/bin/*.js\" \"testwalker-web/{src,tests}/**/*.ts\" \"demos/**/*.{ts,mjs}\"",
     "package:local": "npm run build && node scripts/package-local.mjs",
     "test:packages": "node scripts/test-local-packages.mjs"
   },
